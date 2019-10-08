@@ -45,3 +45,10 @@ azure:
   application-insights:
     web:
       enable-W3C: true
+
+cloud:
+  aws:
+    stack:
+      auto: false
+    region:
+      static: eu-west-2
