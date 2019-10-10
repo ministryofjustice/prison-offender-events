@@ -52,3 +52,26 @@ cloud:
       auto: false
     region:
       static: eu-west-2
+
+application:
+  events:
+    poll:
+      frequency: 60000
+
+elite2api:
+  client:
+    clientId: ${offender.events.client.id}
+    clientSecret: ${offender.events.client.secret}
+    accessTokenUri: ${oauth.api.base.url}/oauth/token
+    tokenName: elite2_token
+    authenticationScheme: header
+    clientAuthenticationScheme: header
+
+custodyapi:
+  client:
+    clientId: ${offender.events.client.id}
+    clientSecret: ${offender.events.client.secret}
+    accessTokenUri: ${oauth.api.base.url}/oauth/token
+    tokenName: custody_token
+    authenticationScheme: header
+    clientAuthenticationScheme: header

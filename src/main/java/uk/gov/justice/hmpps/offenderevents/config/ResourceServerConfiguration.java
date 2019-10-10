@@ -3,22 +3,24 @@ package uk.gov.justice.hmpps.offenderevents.config;
 
 import org.apache.commons.codec.binary.Base64;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.info.BuildProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
+import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.oauth2.client.DefaultOAuth2ClientContext;
 import org.springframework.security.oauth2.client.OAuth2ClientContext;
+import org.springframework.security.oauth2.client.token.grant.client.ClientCredentialsResourceDetails;
 import org.springframework.security.oauth2.config.annotation.web.configuration.ResourceServerConfigurerAdapter;
 import org.springframework.security.oauth2.config.annotation.web.configurers.ResourceServerSecurityConfigurer;
 import org.springframework.security.oauth2.provider.token.DefaultTokenServices;
 import org.springframework.security.oauth2.provider.token.TokenStore;
 import org.springframework.security.oauth2.provider.token.store.JwtAccessTokenConverter;
 import org.springframework.security.oauth2.provider.token.store.JwtTokenStore;
-import org.springframework.web.context.annotation.RequestScope;
 import springfox.documentation.builders.AuthorizationCodeGrantBuilder;
 import springfox.documentation.builders.OAuthBuilder;
 import springfox.documentation.builders.PathSelectors;
@@ -39,6 +41,7 @@ import java.util.Optional;
 @Configuration
 @EnableSwagger2
 @EnableGlobalMethodSecurity(prePostEnabled = true)
+@EnableScheduling
 public class ResourceServerConfiguration extends ResourceServerConfigurerAdapter {
 
     private final OffenderEventsProperties properties;
@@ -166,8 +169,19 @@ public class ResourceServerConfiguration extends ResourceServerConfigurerAdapter
     }
 
     @Bean
-    @RequestScope
     public OAuth2ClientContext oAuth2ClientContext() {
         return new DefaultOAuth2ClientContext();
+    }
+
+    @Bean("elite2apiDetails")
+    @ConfigurationProperties("elite2api.client")
+    public ClientCredentialsResourceDetails elite2apiDetails() {
+        return new ClientCredentialsResourceDetails();
+    }
+
+    @Bean("custodyapiDetails")
+    @ConfigurationProperties("custodyapi.client")
+    public ClientCredentialsResourceDetails custodyapiiDetails() {
+        return new ClientCredentialsResourceDetails();
     }
 }

@@ -17,16 +17,24 @@ public class OffenderEventsProperties {
     private final String elite2ApiBaseUrl;
 
     /**
-     * OAUTH2 API Rest URL endpoint ("http://localhost:9090/auth/api")
+     * Elite2 API Base URL endpoint ("http://localhost:9090")
+     */
+    private final String custodyApiBaseUrl;
+
+
+    /**
+     * OAUTH2 API Rest URL endpoint ("http://localhost:9090/auth")
      */
     private final String oauthApiBaseUrl;
 
     private final String jwtPublicKey;
 
     public OffenderEventsProperties(@Value("${elite2.api.base.url}") @URL final String elite2ApiBaseUrl,
+                                    @Value("${custody.api.base.url}") @URL final String custodyApiBaseUrl,
                                     @Value("${oauth.api.base.url}") @URL final String oauthApiBaseUrl,
                                     @Value("${jwt.public.key}") final String jwtPublicKey) {
         this.elite2ApiBaseUrl = elite2ApiBaseUrl;
+        this.custodyApiBaseUrl = custodyApiBaseUrl;
         this.oauthApiBaseUrl = oauthApiBaseUrl;
         this.jwtPublicKey = jwtPublicKey;
     }

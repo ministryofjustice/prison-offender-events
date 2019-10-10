@@ -6,10 +6,10 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
 
 @Component
-public class Elite2ApiHealth extends HealthCheck {
+public class CustodyApiHealth extends HealthCheck {
 
     @Autowired
-    public Elite2ApiHealth(@Qualifier("elite2apiHealthRestTemplate") final RestTemplate restTemplate) {
+    public CustodyApiHealth(@Qualifier("custodyapiHealthRestTemplate") final RestTemplate restTemplate) {
         super(restTemplate);
     }
 }

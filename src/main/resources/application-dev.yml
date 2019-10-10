@@ -1,4 +1,3 @@
-spring:
 
 graceful:
   shutdown:
@@ -9,4 +8,16 @@ jwt:
 elite2:
   api.base.url: ${ELITE2_API_BASE_URL:http://localhost:8080}
 oauth:
-  api.base.url: ${OAUTH_API_BASE_URL:http://localhost:9090/auth}
+  api.base.url: ${OAUTH_API_BASE_URL:https://localhost:9090/auth}
+custody:
+  api.base.url: ${CUSTODY_API_BASE_URL:http://localhost:9090}
+
+elite2api:
+  client:
+    clientId: ${OFFENDER_EVENTS_CLIENT_ID:risk-profiler}
+    clientSecret: ${OFFENDER_EVENTS_CLIENT_SECRET:clientsecret}
+
+custodyapi:
+  client:
+    clientId: ${OFFENDER_EVENTS_CLIENT_ID:risk-profiler}
+    clientSecret: ${OFFENDER_EVENTS_CLIENT_SECRET:clientsecret}
