@@ -17,20 +17,21 @@ public class ExternalApiService {
 
     private final OAuth2RestTemplate custodyapiRestTemplate;
 
-    public List<OffenderEvent> getEvents(final LocalDateTime fromDateTime) {
-        final var uri = getEventUriBuilder(fromDateTime).build().toUri();
+    public List<OffenderEvent> getEvents(final LocalDateTime fromDateTime, final LocalDateTime toDateTime) {
+        final var uri = getEventUriBuilder(fromDateTime, toDateTime).build().toUri();
         final var response = custodyapiRestTemplate.exchange(uri, HttpMethod.GET, null, new ParameterizedTypeReference<List<OffenderEvent>>() {
         });
         return response.getBody();
     }
 
-    private UriComponentsBuilder getEventUriBuilder(final LocalDateTime fromDateTime) {
+    private UriComponentsBuilder getEventUriBuilder(final LocalDateTime fromDateTime, final LocalDateTime toDateTime) {
         // bit naff, but the template handler holds the root uri that we need, so have to create a uri from it to then pass to the builder
 
         final var uri = custodyapiRestTemplate.getUriTemplateHandler().expand("/events").normalize();
         return UriComponentsBuilder.fromUri(uri)
                 .queryParam("sortBy", "TIMESTAMP_ASC")
-                .queryParam("from", fromDateTime);
+                .queryParam("from", fromDateTime)
+                .queryParam("to", toDateTime);
     }
 
 }

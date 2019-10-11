@@ -4,12 +4,12 @@ Publishes Events about offender change to Pub / Sub Topics
 
 ## Running localstack
 ```bash
-TMPDIR=/private$TMPDIR docker-compose start localstack
+TMPDIR=/private$TMPDIR docker-compose up localstack
 ```
 
 ## Running postgres
 ```bash
-docker-compose start offender-events-db
+docker-compose up offender-events-db
 ```
 
 ## Creating a topic and queue on localstack

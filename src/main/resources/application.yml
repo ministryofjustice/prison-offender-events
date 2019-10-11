@@ -86,6 +86,9 @@ cloud:
 
 application:
   events:
+    max:
+      range:
+        hours: 1
     poll:
       frequency: 60000
 
