@@ -3,6 +3,7 @@ package uk.gov.justice.hmpps.offenderevents.schedule;
 import com.microsoft.applicationinsights.TelemetryClient;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import net.javacrumbs.shedlock.core.SchedulerLock;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import uk.gov.justice.hmpps.offenderevents.services.EventRetrievalService;
@@ -19,7 +20,8 @@ public class EventScheduler {
 
     @Scheduled(
             fixedDelayString = "${application.events.poll.frequency}",
-            initialDelayString = "${random.int[5000,${application.events.poll.frequency}]}")
+            initialDelayString = "2000")
+    @SchedulerLock(name = "pollEventsLock")
     public void pollEvents() {
         try {
             final var eventsFrom = LocalDateTime.now().minusMinutes(1);

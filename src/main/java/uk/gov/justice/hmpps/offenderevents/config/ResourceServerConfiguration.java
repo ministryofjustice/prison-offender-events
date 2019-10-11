@@ -1,6 +1,9 @@
 package uk.gov.justice.hmpps.offenderevents.config;
 
 
+import net.javacrumbs.shedlock.core.LockProvider;
+import net.javacrumbs.shedlock.provider.jdbctemplate.JdbcTemplateLockProvider;
+import net.javacrumbs.shedlock.spring.annotation.EnableSchedulerLock;
 import org.apache.commons.codec.binary.Base64;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.context.properties.ConfigurationProperties;
@@ -31,6 +34,7 @@ import springfox.documentation.spi.service.contexts.SecurityContext;
 import springfox.documentation.spring.web.plugins.Docket;
 import springfox.documentation.swagger2.annotations.EnableSwagger2;
 
+import javax.sql.DataSource;
 import java.time.LocalDateTime;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
@@ -42,6 +46,7 @@ import java.util.Optional;
 @EnableSwagger2
 @EnableGlobalMethodSecurity(prePostEnabled = true)
 @EnableScheduling
+@EnableSchedulerLock(defaultLockAtLeastFor = "PT10S", defaultLockAtMostFor = "PT12H")
 public class ResourceServerConfiguration extends ResourceServerConfigurerAdapter {
 
     private final OffenderEventsProperties properties;
@@ -183,5 +188,10 @@ public class ResourceServerConfiguration extends ResourceServerConfigurerAdapter
     @ConfigurationProperties("custodyapi.client")
     public ClientCredentialsResourceDetails custodyapiiDetails() {
         return new ClientCredentialsResourceDetails();
+    }
+
+    @Bean
+    public LockProvider lockProvider(DataSource dataSource) {
+        return new JdbcTemplateLockProvider(dataSource);
     }
 }

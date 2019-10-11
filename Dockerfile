@@ -11,6 +11,11 @@ RUN ln -snf "/usr/share/zoneinfo/$TZ" /etc/localtime && echo "$TZ" > /etc/timezo
 RUN addgroup --gid 2000 --system appgroup && \
     adduser --uid 2000 --system appuser --gid 2000
 
+# Install AWS RDS Root cert into Java truststore
+RUN mkdir /home/appuser/.postgresql \
+  && curl https://s3.amazonaws.com/rds-downloads/rds-ca-2015-root.pem \
+    > /home/appuser/.postgresql/root.crt
+
 WORKDIR /app
 
 COPY --chown=appuser:appgroup build/libs/offender-events*.jar /app/app.jar

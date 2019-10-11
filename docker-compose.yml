@@ -1,0 +1,108 @@
+version: "3"
+services:
+  offender-events:
+    image: mojdigitalstudio/offender-events:latest
+    networks:
+      - hmpps
+    container_name: offender-events
+    depends_on:
+      - offender-events-db
+      - localstack
+      - custody-api
+    ports:
+      - "8084:8080"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
+    environment:
+      - SERVER_PORT=8080
+      - DATABASE_ENDPOINT=offender-events-db/offender-events-db
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://offender-events-db/offender-events-db
+      - DATABASE_USERNAME=offender-events
+      - DATABASE_PASSWORD=offender-events
+      - SUPERUSER_USERNAME=admin
+      - SUPERUSER_PASSWORD=admin_password
+      - CUSTODY_API_BASE_URL=http://custody-api:8080
+      - ELITE2_API_BASE_URL=http://elite2-api:8080
+      - OAUTH_API_BASE_URL=http://oauth:8080/auth
+      - SPRING_PROFILES_ACTIVE=postgres,localstack,stdout
+      - JWT_PUBLIC_KEY=LS0tLS1CRUdJTiBQVUJMSUMgS0VZLS0tLS0NCk1JSUJJakFOQmdrcWhraUc5dzBCQVFFRkFBT0NBUThBTUlJQkNnS0NBUUVBc09QQXRzUUFEZGJSdS9FSDZMUDUNCkJNMS9tRjQwVkRCbjEyaEpTWFBQZDVXWUswSExZMjBWTTdBeHhSOW1uWUNGNlNvMVd0N2ZHTnFVeC9XeWVtQnANCklKTnJzLzdEendnM3V3aVF1Tmg0ektSK0VHeFdiTHdpM3l3N2xYUFV6eFV5QzV4dDg4ZS83dk8rbHoxb0NuaXoNCmpoNG14TkFtczZaWUY3cWZuaEpFOVd2V1B3TExrb2prWnUxSmR1c0xhVm93TjdHVEdOcE1FOGR6ZUprYW0wZ3ANCjRveEhRR2hNTjg3SzZqcVgzY0V3TzZEdmhlbWc4d2hzOTZuelFsOG4yTEZ2QUsydXA5UHJyOUdpMkxGZ1R0N0sNCnFYQTA2a0M0S2d3MklSMWVGZ3pjQmxUT0V3bXpqcmU2NUhvTmFKQnI5dU5aelY1c0lMUE1jenpoUWovZk1oejMNCi9RSURBUUFCDQotLS0tLUVORCBQVUJMSUMgS0VZLS0tLS0=
+
+  custody-api:
+    image: mojdigitalstudio/custody-api:latest
+    networks:
+      - hmpps
+    container_name: custody-api
+    depends_on:
+      - oauth
+    ports:
+      - "8081:8080"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
+    environment:
+      - SERVER_PORT=8080
+      - SPRING_PROFILES_ACTIVE=dev
+
+  elite2-api:
+    image: mojdigitalstudio/elite2-api:latest
+    networks:
+      - hmpps
+    container_name: elite2-api
+    depends_on:
+      - oauth
+    ports:
+      - "8080:8080"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
+    environment:
+      - SERVER_PORT=8080
+      - SPRING_PROFILES_ACTIVE=nomis-hsqldb
+
+  oauth:
+    image: mojdigitalstudio/nomis-oauth2-server:latest
+    networks:
+      - hmpps
+    container_name: oauth
+    ports:
+      - "9090:8080"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/auth/health"]
+    environment:
+      - SERVER_PORT=8080
+      - SPRING_PROFILES_ACTIVE=dev
+
+  localstack:
+    image: localstack/localstack
+    networks:
+      - hmpps
+    container_name: localstack
+    ports:
+      - "4567-4597:4567-4597"
+      - 8999:8080
+    environment:
+      - DEBUG=${DEBUG- }
+      - DATA_DIR=${DATA_DIR- }
+      - PORT_WEB_UI=${PORT_WEB_UI- }
+      - LAMBDA_EXECUTOR=${LAMBDA_EXECUTOR- }
+      - KINESIS_ERROR_PROBABILITY=${KINESIS_ERROR_PROBABILITY- }
+      - DOCKER_HOST=unix:///var/run/docker.sock
+      - AWS_EXECUTION_ENV=True
+      - DEFAULT_REGION=eu-west-2
+    volumes:
+      - "${TMPDIR:-/tmp/localstack}:/tmp/localstack"
+      - "/var/run/docker.sock:/var/run/docker.sock"
+
+  offender-events-db:
+    image: postgres
+    networks:
+      - hmpps
+    container_name: offender-events-db
+    restart: always
+    ports:
+      - "5432:5432"
+    environment:
+      - POSTGRES_PASSWORD=admin_password
+      - POSTGRES_USER=admin
+      - POSTGRES_DB=offender-events-db
+
+networks:
+  hmpps:
