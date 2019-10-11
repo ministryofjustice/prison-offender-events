@@ -1,5 +1,6 @@
 package uk.gov.justice.hmpps.offenderevents.model;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import io.swagger.annotations.ApiModel;
 import lombok.*;
 
@@ -7,12 +8,13 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 @ApiModel(description = "Offender Event")
+@JsonInclude(JsonInclude.Include.NON_NULL)
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-@EqualsAndHashCode
-@ToString
+@EqualsAndHashCode(of = { "eventId", "eventType", "eventDatetime" })
+@ToString(of = { "eventId", "eventType", "eventDatetime", "nomisEventType", "rootOffenderId", "offenderId", "offenderIdDisplay", "bookingId", "bookingNumber", "previousBookingNumber", "fromAgencyLocationId", "toAgencyLocationId" })
 public class OffenderEvent {
 
     private String eventId;

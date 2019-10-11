@@ -22,10 +22,9 @@ services:
       - SUPERUSER_USERNAME=admin
       - SUPERUSER_PASSWORD=admin_password
       - CUSTODY_API_BASE_URL=http://custody-api:8080
-      - ELITE2_API_BASE_URL=http://elite2-api:8080
+#      - ELITE2_API_BASE_URL=http://elite2-api:8080
       - OAUTH_API_BASE_URL=http://oauth:8080/auth
-      - SPRING_PROFILES_ACTIVE=postgres,localstack,stdout
-      - JWT_PUBLIC_KEY=LS0tLS1CRUdJTiBQVUJMSUMgS0VZLS0tLS0NCk1JSUJJakFOQmdrcWhraUc5dzBCQVFFRkFBT0NBUThBTUlJQkNnS0NBUUVBc09QQXRzUUFEZGJSdS9FSDZMUDUNCkJNMS9tRjQwVkRCbjEyaEpTWFBQZDVXWUswSExZMjBWTTdBeHhSOW1uWUNGNlNvMVd0N2ZHTnFVeC9XeWVtQnANCklKTnJzLzdEendnM3V3aVF1Tmg0ektSK0VHeFdiTHdpM3l3N2xYUFV6eFV5QzV4dDg4ZS83dk8rbHoxb0NuaXoNCmpoNG14TkFtczZaWUY3cWZuaEpFOVd2V1B3TExrb2prWnUxSmR1c0xhVm93TjdHVEdOcE1FOGR6ZUprYW0wZ3ANCjRveEhRR2hNTjg3SzZqcVgzY0V3TzZEdmhlbWc4d2hzOTZuelFsOG4yTEZ2QUsydXA5UHJyOUdpMkxGZ1R0N0sNCnFYQTA2a0M0S2d3MklSMWVGZ3pjQmxUT0V3bXpqcmU2NUhvTmFKQnI5dU5aelY1c0lMUE1jenpoUWovZk1oejMNCi9RSURBUUFCDQotLS0tLUVORCBQVUJMSUMgS0VZLS0tLS0=
+      - SPRING_PROFILES_ACTIVE=postgres,localstack,dev
 
   custody-api:
     image: mojdigitalstudio/custody-api:latest
@@ -42,20 +41,20 @@ services:
       - SERVER_PORT=8080
       - SPRING_PROFILES_ACTIVE=dev
 
-  elite2-api:
-    image: mojdigitalstudio/elite2-api:latest
-    networks:
-      - hmpps
-    container_name: elite2-api
-    depends_on:
-      - oauth
-    ports:
-      - "8080:8080"
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
-    environment:
-      - SERVER_PORT=8080
-      - SPRING_PROFILES_ACTIVE=nomis-hsqldb
+#  elite2-api:
+#    image: mojdigitalstudio/elite2-api:latest
+#    networks:
+#      - hmpps
+#    container_name: elite2-api
+#    depends_on:
+#      - oauth
+#    ports:
+#      - "8080:8080"
+#    healthcheck:
+#      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
+#    environment:
+#      - SERVER_PORT=8080
+#      - SPRING_PROFILES_ACTIVE=nomis-hsqldb
 
   oauth:
     image: mojdigitalstudio/nomis-oauth2-server:latest
