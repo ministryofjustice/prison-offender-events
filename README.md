@@ -27,7 +27,9 @@ Results in:
 ```
 
 ## Creating a queue
-```aws --endpoint-url=http://localhost:4576 sqs create-queue --queue-name event_queue```
+```bash
+aws --endpoint-url=http://localhost:4576 sqs create-queue --queue-name event_queue
+```
 
 Results in:
 ```json
