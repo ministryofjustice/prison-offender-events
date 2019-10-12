@@ -16,9 +16,6 @@ env:
   - name: CUSTODY_API_BASE_URL
     value: "{{ .Values.env.CUSTODY_API_BASE_URL }}"
 
-  - name: ELITE2_API_BASE_URL
-    value: "{{ .Values.env.ELITE2_API_BASE_URL }}"
-
   - name: OAUTH_API_BASE_URL
     value: "{{ .Values.env.OAUTH_API_BASE_URL }}"
 

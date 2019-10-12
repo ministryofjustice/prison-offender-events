@@ -178,12 +178,6 @@ public class ResourceServerConfiguration extends ResourceServerConfigurerAdapter
         return new DefaultOAuth2ClientContext();
     }
 
-    @Bean("elite2apiDetails")
-    @ConfigurationProperties("elite2api.client")
-    public ClientCredentialsResourceDetails elite2apiDetails() {
-        return new ClientCredentialsResourceDetails();
-    }
-
     @Bean("custodyapiDetails")
     @ConfigurationProperties("custodyapi.client")
     public ClientCredentialsResourceDetails custodyapiiDetails() {

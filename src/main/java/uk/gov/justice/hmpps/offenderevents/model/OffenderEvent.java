@@ -14,7 +14,7 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @Builder
 @EqualsAndHashCode(of = { "eventId", "eventType", "eventDatetime" })
-@ToString(of = { "eventId", "eventType", "eventDatetime", "nomisEventType", "rootOffenderId", "offenderId", "offenderIdDisplay", "bookingId", "bookingNumber", "previousBookingNumber", "fromAgencyLocationId", "toAgencyLocationId" })
+@ToString(of = { "eventType", "eventDatetime", "offenderIdDisplay", "bookingId" })
 public class OffenderEvent {
 
     private String eventId;

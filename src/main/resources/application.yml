@@ -68,10 +68,6 @@ management:
       cache:
         time-to-live: 2000ms
 
-graceful:
-  shutdown:
-    enabled: true
-
 azure:
   application-insights:
     web:
@@ -91,15 +87,6 @@ application:
         hours: 1
     poll:
       frequency: 60000
-
-elite2api:
-  client:
-    clientId: ${offender.events.client.id}
-    clientSecret: ${offender.events.client.secret}
-    accessTokenUri: ${oauth.api.base.url}/oauth/token
-    tokenName: elite2_token
-    authenticationScheme: header
-    clientAuthenticationScheme: header
 
 custodyapi:
   client:

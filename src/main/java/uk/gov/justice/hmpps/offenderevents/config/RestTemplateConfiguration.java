@@ -1,11 +1,11 @@
 package uk.gov.justice.hmpps.offenderevents.config;
 
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.boot.web.client.RootUriTemplateHandler;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.http.client.ClientHttpRequestInterceptor;
 import org.springframework.security.oauth2.client.OAuth2ClientContext;
 import org.springframework.security.oauth2.client.OAuth2RestTemplate;
 import org.springframework.security.oauth2.client.token.grant.client.ClientCredentialsAccessTokenProvider;
@@ -14,26 +14,25 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestOperations;
 import org.springframework.web.client.RestTemplate;
 import uk.gov.justice.hmpps.offenderevents.utils.JwtAuthInterceptor;
-import uk.gov.justice.hmpps.offenderevents.utils.W3cTracingInterceptor;
 
-import java.util.List;
+import java.time.Duration;
 
 @Configuration
 public class RestTemplateConfiguration {
 
     private final OffenderEventsProperties properties;
     private final OAuth2ClientContext oauth2ClientContext;
-    private final ClientCredentialsResourceDetails elite2apiDetails;
     private final ClientCredentialsResourceDetails custodyapiDetails;
+    private final Duration healthTimeout;
 
     public RestTemplateConfiguration(final OffenderEventsProperties properties,
                                      final OAuth2ClientContext oauth2ClientContext,
-                                     @Qualifier("elite2apiDetails") final ClientCredentialsResourceDetails elite2apiDetails,
-                                     @Qualifier("custodyapiDetails") final ClientCredentialsResourceDetails custodyapiDetails) {
+                                     @Qualifier("custodyapiDetails") final ClientCredentialsResourceDetails custodyapiDetails,
+                                     @Value("${api.health-timeout:1s}") final Duration healthTimeout) {
         this.properties = properties;
         this.oauth2ClientContext = oauth2ClientContext;
-        this.elite2apiDetails = elite2apiDetails;
         this.custodyapiDetails = custodyapiDetails;
+        this.healthTimeout = healthTimeout;
     }
 
     @Bean(name = "oauthApiRestTemplate")
@@ -41,19 +40,9 @@ public class RestTemplateConfiguration {
         return getRestTemplate(restTemplateBuilder, properties.getOauthApiBaseUrl());
     }
 
-    @Bean(name = "elite2apiHealthRestTemplate")
-    public RestTemplate elite2apiHealthRestTemplate(final RestTemplateBuilder restTemplateBuilder) {
-        return getRestTemplate(restTemplateBuilder, properties.getElite2ApiBaseUrl());
-    }
-
     @Bean(name = "custodyapiHealthRestTemplate")
     public RestTemplate custodyapiHealthRestTemplate(final RestTemplateBuilder restTemplateBuilder) {
-        return getRestTemplate(restTemplateBuilder, properties.getCustodyApiBaseUrl());
-    }
-
-    @Bean(name = "elite2apiRestTemplate")
-    public OAuth2RestTemplate elite2apiRestTemplate(final GatewayAwareAccessTokenProvider accessTokenProvider) {
-        return getAuth2RestTemplate(accessTokenProvider, elite2apiDetails, properties.getElite2ApiBaseUrl() + "/api");
+        return getHealthRestTemplate(restTemplateBuilder, properties.getCustodyApiBaseUrl());
     }
 
     @Bean(name = "custodyapiRestTemplate")
@@ -62,34 +51,34 @@ public class RestTemplateConfiguration {
     }
 
     private OAuth2RestTemplate getAuth2RestTemplate(final GatewayAwareAccessTokenProvider accessTokenProvider, final ClientCredentialsResourceDetails clientCredentialsResourceDetails, final String rootUri) {
-        final var elite2SystemRestTemplate = new OAuth2RestTemplate(clientCredentialsResourceDetails, oauth2ClientContext);
-        final var systemInterceptors = elite2SystemRestTemplate.getInterceptors();
-        systemInterceptors.add(new W3cTracingInterceptor());
+        final var systemRestTemplate = new OAuth2RestTemplate(clientCredentialsResourceDetails, oauth2ClientContext);
+        systemRestTemplate.setAccessTokenProvider(accessTokenProvider);
 
-        elite2SystemRestTemplate.setAccessTokenProvider(accessTokenProvider);
-
-        RootUriTemplateHandler.addTo(elite2SystemRestTemplate, rootUri);
-        return elite2SystemRestTemplate;
+        RootUriTemplateHandler.addTo(systemRestTemplate, rootUri);
+        return systemRestTemplate;
     }
 
     private RestTemplate getRestTemplate(final RestTemplateBuilder restTemplateBuilder, final String uri) {
         return restTemplateBuilder
                 .rootUri(uri)
-                .additionalInterceptors(getRequestInterceptors())
+                .additionalInterceptors(new JwtAuthInterceptor())
                 .build();
     }
 
-    private List<ClientHttpRequestInterceptor> getRequestInterceptors() {
-        return List.of(
-                new W3cTracingInterceptor(),
-                new JwtAuthInterceptor());
+    private RestTemplate getHealthRestTemplate(final RestTemplateBuilder restTemplateBuilder, final String uri) {
+        return restTemplateBuilder
+                .rootUri(uri)
+                .additionalInterceptors(new JwtAuthInterceptor())
+                .setConnectTimeout(healthTimeout)
+                .setReadTimeout(healthTimeout)
+                .build();
     }
 
     /**
      * This subclass is necessary to make OAuth2AccessTokenSupport.getRestTemplate() public
      */
     @Component("accessTokenProvider")
-    public class GatewayAwareAccessTokenProvider extends ClientCredentialsAccessTokenProvider {
+    public static class GatewayAwareAccessTokenProvider extends ClientCredentialsAccessTokenProvider {
         @Override
         public RestOperations getRestTemplate() {
             return super.getRestTemplate();

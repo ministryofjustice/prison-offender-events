@@ -12,6 +12,7 @@ import java.time.temporal.ChronoUnit;
 import java.util.Comparator;
 
 import static java.time.LocalDateTime.now;
+import static java.time.temporal.ChronoUnit.MICROS;
 import static java.time.temporal.ChronoUnit.MILLIS;
 
 @Service
@@ -61,7 +62,7 @@ public class EventRetrievalService {
                 .getEventDatetime();
 
         audit.setNumberOfRecords(events.size());
-        audit.setNextRunTime(lastEventTime.plus(1, MILLIS)); // add 1 ms to last record.
+        audit.setNextRunTime(lastEventTime.plus(1, MICROS)); // add 1 micro sec to last record.
         repository.save(audit);
 
         log.debug("Recording Event Poll {}", audit);

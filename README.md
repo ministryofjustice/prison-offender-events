@@ -2,15 +2,18 @@
 Publishes Events about offender change to Pub / Sub Topics
 
 
-## Running localstack
+## Running localstack and database
 ```bash
-TMPDIR=/private$TMPDIR docker-compose up localstack
+TMPDIR=/private$TMPDIR docker-compose up localstack offender-events-db
 ```
 
-## Running postgres
+## Creating the Topic and Queue
+Simpliest way is running the following script
 ```bash
-docker-compose up offender-events-db
+./setup-sns.bash
 ```
+
+Or you can run the scripts individually as shown below.
 
 ## Creating a topic and queue on localstack
 

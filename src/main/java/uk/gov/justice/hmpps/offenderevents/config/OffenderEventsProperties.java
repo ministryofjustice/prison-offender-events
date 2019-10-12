@@ -12,12 +12,7 @@ import org.springframework.validation.annotation.Validated;
 public class OffenderEventsProperties {
 
     /**
-     * Elite2 API Base URL endpoint ("http://localhost:8080")
-     */
-    private final String elite2ApiBaseUrl;
-
-    /**
-     * Elite2 API Base URL endpoint ("http://localhost:9090")
+     * Custody API Base URL endpoint ("http://localhost:8081")
      */
     private final String custodyApiBaseUrl;
 
@@ -29,11 +24,9 @@ public class OffenderEventsProperties {
 
     private final String jwtPublicKey;
 
-    public OffenderEventsProperties(@Value("${elite2.api.base.url}") @URL final String elite2ApiBaseUrl,
-                                    @Value("${custody.api.base.url}") @URL final String custodyApiBaseUrl,
+    public OffenderEventsProperties(@Value("${custody.api.base.url}") @URL final String custodyApiBaseUrl,
                                     @Value("${oauth.api.base.url}") @URL final String oauthApiBaseUrl,
                                     @Value("${jwt.public.key}") final String jwtPublicKey) {
-        this.elite2ApiBaseUrl = elite2ApiBaseUrl;
         this.custodyApiBaseUrl = custodyApiBaseUrl;
         this.oauthApiBaseUrl = oauthApiBaseUrl;
         this.jwtPublicKey = jwtPublicKey;
