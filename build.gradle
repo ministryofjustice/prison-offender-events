@@ -2,13 +2,12 @@ import org.springframework.boot.gradle.plugin.SpringBootPlugin
 
 import java.time.Instant
 import java.time.LocalDate
-import java.time.format.DateTimeFormatter
 
 plugins {
     id 'java'
     id 'org.springframework.boot' version '2.1.9.RELEASE'
     id 'io.spring.dependency-management' version '1.0.8.RELEASE'
-    id 'com.github.ben-manes.versions' version '0.25.0'
+    id 'com.github.ben-manes.versions' version '0.26.0'
 }
 
 repositories {
@@ -16,21 +15,24 @@ repositories {
     mavenCentral()
 }
 
+configurations {
+    agentDeps
+    agentDeps.transitive = false
+}
+
 project.sourceCompatibility = 11
 project.targetCompatibility = 11
 
-def today = Instant.now()
-group = 'uk.gov.justice.hmpps'
+group = 'uk.gov.justice.digital.hmpps'
 
-def todayDate = LocalDate.now()
-def formatter = DateTimeFormatter.ofPattern('yyyy-MM-dd')
-version todayDate.format(formatter)
+def today = Instant.now()
+def todaysDate = LocalDate.now().format('yyyy-MM-dd')
+version = System.getenv('CI') ? "${todaysDate}.${System.getenv('CIRCLE_BUILD_NUM')}" : todaysDate
 
 jar {
     baseName = rootProject.name
     manifest {
-        attributes 'Implementation-Title': rootProject.name,
-                'Implementation-Version': System.getenv('CI') ? "${version}.${System.getenv('CIRCLE_BUILD_NUM')}" : version
+        attributes 'Implementation-Title': rootProject.name, 'Implementation-Version': version
     }
 }
 
@@ -38,8 +40,8 @@ springBoot {
     buildInfo {
         properties {
             artifact = rootProject.name
-            version = System.getenv('CI') ? "${version}.${System.getenv('CIRCLE_BUILD_NUM')}" : version
-            group = 'uk.gov.justice.hmpps'
+            version = version
+            group = group
             name = rootProject.name
             time = today
             additional = [
@@ -64,14 +66,14 @@ dependencyManagement {
 
 dependencies {
     annotationProcessor 'org.springframework.boot:spring-boot-configuration-processor'
-    annotationProcessor 'org.projectlombok:lombok:1.18.8'
+    annotationProcessor 'org.projectlombok:lombok:1.18.10'
 
     runtime 'com.h2database:h2:1.4.199'
     runtime 'org.flywaydb:flyway-core:5.2.4'
-    runtime 'org.postgresql:postgresql:42.2.6'
+    runtime 'org.postgresql:postgresql:42.2.8'
 
     implementation 'org.springframework.boot:spring-boot-starter-web'
-    compileOnly 'org.projectlombok:lombok:1.18.8'
+    compileOnly 'org.projectlombok:lombok:1.18.10'
 
     implementation 'org.springframework.boot:spring-boot-starter-actuator'
     implementation 'org.springframework.boot:spring-boot-starter-cache'
@@ -82,13 +84,14 @@ dependencies {
     implementation 'org.springframework.security:spring-security-jwt:1.0.10.RELEASE'
     implementation("org.springframework.cloud:spring-cloud-starter-aws-messaging:2.1.3.RELEASE")
     implementation 'net.logstash.logback:logstash-logback-encoder:6.2'
-    implementation 'com.microsoft.azure:applicationinsights-spring-boot-starter:2.5.0'
-    implementation 'com.microsoft.azure:applicationinsights-logging-logback:2.5.0'
+    implementation 'com.microsoft.azure:applicationinsights-spring-boot-starter:2.5.1-BETA'
+    implementation 'com.microsoft.azure:applicationinsights-logging-logback:2.5.1-BETA'
+    agentDeps 'com.microsoft.azure:applicationinsights-agent:2.5.1-BETA'
+
     implementation 'com.github.timpeeters:spring-boot-graceful-shutdown:2.1.1'
 
-    implementation 'net.javacrumbs.shedlock:shedlock-spring:2.5.0'
-    implementation 'net.javacrumbs.shedlock:shedlock-provider-jdbc-template:2.5.0'
-
+    implementation 'net.javacrumbs.shedlock:shedlock-spring:3.0.0'
+    implementation 'net.javacrumbs.shedlock:shedlock-provider-jdbc-template:3.0.0'
 
     implementation 'javax.annotation:javax.annotation-api:1.3.2'
     implementation 'javax.xml.bind:jaxb-api:2.3.1'
@@ -105,17 +108,26 @@ dependencies {
     implementation 'net.sf.ehcache:ehcache:2.10.6'
     implementation 'org.apache.commons:commons-lang3:3.9'
     implementation 'org.apache.commons:commons-text:1.8'
-    implementation 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.9.9'
+    implementation 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.10.0'
     implementation 'com.pauldijou:jwt-core_2.11:4.1.0'
-    implementation 'com.google.code.gson:gson:2.8.5'
+    implementation 'com.google.code.gson:gson:2.8.6'
 
     testAnnotationProcessor 'org.springframework.boot:spring-boot-configuration-processor'
-    testAnnotationProcessor 'org.projectlombok:lombok:1.18.8'
-    testCompileOnly 'org.projectlombok:lombok:1.18.8'
+    testAnnotationProcessor 'org.projectlombok:lombok:1.18.10'
+    testCompileOnly 'org.projectlombok:lombok:1.18.10'
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
     testImplementation 'org.springframework.security:spring-security-test'
     testImplementation 'com.tngtech.java:junit-dataprovider:1.13.1'
-    testImplementation 'net.javacrumbs.json-unit:json-unit-assertj:2.8.1'
+    testImplementation 'net.javacrumbs.json-unit:json-unit-assertj:2.9.0'
     testImplementation 'io.github.http-builder-ng:http-builder-ng-apache:1.0.4'
-    testImplementation 'com.github.tomakehurst:wiremock-standalone:2.24.1'
+    testImplementation 'com.github.tomakehurst:wiremock-standalone:2.25.0'
+
+    compile configurations.agentDeps
 }
+
+task copyAgent(type: Copy) {
+    from configurations.agentDeps
+    into "$buildDir/libs"
+}
+
+assemble.dependsOn copyAgent

@@ -5,7 +5,6 @@ import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.boot.web.client.RootUriTemplateHandler;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.http.client.ClientHttpRequestInterceptor;
 import org.springframework.security.oauth2.client.OAuth2ClientContext;
 import org.springframework.security.oauth2.client.OAuth2RestTemplate;
 import org.springframework.security.oauth2.client.token.grant.client.ClientCredentialsAccessTokenProvider;
@@ -14,9 +13,6 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestOperations;
 import org.springframework.web.client.RestTemplate;
 import uk.gov.justice.hmpps.offenderevents.utils.JwtAuthInterceptor;
-import uk.gov.justice.hmpps.offenderevents.utils.W3cTracingInterceptor;
-
-import java.util.List;
 
 @Configuration
 public class RestTemplateConfiguration {
@@ -63,8 +59,6 @@ public class RestTemplateConfiguration {
 
     private OAuth2RestTemplate getAuth2RestTemplate(final GatewayAwareAccessTokenProvider accessTokenProvider, final ClientCredentialsResourceDetails clientCredentialsResourceDetails, final String rootUri) {
         final var elite2SystemRestTemplate = new OAuth2RestTemplate(clientCredentialsResourceDetails, oauth2ClientContext);
-        final var systemInterceptors = elite2SystemRestTemplate.getInterceptors();
-        systemInterceptors.add(new W3cTracingInterceptor());
 
         elite2SystemRestTemplate.setAccessTokenProvider(accessTokenProvider);
 
@@ -75,21 +69,15 @@ public class RestTemplateConfiguration {
     private RestTemplate getRestTemplate(final RestTemplateBuilder restTemplateBuilder, final String uri) {
         return restTemplateBuilder
                 .rootUri(uri)
-                .additionalInterceptors(getRequestInterceptors())
+                .additionalInterceptors(new JwtAuthInterceptor())
                 .build();
-    }
-
-    private List<ClientHttpRequestInterceptor> getRequestInterceptors() {
-        return List.of(
-                new W3cTracingInterceptor(),
-                new JwtAuthInterceptor());
     }
 
     /**
      * This subclass is necessary to make OAuth2AccessTokenSupport.getRestTemplate() public
      */
     @Component("accessTokenProvider")
-    public class GatewayAwareAccessTokenProvider extends ClientCredentialsAccessTokenProvider {
+    public static class GatewayAwareAccessTokenProvider extends ClientCredentialsAccessTokenProvider {
         @Override
         public RestOperations getRestTemplate() {
             return super.getRestTemplate();
