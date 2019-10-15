@@ -11,6 +11,8 @@ import org.springframework.cloud.aws.messaging.core.TopicMessageChannel;
 import org.springframework.stereotype.Service;
 import uk.gov.justice.hmpps.offenderevents.model.OffenderEvent;
 
+import java.util.Map;
+
 @Service
 @Slf4j
 public class SnsService {
@@ -32,7 +34,8 @@ public class SnsService {
 
     public void sendEvent(final OffenderEvent payload) {
         try {
-            topicTemplate.convertAndSend(new TopicMessageChannel(amazonSns, topicArn), objectMapper.writeValueAsString(payload));
+            topicTemplate.convertAndSend(new TopicMessageChannel(amazonSns, topicArn), objectMapper.writeValueAsString(payload),
+                    Map.of("eventType", payload.getEventType()));
         } catch (JsonProcessingException e) {
             log.error("Failed to convert payload {} to json", payload);
         }

@@ -44,7 +44,7 @@ env:
     valueFrom:
       secretKeyRef:
         name: dps-rds-instance-output
-        key: risk_profiler_password
+        key: offender_events_password
 
   - name: SUPERUSER_USERNAME
     valueFrom:
