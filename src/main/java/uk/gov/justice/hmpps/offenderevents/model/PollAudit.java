@@ -13,7 +13,7 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-@EqualsAndHashCode(of = {"pollName"})
+@EqualsAndHashCode(of = {"pollName", "nextRunTime", "numberOfRecords"})
 @ToString
 public class PollAudit {
 
