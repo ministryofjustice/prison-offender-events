@@ -20,7 +20,7 @@ import static java.time.temporal.ChronoUnit.MILLIS;
 @Transactional
 public class EventRetrievalService {
 
-    private static final String POLL_NAME = "offenderEvents";
+    public static final String POLL_NAME = "offenderEvents";
 
     private final ExternalApiService externalApiService;
     private final SnsService snsService;
