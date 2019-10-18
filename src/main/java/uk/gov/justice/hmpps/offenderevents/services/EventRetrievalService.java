@@ -52,7 +52,7 @@ public class EventRetrievalService {
 
         log.debug("Getting events between {} and {}", audit.getNextRunTime(), endTime);
         final var events = externalApiService.getEvents(audit.getNextRunTime(), endTime);
-        log.debug("There are {} events {}", events.size(), events);
+        log.debug("There are {} events", events.size());
 
         events.forEach(snsService::sendEvent);
 
