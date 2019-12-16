@@ -61,6 +61,7 @@ orbs:
   aws-cli: circleci/aws-cli@0.1.13
   kubernetes: circleci/kubernetes@0.3.0
   helm: circleci/helm@0.1.2
+  owasp: entur/owasp@0.0.6
 
 jobs:
   build:
@@ -181,4 +182,14 @@ workflows:
           context: offender-events-prod
           requires:
             - request-prod-approval
-
+  scheduled:
+    triggers:
+      - schedule:
+          cron: "0 7 * * 1-5"
+          filters:
+            branches:
+              only:
+                - master
+    jobs:
+      - owasp/gradle_owasp_dependency_check:
+          executor: builder
