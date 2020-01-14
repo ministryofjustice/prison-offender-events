@@ -38,8 +38,8 @@ commands:
           name: Deploy to << parameters.env >>
           command: |
             APP_VERSION=$(cat ~/app/app_version.txt)
-            aws secretsmanager --region ${AWS_DEFAULT_REGION} get-secret-value --secret-id ${AWS_SECRET_NAME} | jq -r .SecretString | \
             sed -i "s/appVersion: \".*\"/appVersion: \"${APP_VERSION}\"/g" ~/git/helm_deploy/offender-events/Chart.yaml
+            aws secretsmanager --region ${AWS_DEFAULT_REGION} get-secret-value --secret-id ${AWS_SECRET_NAME} | jq -r .SecretString | \
             helm upgrade offender-events ~/git/helm_deploy/offender-events/. \
               --install --wait --reset-values --timeout 5m --history-max 10 \
               --namespace=${KUBE_ENV_NAMESPACE} \
