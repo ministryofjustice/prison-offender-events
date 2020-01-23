@@ -5,10 +5,10 @@ import java.time.LocalDate
 
 plugins {
     id 'java'
-    id 'org.springframework.boot' version '2.2.2.RELEASE' // remove pinning of tomcat version to 9.0.30 when next upgrading
-    id 'io.spring.dependency-management' version '1.0.8.RELEASE'
+    id 'org.springframework.boot' version '2.2.4.RELEASE'
+    id 'io.spring.dependency-management' version '1.0.9.RELEASE'
     id 'com.github.ben-manes.versions' version '0.27.0'
-    id 'org.owasp.dependencycheck' version '5.2.4'
+    id 'org.owasp.dependencycheck' version '5.3.0'
 }
 
 repositories {
@@ -32,7 +32,6 @@ dependencyCheck {
         assemblyEnabled = false
     }
 }
-ext['tomcat.version'] = '9.0.30'
 
 def isNonStable = { String version ->
     def stableKeyword = ['RELEASE', 'FINAL', 'GA'].any { it -> version.toUpperCase().contains(it) }
@@ -92,11 +91,11 @@ dependencies {
     annotationProcessor 'org.projectlombok:lombok:1.18.10'
 
     runtime 'com.h2database:h2:1.4.200'
-    runtime 'org.flywaydb:flyway-core:6.1.1'
+    runtime 'org.flywaydb:flyway-core:6.1.4'
     runtime 'org.postgresql:postgresql:42.2.9'
 
     implementation 'org.springframework.boot:spring-boot-starter-web'
-    compileOnly 'org.projectlombok:lombok:1.18.8'
+    compileOnly 'org.projectlombok:lombok:1.18.10'
 
     implementation 'org.springframework.boot:spring-boot-starter-actuator'
     implementation 'org.springframework.boot:spring-boot-starter-cache'
@@ -105,7 +104,7 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-security'
     implementation 'org.springframework.security.oauth:spring-security-oauth2:2.4.0.RELEASE'
     implementation 'org.springframework.security:spring-security-jwt:1.1.0.RELEASE'
-    implementation("org.springframework.cloud:spring-cloud-starter-aws-messaging:2.2.0.RELEASE")
+    implementation 'org.springframework.cloud:spring-cloud-starter-aws-messaging:2.2.1.RELEASE'
     implementation 'net.logstash.logback:logstash-logback-encoder:6.3'
     implementation 'com.microsoft.azure:applicationinsights-spring-boot-starter:2.5.1'
     implementation 'com.microsoft.azure:applicationinsights-logging-logback:2.5.1'
@@ -130,10 +129,10 @@ dependencies {
     implementation 'net.sf.ehcache:ehcache:2.10.6'
     implementation 'org.apache.commons:commons-lang3:3.9'
     implementation 'org.apache.commons:commons-text:1.8'
-    implementation 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.10.1'
+    implementation 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.10.2'
     implementation 'com.pauldijou:jwt-core_2.11:4.2.0'
     implementation 'com.google.code.gson:gson:2.8.6'
-    implementation 'com.google.guava:guava:28.1-jre'
+    implementation 'com.google.guava:guava:28.2-jre'
 
     testAnnotationProcessor 'org.springframework.boot:spring-boot-configuration-processor'
     testAnnotationProcessor 'org.projectlombok:lombok:1.18.10'
@@ -141,7 +140,7 @@ dependencies {
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
     testImplementation 'org.springframework.security:spring-security-test'
     testImplementation 'com.tngtech.java:junit-dataprovider:1.13.1'
-    testImplementation 'net.javacrumbs.json-unit:json-unit-assertj:2.11.1'
+    testImplementation 'net.javacrumbs.json-unit:json-unit-assertj:2.12.0'
     testImplementation 'io.github.http-builder-ng:http-builder-ng-apache:1.0.4'
     testImplementation 'com.github.tomakehurst:wiremock-standalone:2.25.1'
 }
