@@ -34,10 +34,26 @@ public class SnsService {
 
     public void sendEvent(final OffenderEvent payload) {
         try {
-            topicTemplate.convertAndSend(new TopicMessageChannel(amazonSns, topicArn), objectMapper.writeValueAsString(payload),
-                    Map.of("eventType", payload.getEventType()));
+            final var code = buildOptionalCode(payload);
+            topicTemplate.convertAndSend(
+                    new TopicMessageChannel(amazonSns, topicArn),
+                    objectMapper.writeValueAsString(payload),
+                    code == null
+                            ? Map.of("eventType", payload.getEventType())
+                            : Map.of("eventType", payload.getEventType(), "code", code)
+            );
         } catch (JsonProcessingException e) {
             log.error("Failed to convert payload {} to json", payload);
         }
+    }
+
+    private String buildOptionalCode(final OffenderEvent payload) {
+        if (payload.getAlertCode() != null) {
+            return payload.getAlertCode();
+        }
+        if (payload.getMovementType() != null) {
+            return payload.getMovementType() + "-" + payload.getDirectionCode();
+        }
+        return null;
     }
 }
