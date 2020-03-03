@@ -5,9 +5,9 @@ import java.time.LocalDate
 
 plugins {
     id 'java'
-    id 'org.springframework.boot' version '2.2.4.RELEASE'
+    id 'org.springframework.boot' version '2.2.5.RELEASE'
     id 'io.spring.dependency-management' version '1.0.9.RELEASE'
-    id 'com.github.ben-manes.versions' version '0.27.0'
+    id 'com.github.ben-manes.versions' version '0.28.0'
     id 'org.owasp.dependencycheck' version '5.3.0'
 }
 
@@ -88,14 +88,14 @@ dependencyManagement {
 
 dependencies {
     annotationProcessor 'org.springframework.boot:spring-boot-configuration-processor'
-    annotationProcessor 'org.projectlombok:lombok:1.18.10'
+    annotationProcessor 'org.projectlombok:lombok:1.18.12'
 
     runtime 'com.h2database:h2:1.4.200'
-    runtime 'org.flywaydb:flyway-core:6.1.4'
-    runtime 'org.postgresql:postgresql:42.2.9'
+    runtime 'org.flywaydb:flyway-core:6.2.4'
+    runtime 'org.postgresql:postgresql:42.2.10'
 
     implementation 'org.springframework.boot:spring-boot-starter-web'
-    compileOnly 'org.projectlombok:lombok:1.18.10'
+    compileOnly 'org.projectlombok:lombok:1.18.12'
 
     implementation 'org.springframework.boot:spring-boot-starter-actuator'
     implementation 'org.springframework.boot:spring-boot-starter-cache'
@@ -130,19 +130,19 @@ dependencies {
     implementation 'org.apache.commons:commons-lang3:3.9'
     implementation 'org.apache.commons:commons-text:1.8'
     implementation 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.10.2'
-    implementation 'com.pauldijou:jwt-core_2.11:4.2.0'
+    implementation 'com.pauldijou:jwt-core_2.11:4.3.0'
     implementation 'com.google.code.gson:gson:2.8.6'
     implementation 'com.google.guava:guava:28.2-jre'
 
     testAnnotationProcessor 'org.springframework.boot:spring-boot-configuration-processor'
-    testAnnotationProcessor 'org.projectlombok:lombok:1.18.10'
-    testCompileOnly 'org.projectlombok:lombok:1.18.10'
+    testAnnotationProcessor 'org.projectlombok:lombok:1.18.12'
+    testCompileOnly 'org.projectlombok:lombok:1.18.12'
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
     testImplementation 'org.springframework.security:spring-security-test'
     testImplementation 'com.tngtech.java:junit-dataprovider:1.13.1'
-    testImplementation 'net.javacrumbs.json-unit:json-unit-assertj:2.12.0'
+    testImplementation 'net.javacrumbs.json-unit:json-unit-assertj:2.14.0'
     testImplementation 'io.github.http-builder-ng:http-builder-ng-apache:1.0.4'
-    testImplementation 'com.github.tomakehurst:wiremock-standalone:2.25.1'
+    testImplementation 'com.github.tomakehurst:wiremock-standalone:2.26.2'
 }
 
 task copyAgent(type: Copy) {
