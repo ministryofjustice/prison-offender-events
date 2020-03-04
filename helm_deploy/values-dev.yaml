@@ -24,6 +24,7 @@ env:
   JAVA_OPTS: "-Xmx512m"
   CUSTODY_API_BASE_URL: "https://gateway.t3.nomis-api.hmpps.dsd.io/custodyapi"
   OAUTH_API_BASE_URL: "https://gateway.t3.nomis-api.hmpps.dsd.io/auth"
+  WIND_BACK_SECONDS: "10"
 
 whitelist:
   office: "217.33.148.210/32"

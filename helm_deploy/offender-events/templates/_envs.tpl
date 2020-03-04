@@ -19,6 +19,9 @@ env:
   - name: OAUTH_API_BASE_URL
     value: "{{ .Values.env.OAUTH_API_BASE_URL }}"
 
+  - name: WIND_BACK_SECONDS
+    value: "{{ .Values.env.WIND_BACK_SECONDS }}"
+
   - name: APPINSIGHTS_INSTRUMENTATIONKEY
     valueFrom:
       secretKeyRef:
