@@ -24,6 +24,7 @@ public class EventRetrievalServiceTest {
 
     public static final int WIND_BACK_SECONDS = 400;
     public static final int POLL_INTERVAL = 60000;
+
     @Mock
     private ExternalApiService externalApiService;
     @Mock
@@ -60,7 +61,7 @@ public class EventRetrievalServiceTest {
         snsService.sendEvent(eq(events.get(1)));
         snsService.sendEvent(eq(events.get(0)));
 
-        final var resultPoll = PollAudit.builder().pollName(POLL_NAME).nextRunTime(events.get(2).getEventDatetime().plus(1, MICROS)).numberOfRecords(3).build();
+        final var resultPoll = PollAudit.builder().pollName(POLL_NAME).nextStartTime(events.get(2).getEventDatetime().plus(1, MICROS)).numberOfRecords(3).build();
         repository.save(eq(resultPoll));
         eventRetrievalService.pollEvents(now);
 
@@ -79,7 +80,7 @@ public class EventRetrievalServiceTest {
         final var lastRun = windBackPoint.minusMinutes(1);
 
         when(repository.findById(eq(POLL_NAME)))
-                .thenReturn(Optional.of(PollAudit.builder().pollName(POLL_NAME).nextRunTime(lastRun).build()));
+                .thenReturn(Optional.of(PollAudit.builder().pollName(POLL_NAME).nextStartTime(lastRun).build()));
         final var events = List.of
                 (
                         OffenderEvent.builder().bookingId(-1L).eventDatetime(lastRun.plusSeconds(3)).build(),
@@ -92,7 +93,7 @@ public class EventRetrievalServiceTest {
         snsService.sendEvent(eq(events.get(1)));
         snsService.sendEvent(eq(events.get(0)));
 
-        final var resultPoll = PollAudit.builder().pollName(POLL_NAME).nextRunTime(events.get(2).getEventDatetime().plus(1, MICROS)).numberOfRecords(3).build();
+        final var resultPoll = PollAudit.builder().pollName(POLL_NAME).nextStartTime(events.get(2).getEventDatetime().plus(1, MICROS)).numberOfRecords(3).build();
         repository.save(eq(resultPoll));
         eventRetrievalService.pollEvents(now);
 
@@ -108,7 +109,7 @@ public class EventRetrievalServiceTest {
         final var lastRun = now.minusDays(1);
 
         when(repository.findById(eq(POLL_NAME)))
-                .thenReturn(Optional.of(PollAudit.builder().pollName(POLL_NAME).nextRunTime(lastRun).build()));
+                .thenReturn(Optional.of(PollAudit.builder().pollName(POLL_NAME).nextStartTime(lastRun).build()));
         final var events = List.of
                 (
                         OffenderEvent.builder().bookingId(-1L).eventDatetime(lastRun.plusMinutes(15)).build(),
@@ -123,7 +124,7 @@ public class EventRetrievalServiceTest {
         snsService.sendEvent(eq(events.get(1)));
         snsService.sendEvent(eq(events.get(0)));
 
-        final var resultPoll = PollAudit.builder().pollName(POLL_NAME).nextRunTime(events.get(2).getEventDatetime().plus(1, MICROS)).numberOfRecords(3).build();
+        final var resultPoll = PollAudit.builder().pollName(POLL_NAME).nextStartTime(events.get(2).getEventDatetime().plus(1, MICROS)).numberOfRecords(3).build();
         repository.save(eq(resultPoll));
         eventRetrievalService.pollEvents(now);
 
@@ -137,12 +138,43 @@ public class EventRetrievalServiceTest {
         final var now = LocalDateTime.now();
         final var lastRun = now.minusMinutes(1);
 
-        when(repository.findById(eq(POLL_NAME)))
-                .thenReturn(Optional.of(PollAudit.builder().pollName(POLL_NAME).nextRunTime(lastRun).build()));
+        final var poller = PollAudit.builder().pollName(POLL_NAME).nextStartTime(lastRun).build();
+        when(repository.findById(eq(POLL_NAME))).thenReturn(Optional.of(poller));
 
         eventRetrievalService.pollEvents(now);
 
         verify(repository, times(1)).findById(eq(POLL_NAME));
+        verify(repository, times(1)).save(eq(poller));
+        verifyNoInteractions(externalApiService);
+        verifyNoInteractions(snsService);
+    }
+
+    @Test
+    public void testEventRetrievalRanJustOverWindBackWindow() {
+        final var now = LocalDateTime.now();
+        final var windBackPoint = now.minusSeconds(WIND_BACK_SECONDS);
+        final var lastRun = windBackPoint.minusSeconds(3);
+
+        final var lastPoll = PollAudit.builder().pollName(POLL_NAME).nextStartTime(lastRun).build();
+        when(repository.findById(eq(POLL_NAME))).thenReturn(Optional.of(lastPoll));
+
+        final var events = List.of
+                (
+                        OffenderEvent.builder().bookingId(-1L).eventDatetime(lastRun).build(),
+                        OffenderEvent.builder().bookingId(-2L).eventDatetime(lastRun.plusSeconds(1)).build()
+                );
+        when(externalApiService.getEvents(eq(lastRun), eq(windBackPoint))).thenReturn(events);
+
+        snsService.sendEvent(eq(events.get(0)));
+        snsService.sendEvent(eq(events.get(1)));
+
+        final var resultPoll = PollAudit.builder().pollName(POLL_NAME).nextStartTime(events.get(1).getEventDatetime().plus(1, MICROS)).numberOfRecords(2).build();
+
+        eventRetrievalService.pollEvents(now);
+
+        verify(repository, times(1)).findById(eq(POLL_NAME));
+        verify(externalApiService).getEvents(eq(lastRun), eq(windBackPoint));
+        verify(snsService, times(2)).sendEvent(any(OffenderEvent.class));
     }
 
 }

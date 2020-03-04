@@ -48,15 +48,20 @@ public class EventRetrievalService {
     public void pollEvents(final LocalDateTime currentTime) {
 
         final var latestPollTimeAllowed = currentTime.minusSeconds(windBackSeconds);
-        final var audit = repository.findById(POLL_NAME).orElse(PollAudit.builder().pollName(POLL_NAME).nextRunTime(latestPollTimeAllowed.minus(pollInterval, MILLIS)).build());
+        final var audit = repository.findById(POLL_NAME).orElse(
+                PollAudit.builder()
+                        .pollName(POLL_NAME)
+                        .nextStartTime(latestPollTimeAllowed.minus(pollInterval, MILLIS))
+                        .build());
         repository.save(audit);
 
-        final var timeDifferenceHrs = audit.getNextRunTime().until(latestPollTimeAllowed, ChronoUnit.HOURS);
-        final var endTime = timeDifferenceHrs > maxEventRangeHours ? audit.getNextRunTime().plusHours(maxEventRangeHours) : latestPollTimeAllowed;
+        final var startTime = audit.getNextStartTime();
+        final var timeDifferenceHrs = startTime.until(latestPollTimeAllowed, ChronoUnit.HOURS);
+        final var endTime = timeDifferenceHrs > maxEventRangeHours ? startTime.plusHours(maxEventRangeHours) : latestPollTimeAllowed;
 
-        if (audit.getNextRunTime().compareTo(endTime) < 0) {  // This is just to handle if end the start time is before end due to wind bank seconds
-            log.debug("Getting events between {} and {}", audit.getNextRunTime(), endTime);
-            final var events = externalApiService.getEvents(audit.getNextRunTime(), endTime);
+        if (startTime.compareTo(endTime) < 0) {  // This is just to handle if end the start time is before end due to wind bank seconds
+            log.debug("Getting events between {} and {}", startTime, endTime);
+            final var events = externalApiService.getEvents(startTime, endTime);
             log.debug("There are {} events {}", events.size(), events);
             events.forEach(snsService::sendEvent);
 
@@ -66,12 +71,12 @@ public class EventRetrievalService {
                     .getEventDatetime();
 
             audit.setNumberOfRecords(events.size());
-            audit.setNextRunTime(lastEventTime.plus(1, MICROS)); // add 1 micro sec to last record.
+            audit.setNextStartTime(lastEventTime.plus(1, MICROS)); // add 1 micro sec to last record.
             repository.save(audit);
 
             log.debug("Recording Event Poll {}", audit);
         } else {
-            log.warn("Skipping Event Retrieval as start after end, start = {}, end = {}", audit.getNextRunTime(), endTime);
+            log.warn("Skipping Event Retrieval as start after end, start = {}, end = {}", startTime, endTime);
         }
     }
 }
