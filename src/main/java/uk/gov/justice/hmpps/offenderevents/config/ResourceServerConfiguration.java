@@ -180,7 +180,7 @@ public class ResourceServerConfiguration extends ResourceServerConfigurerAdapter
 
     @Bean("custodyapiDetails")
     @ConfigurationProperties("custodyapi.client")
-    public ClientCredentialsResourceDetails custodyapiiDetails() {
+    public ClientCredentialsResourceDetails custodyapiDetails() {
         return new ClientCredentialsResourceDetails();
     }
 

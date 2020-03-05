@@ -8,6 +8,8 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import uk.gov.justice.hmpps.offenderevents.services.EventRetrievalService;
 
+import static java.time.LocalDateTime.now;
+
 @Service
 @Slf4j
 @AllArgsConstructor
@@ -23,7 +25,7 @@ public class EventScheduler {
     public void pollEvents() {
         log.info("Starting: Event Poll");
         try {
-            eventRetrievalService.pollEvents();
+            eventRetrievalService.pollEvents(now());
         } catch (Exception e) {
             log.error("pollEvents: Global exception handler", e);
             telemetryClient.trackException(e);

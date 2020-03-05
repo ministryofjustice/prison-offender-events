@@ -1,4 +1,4 @@
-FROM openjdk:11-slim
+FROM adoptopenjdk/openjdk11:debian-slim
 LABEL maintainer="HMPPS Digital Studio <info@digital.justice.gov.uk>"
 
 RUN apt-get update && \
@@ -15,8 +15,6 @@ RUN addgroup --gid 2000 --system appgroup && \
 RUN mkdir /home/appuser/.postgresql \
   && curl https://s3.amazonaws.com/rds-downloads/rds-ca-2019-root.pem \
     > /home/appuser/.postgresql/root.crt
-RUN curl https://s3.amazonaws.com/rds-downloads/rds-ca-2015-root.pem \
-    >> /home/appuser/.postgresql/root.crt
 
 WORKDIR /app
 
