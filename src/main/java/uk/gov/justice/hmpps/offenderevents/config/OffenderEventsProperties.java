@@ -22,13 +22,9 @@ public class OffenderEventsProperties {
      */
     private final String oauthApiBaseUrl;
 
-    private final String jwtPublicKey;
-
     public OffenderEventsProperties(@Value("${custody.api.base.url}") @URL final String custodyApiBaseUrl,
-                                    @Value("${oauth.api.base.url}") @URL final String oauthApiBaseUrl,
-                                    @Value("${jwt.public.key}") final String jwtPublicKey) {
+                                    @Value("${oauth.api.base.url}") @URL final String oauthApiBaseUrl) {
         this.custodyApiBaseUrl = custodyApiBaseUrl;
         this.oauthApiBaseUrl = oauthApiBaseUrl;
-        this.jwtPublicKey = jwtPublicKey;
     }
 }

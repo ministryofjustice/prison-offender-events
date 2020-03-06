@@ -37,12 +37,30 @@ spring:
       connectionTimeout: 1000
       validationTimeout:  500
 
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: ${oauth.api.base.url}/issuer
+          jwk-set-uri: ${oauth.api.base.url}/.well-known/jwks.json
+
+      client:
+        registration:
+          custody-api:
+            provider: hmpps-auth
+            client-id: ${offender.events.client.id}
+            client-secret: ${offender.events.client.secret}
+            authorization-grant-type: client_credentials
+            scope: read
+        provider:
+          hmpps-auth:
+            token-uri: ${oauth.api.base.url}/oauth/token
+
 
 server:
   port: 8080
   servlet:
     context-path: /
-  use-forward-headers: true
   tomcat:
     remote-ip-header: x-forwarded-for
     protocol_header: x-forwarded-proto
@@ -88,11 +106,3 @@ application:
     poll:
       frequency: 60000
 
-custodyapi:
-  client:
-    clientId: ${offender.events.client.id}
-    clientSecret: ${offender.events.client.secret}
-    accessTokenUri: ${oauth.api.base.url}/oauth/token
-    tokenName: custody_token
-    authenticationScheme: header
-    clientAuthenticationScheme: header
