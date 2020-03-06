@@ -86,6 +86,9 @@ dependencyManagement {
     }
 }
 
+ext ['spring-security.version'] = '5.3.0.RELEASE' // pinned due to CVE-2018-1258 in 5.2.2.RELEASE brought in by spring-boot-starter-oauth2-resource-server-2.2.5.RELEASE
+
+
 dependencies {
     annotationProcessor 'org.springframework.boot:spring-boot-configuration-processor'
     annotationProcessor 'org.projectlombok:lombok:1.18.12'
@@ -101,9 +104,14 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-cache'
     implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
 
+    implementation 'org.springframework.boot:spring-boot-starter-oauth2-resource-server'
+    implementation 'org.springframework.security:spring-security-oauth2-jose'
+
+    implementation 'org.springframework:spring-webflux'
     implementation 'org.springframework.boot:spring-boot-starter-security'
-    implementation 'org.springframework.security.oauth:spring-security-oauth2:2.4.0.RELEASE'
-    implementation 'org.springframework.security:spring-security-jwt:1.1.0.RELEASE'
+    implementation 'org.springframework.boot:spring-boot-starter-oauth2-client'
+    implementation 'org.springframework.boot:spring-boot-starter-reactor-netty'
+
     implementation 'org.springframework.cloud:spring-cloud-starter-aws-messaging:2.2.1.RELEASE'
     implementation 'net.logstash.logback:logstash-logback-encoder:6.3'
     implementation 'com.microsoft.azure:applicationinsights-spring-boot-starter:2.5.1'
