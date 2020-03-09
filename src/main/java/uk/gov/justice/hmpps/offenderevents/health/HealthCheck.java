@@ -23,12 +23,11 @@ public abstract class HealthCheck implements HealthIndicator {
     public Health health() {
         try {
             final var uri = baseUri + "/ping";
-            final var response = webClient.get().uri(uri, String.class)
-                    .retrieve()
-                    .toBodilessEntity()
-                    .timeout(Duration.ofMillis(timeout.toMillis()))
-                    .block();
-            return Health.up().withDetail("HttpStatus", response.getStatusCode()).build();
+            final var response = webClient.get()
+                    .uri(uri)
+                    .exchange()
+                    .block(timeout);
+            return Health.up().withDetail("HttpStatus", response.statusCode()).build();
         } catch (final Exception e) {
             return Health.down(e).build();
         }
