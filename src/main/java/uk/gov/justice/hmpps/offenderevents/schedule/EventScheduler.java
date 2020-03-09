@@ -33,5 +33,4 @@ public class EventScheduler {
         log.info("Complete: Event Poll");
     }
 
-
 }
