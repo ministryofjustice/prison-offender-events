@@ -62,7 +62,7 @@ public class EventRetrievalService {
         if (startTime.compareTo(endTime) < 0) {  // This is just to handle if end the start time is before end due to wind bank seconds
             log.debug("Getting events between {} and {}", startTime, endTime);
             final var events = externalApiService.getEvents(startTime, endTime);
-            log.debug("There are {} events {}", events.size(), events);
+            log.debug("There are {} events", events.size());
             events.forEach(snsService::sendEvent);
 
             final var lastEventTime = events.stream()
