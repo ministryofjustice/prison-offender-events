@@ -22,7 +22,7 @@ public abstract class HealthCheck implements HealthIndicator {
     @Override
     public Health health() {
         try {
-            final var uri = baseUri + "/ping";
+            final var uri = baseUri + "/health/ping";
             final var response = webClient.get()
                     .uri(uri)
                     .exchange()
