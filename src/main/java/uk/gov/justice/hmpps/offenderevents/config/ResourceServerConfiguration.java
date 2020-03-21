@@ -36,7 +36,7 @@ import java.util.Optional;
 @EnableGlobalMethodSecurity(prePostEnabled = true)
 @EnableScheduling
 @EnableWebSecurity
-@EnableSchedulerLock(defaultLockAtLeastFor = "PT10S", defaultLockAtMostFor = "PT12H")
+@EnableSchedulerLock(defaultLockAtLeastFor = "PT10S", defaultLockAtMostFor = "PT10M")
 public class ResourceServerConfiguration extends WebSecurityConfigurerAdapter {
 
     @Autowired(required = false)
@@ -53,7 +53,7 @@ public class ResourceServerConfiguration extends WebSecurityConfigurerAdapter {
                 .and().csrf().disable()
                 .authorizeRequests(auth ->
                         auth.antMatchers("/webjars/**", "/favicon.ico", "/csrf",
-                                "/health", "/info", "/ping", "/h2-console/**",
+                                "/health/**", "/info", "/h2-console/**",
                                 "/v2/api-docs",
                                 "/swagger-ui.html", "/swagger-resources", "/swagger-resources/configuration/ui",
                                 "/swagger-resources/configuration/security").permitAll()
