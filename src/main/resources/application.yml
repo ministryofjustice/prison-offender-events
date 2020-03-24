@@ -39,11 +39,6 @@ spring:
 
   security:
     oauth2:
-      resourceserver:
-        jwt:
-          issuer-uri: ${oauth.api.base.url}/issuer
-          jwk-set-uri: ${oauth.api.base.url}/.well-known/jwks.json
-
       client:
         registration:
           custody-api:
@@ -102,7 +97,7 @@ application:
   events:
     max:
       range:
-        hours: 1
+        minutes: 20
     poll:
       frequency: 60000
 

@@ -14,10 +14,18 @@ import org.springframework.web.reactive.function.client.WebClient;
 @Configuration
 public class WebClientConfiguration {
 
+    private final OffenderEventsProperties properties;
+
+    public WebClientConfiguration(final OffenderEventsProperties properties) {
+        this.properties = properties;
+    }
+
     @Bean
     WebClient oauth2WebClient(OAuth2AuthorizedClientManager authorizedClientManager) {
         final var oauth2Client = new ServletOAuth2AuthorizedClientExchangeFilterFunction(authorizedClientManager);
+        oauth2Client.setDefaultClientRegistrationId("custody-api");
         return WebClient.builder()
+                .baseUrl(properties.getCustodyApiBaseUrl())
                 .apply(oauth2Client.oauth2Configuration())
                 .exchangeStrategies(ExchangeStrategies.builder()
                         .codecs(configurer -> configurer.defaultCodecs()
