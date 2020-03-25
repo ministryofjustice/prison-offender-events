@@ -32,13 +32,13 @@ public class EventRetrievalServiceTest {
     @Mock
     private PollAuditRepository repository;
 
-    private int maxEventRangeHours = 1;
+    private int maxEventRangeMinutes = 60;
 
     private EventRetrievalService eventRetrievalService;
 
     @Before
     public void setup() {
-        eventRetrievalService = new EventRetrievalService(externalApiService, snsService, repository, POLL_INTERVAL, WIND_BACK_SECONDS, maxEventRangeHours);
+        eventRetrievalService = new EventRetrievalService(externalApiService, snsService, repository, POLL_INTERVAL, WIND_BACK_SECONDS, maxEventRangeMinutes);
     }
 
     @Test
@@ -117,7 +117,7 @@ public class EventRetrievalServiceTest {
                         OffenderEvent.builder().bookingId(-3L).eventDatetime(lastRun.plusMinutes(45)).build(),
                         OffenderEvent.builder().bookingId(-4L).eventDatetime(lastRun.plusMinutes(60)).build()
                 );
-        when(externalApiService.getEvents(eq(lastRun), eq(lastRun.plusHours(maxEventRangeHours)))).thenReturn(events);
+        when(externalApiService.getEvents(eq(lastRun), eq(lastRun.plusMinutes(maxEventRangeMinutes)))).thenReturn(events);
 
         snsService.sendEvent(eq(events.get(3)));
         snsService.sendEvent(eq(events.get(2)));
@@ -129,7 +129,7 @@ public class EventRetrievalServiceTest {
         eventRetrievalService.pollEvents(now);
 
         verify(repository).findById(eq(POLL_NAME));
-        verify(externalApiService).getEvents(eq(lastRun), eq(lastRun.plusHours(maxEventRangeHours)));
+        verify(externalApiService).getEvents(eq(lastRun), eq(lastRun.plusMinutes(maxEventRangeMinutes)));
         verify(snsService, times(4)).sendEvent(any(OffenderEvent.class));
     }
 

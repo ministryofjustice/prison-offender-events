@@ -26,7 +26,7 @@ public class EventRetrievalService {
     private final SnsService snsService;
     private final PollAuditRepository repository;
     private final int pollInterval;
-    private final int maxEventRangeHours;
+    private final int maxEventRangeMinutes;
     private final int windBackSeconds;
 
 
@@ -35,12 +35,12 @@ public class EventRetrievalService {
                                  final PollAuditRepository repository,
                                  @Value("${application.events.poll.frequency:60000}") final int pollInterval,
                                  @Value("${wind.back.seconds:10}") int windBackSeconds,
-                                 @Value("${application.events.max.range.hours:1}") final int maxEventRangeHours) {
+                                 @Value("${application.events.max.range.minutes:20}") final int maxEventRangeMinutes) {
         this.externalApiService = externalApiService;
         this.snsService = snsService;
         this.repository = repository;
         this.pollInterval = pollInterval;
-        this.maxEventRangeHours = maxEventRangeHours;
+        this.maxEventRangeMinutes = maxEventRangeMinutes;
         this.windBackSeconds = windBackSeconds;
         log.info("Using {} wind back seconds", windBackSeconds);
     }
@@ -56,8 +56,8 @@ public class EventRetrievalService {
         repository.save(audit);
 
         final var startTime = audit.getNextStartTime();
-        final var timeDifferenceHrs = startTime.until(latestPollTimeAllowed, ChronoUnit.HOURS);
-        final var endTime = timeDifferenceHrs > maxEventRangeHours ? startTime.plusHours(maxEventRangeHours) : latestPollTimeAllowed;
+        final var timeDifferenceMins = startTime.until(latestPollTimeAllowed, ChronoUnit.MINUTES);
+        final var endTime = timeDifferenceMins > maxEventRangeMinutes ? startTime.plusMinutes(maxEventRangeMinutes) : latestPollTimeAllowed;
 
         if (startTime.compareTo(endTime) < 0) {  // This is just to handle if end the start time is before end due to wind bank seconds
             log.debug("Getting events between {} and {}", startTime, endTime);
