@@ -1,7 +1,7 @@
 version: "3"
 services:
   offender-events:
-    image: mojdigitalstudio/offender-events:latest
+    image: quay.io/hmpps/offender-events:latest
     networks:
       - hmpps
     container_name: offender-events
