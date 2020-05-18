@@ -1,104 +1,20 @@
 version: 2.1
-commands:
-  setup:
-    description: "Install tools and configure kubectl"
-    steps:
-      - aws-cli/install
-      - kubernetes/install
-      - helm/install-helm-client:
-          version: v3.0.2
-      - run:
-          name: Setup kubectl
-          command: |
-            echo -n "${KUBE_ENV_CACERT}" | base64 -d > /tmp/cluster_ca.crt
-            kubectl config set-cluster "${KUBE_ENV_NAME}" \
-              --certificate-authority="/tmp/cluster_ca.crt" \
-              --server="https://api.${KUBE_ENV_NAME}"
-            kubectl config set-credentials circleci \
-              --token="${KUBE_ENV_TOKEN}"
-            kubectl config set-context circleci \
-              --cluster="${KUBE_ENV_NAME}" \
-              --user="circleci" \
-              --namespace="${KUBE_ENV_NAMESPACE}"
-            # confirm setup is ok
-            kubectl config use-context circleci
-
-  deploy_to_env:
-    parameters:
-      env:
-        type: string
-      slack_notification:
-        type: boolean
-        default: false
-    steps:
-      - setup
-      - checkout:
-          path: ~/git
-      - attach_workspace:
-          at: ~/app
-      - deploy:
-          name: Deploy to << parameters.env >>
-          command: |
-            APP=offender-events
-            APP_VERSION=$(cat ~/app/app_version.txt)
-            echo "export APP_VERSION=$APP_VERSION;export APP=$APP" >> $BASH_ENV
-            sed -i "s/appVersion: \".*\"/appVersion: \"${APP_VERSION}\"/g" ~/git/helm_deploy/${APP}/Chart.yaml
-            aws secretsmanager --region ${AWS_DEFAULT_REGION} get-secret-value --secret-id ${AWS_SECRET_NAME} | jq -r .SecretString | \
-            helm upgrade ${APP} ~/git/helm_deploy/${APP}/. \
-              --install --wait --reset-values --timeout 5m --history-max 10 \
-              --namespace=${KUBE_ENV_NAMESPACE} \
-              --values ~/git/helm_deploy/values-<< parameters.env >>.yaml \
-              --values - \
-              --set image.tag="${APP_VERSION}"
-      - when:
-          condition: <<parameters.slack_notification>>
-          steps:
-            - slack/notify:
-                message: "*${APP}* version:*${APP_VERSION}* deployed to << parameters.env >>"
-                include_project_field: false
-                include_job_number_field: false
-
-executors:
-  deployer:
-    docker:
-      - image: circleci/python:3
-    working_directory: ~/app
-  builder:  
-    docker:
-      - image: circleci/openjdk:11-jdk-browsers
-    working_directory: ~/app
 
 orbs:
-  aws-cli: circleci/aws-cli@0.1.18
-  kubernetes: circleci/kubernetes@0.10.1
-  helm: circleci/helm@0.2.3
-  owasp: entur/owasp@0.0.6
-  slack: circleci/slack@3.4.2
+  owasp: entur/owasp@0.0.10
+  hmpps: ministryofjustice/hmpps@1.0.0
 
 jobs:
-  build:
-    executor: builder
+  validate:
+    executor: hmpps/java
     steps:
       - checkout
       - restore_cache:
           keys:
             - gradle-{{ checksum "build.gradle.kts" }}
             - gradle-
-      - run: ./gradlew build
       - run:
-          name: Record the Application Version
-          command: |
-            jar xvf build/libs/offender-events-*.jar BOOT-INF/classes/META-INF/build-info.properties
-            APP_VERSION=$(grep 'build.version=' BOOT-INF/classes/META-INF/build-info.properties | awk -F= '{print $2}')
-            rm BOOT-INF/classes/META-INF/build-info.properties
-
-            # make up a good version name
-            TAG=${APP_VERSION}.${CIRCLE_BRANCH}
-            if [[ "${CIRCLE_BRANCH}" == "master" ]]; then
-              TAG=${APP_VERSION}
-            fi
-            echo $TAG > ./app_version.txt
-
+          command: ./gradlew test
       - save_cache:
           paths:
             - ~/.gradle
@@ -107,83 +23,41 @@ jobs:
           path: build/test-results
       - store_artifacts:
           path: build/reports/tests
-      - persist_to_workspace:
-          root: .
-          paths:
-            - build/libs
-            - build.gradle.kts
-            - app_version.txt
-
-  build_docker:
-    executor: deployer
-    steps:
-      - checkout
-      - attach_workspace:
-          at: ~/app
-      - setup_remote_docker:
-          docker_layer_caching: true
-      - run:
-          name: Build container and publish to docker hub
-          command: |
-            APP_VERSION=$(cat ./app_version.txt)
-            docker build --rm=false . \
-               --tag "mojdigitalstudio/offender-events:$APP_VERSION" \
-               --label "maintainer=feedback@digital.justice.gov.uk" \
-               --label "app.version=$APP_VERSION" \
-               --label "build.version=$APP_VERSION" \
-               --label "build.number=$CIRCLE_BUILD_NUM" \
-               --label "build.url=$CIRCLE_BUILD_URL" \
-               --label "build.gitref=$CIRCLE_SHA1"
-
-            if [[ "${CIRCLE_BRANCH}" == "master" ]]; then
-              # publish to docker hub as the tag
-             docker login -u $DOCKER_USERNAME -p $DOCKER_PASSWORD
-             docker tag mojdigitalstudio/offender-events:$APP_VERSION mojdigitalstudio/offender-events:latest
-             docker push mojdigitalstudio/offender-events:$APP_VERSION
-             docker push mojdigitalstudio/offender-events:latest
-            fi
-
-  deploy_dev:
-    executor: deployer
-    steps:
-      - deploy_to_env:
-          env: "dev"
-
-  deploy_preprod:
-    executor: deployer
-    steps:
-      - deploy_to_env:
-          env: "preprod"
-
-  deploy_prod:
-    executor: deployer
-    steps:
-      - deploy_to_env:
-          env: "prod"
-          slack_notification: true
 
 workflows:
   version: 2
   build-test-and-deploy:
     jobs:
-      - build:
+      - validate:
           filters:
             tags:
               ignore: /.*/
-      - build_docker:
-          requires:
-            - build
+      - hmpps/helm_lint:
+          name: helm_lint
+      - hmpps/build_docker:
+          name: build_docker
           filters:
             branches:
-              only: master
-      - deploy_dev:
+              only:
+                - master
+      - hmpps/deploy_env:
+          name: deploy_dev
+          env: "dev"
+          filters:
+            branches:
+              only:
+                - master
           requires:
+            - validate
+            - helm_lint
             - build_docker
       - request-preprod-approval:
           type: approval
           requires:
             - deploy_dev
-      - deploy_preprod:
+      - hmpps/deploy_env:
+          name: deploy_preprod
+          env: "preprod"
           context: offender-events-preprod
           requires:
             - request-preprod-approval
@@ -191,10 +65,14 @@ workflows:
           type: approval
           requires:
             - deploy_preprod
-      - deploy_prod:
+      - hmpps/deploy_env:
+          name: deploy_prod
+          env: "prod"
+          slack_notification: true
           context: offender-events-prod
           requires:
             - request-prod-approval
+
   scheduled:
     triggers:
       - schedule:
@@ -205,4 +83,4 @@ workflows:
                 - master
     jobs:
       - owasp/gradle_owasp_dependency_check:
-          executor: builder
+          executor: hmpps/java

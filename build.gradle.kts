@@ -28,8 +28,8 @@ dependencies {
 
     implementation("org.springframework.cloud:spring-cloud-starter-aws-messaging:2.2.1.RELEASE")
 
-    implementation("net.javacrumbs.shedlock:shedlock-spring:4.9.3")
-    implementation("net.javacrumbs.shedlock:shedlock-provider-jdbc-template:4.9.3")
+    implementation("net.javacrumbs.shedlock:shedlock-spring:4.10.1")
+    implementation("net.javacrumbs.shedlock:shedlock-provider-jdbc-template:4.10.1")
 
     implementation("javax.annotation:javax.annotation-api:1.3.2")
     implementation("javax.xml.bind:jaxb-api:2.3.1")
