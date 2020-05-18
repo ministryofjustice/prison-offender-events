@@ -4,7 +4,7 @@
 replicaCount: 2
 
 image:
-  repository: docker.io/mojdigitalstudio/offender-events
+  repository: quay.io/hmpps/offender-events
   tag: latest
   pullPolicy: Always
   port: 8080
