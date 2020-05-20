@@ -1,7 +1,7 @@
 version: "3"
 services:
   offender-events:
-    image: mojdigitalstudio/offender-events:latest
+    image: quay.io/hmpps/offender-events:latest
     networks:
       - hmpps
     container_name: offender-events
@@ -41,7 +41,7 @@ services:
       - SPRING_PROFILES_ACTIVE=dev
 
   oauth:
-    image: mojdigitalstudio/nomis-oauth2-server:latest
+    image: quay.io/hmpps/nomis-oauth2-server:latest
     networks:
       - hmpps
     container_name: oauth
