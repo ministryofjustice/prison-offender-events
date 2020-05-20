@@ -61,3 +61,30 @@ Results in:
 ```bash
 aws --endpoint-url=http://localhost:4576 sqs receive-message --queue-url http://localhost:4576/queue/event_queue
 ```
+
+### Data Items in NOMIS mapped to Events
+
+| Data | Event |
+|------|-------|
+| Prisoner Number |  OFFENDER-UPDATED |
+|  Book Number |   BOOKING_NUMBER-CHANGED |
+|  Booking Id | OFFENDER_BOOKING-INSERTED |
+|  PNC / CRO | OFFENDER_IDENTIFIER-INSERTED |
+|  Cell Location |  BED_ASSIGNMENT_HISTORY-INSERTED | 
+| Prison | EXTERNAL_MOVEMENT_RECORD-INSERTED |
+|  Status | EXTERNAL_MOVEMENT_RECORD-INSERTED |
+|  Category | ASSESSMENT-CHANGED |
+|  CSRA |  ASSESSMENT-CHANGED |
+|  DOB | OFFENDER_DETAILS-CHANGED |
+|  Names | OFFENDER_DETAILS-CHANGED |
+|  Aliases |  OFFENDER_ALIAS-CHANGED / OFFENDER_BOOKING-REASSIGNED |
+|  Alerts | ALERT-INSERTED ALERT-UPDATED |
+|  Gender | OFFENDER_DETAILS-CHANGED |
+|  Ethnicity | OFFENDER-UPDATED |
+|  Nationality | OFFENDER_PROFILE_DETAILS-UPDATED |
+|  Religion | OFFENDER_PROFILE_DETAILS-INSERTED |
+|  Marital Status | OFFENDER_PROFILE_DETAILS-UPDATED |
+|  Youth Offender |  OFFENDER_PROFILE_DETAILS-UPDATED |
+|  Legal Status | IMPRISONMENT_STATUS-CHANGED |
+|  Release Dates | SENTENCE_DATES-CHANGED |
+|  Confirmed Release Date |  CONFIRMED_RELEASE_DATE-CHANGED |
