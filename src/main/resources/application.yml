@@ -57,8 +57,9 @@ server:
   servlet:
     context-path: /
   tomcat:
-    remote-ip-header: x-forwarded-for
-    protocol_header: x-forwarded-proto
+    remoteip:
+      remote-ip-header: x-forwarded-for
+      protocol_header: x-forwarded-proto
 
 logging:
   level:
