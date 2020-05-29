@@ -18,6 +18,5 @@ spring:
           lob:
             non_contextual_creation: true
 
-graceful:
-  shutdown:
-    enabled: true
+server:
+  shutdown: graceful
