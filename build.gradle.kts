@@ -1,5 +1,5 @@
 plugins {
-  id("uk.gov.justice.hmpps.gradle-spring-boot") version "0.3.0"
+  id("uk.gov.justice.hmpps.gradle-spring-boot") version "0.4.0"
 }
 
 configurations {
@@ -13,7 +13,7 @@ dependencies {
     annotationProcessor("org.projectlombok:lombok:1.18.12")
 
     runtime("com.h2database:h2:1.4.200")
-    runtime("org.flywaydb:flyway-core:6.4.2")
+    runtime("org.flywaydb:flyway-core:6.4.3")
     runtime("org.postgresql:postgresql:42.2.12")
 
     compileOnly("org.projectlombok:lombok:1.18.12")
@@ -28,8 +28,8 @@ dependencies {
 
     implementation("org.springframework.cloud:spring-cloud-starter-aws-messaging:2.2.1.RELEASE")
 
-    implementation("net.javacrumbs.shedlock:shedlock-spring:4.10.1")
-    implementation("net.javacrumbs.shedlock:shedlock-provider-jdbc-template:4.10.1")
+    implementation("net.javacrumbs.shedlock:shedlock-spring:4.11.1")
+    implementation("net.javacrumbs.shedlock:shedlock-provider-jdbc-template:4.11.1")
 
     implementation("javax.annotation:javax.annotation-api:1.3.2")
     implementation("javax.xml.bind:jaxb-api:2.3.1")
