@@ -6,7 +6,6 @@ replicaCount: 2
 image:
   repository: quay.io/hmpps/offender-events
   tag: latest
-  pullPolicy: Always
   port: 8080
 
 ingress:
