@@ -39,7 +39,7 @@ spec:
                   - {{ template "app.name" . }}
               topologyKey: kubernetes.io/hostname
       containers:
-        - name: offender-events
+        - name: prison-offender-events
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}" 
           ports:
             - containerPort: {{ .Values.image.port }}

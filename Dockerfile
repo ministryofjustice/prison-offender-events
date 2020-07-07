@@ -27,7 +27,7 @@ RUN mkdir /home/appuser/.postgresql \
 
 WORKDIR /app
 
-COPY --from=builder --chown=appuser:appgroup /app/build/libs/offender-events*.jar /app/app.jar
+COPY --from=builder --chown=appuser:appgroup /app/build/libs/prison-offender-events*.jar /app/app.jar
 COPY --from=builder --chown=appuser:appgroup /app/build/libs/applicationinsights-agent*.jar /app/agent.jar
 COPY --from=builder --chown=appuser:appgroup /app/AI-Agent.xml /app
 

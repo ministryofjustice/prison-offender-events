@@ -12,9 +12,9 @@ import org.springframework.validation.annotation.Validated;
 public class OffenderEventsProperties {
 
     /**
-     * Custody API Base URL endpoint ("http://localhost:8081")
+     * Prison API Base URL endpoint ("http://localhost:8081")
      */
-    private final String custodyApiBaseUrl;
+    private final String prisonApiBaseUrl;
 
 
     /**
@@ -22,9 +22,9 @@ public class OffenderEventsProperties {
      */
     private final String oauthApiBaseUrl;
 
-    public OffenderEventsProperties(@Value("${custody.api.base.url}") @URL final String custodyApiBaseUrl,
+    public OffenderEventsProperties(@Value("${prison.api.base.url}") @URL final String prisonApiBaseUrl,
                                     @Value("${oauth.api.base.url}") @URL final String oauthApiBaseUrl) {
-        this.custodyApiBaseUrl = custodyApiBaseUrl;
+        this.prisonApiBaseUrl = prisonApiBaseUrl;
         this.oauthApiBaseUrl = oauthApiBaseUrl;
     }
 }

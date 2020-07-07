@@ -9,10 +9,10 @@ import uk.gov.justice.hmpps.offenderevents.config.OffenderEventsProperties;
 import java.time.Duration;
 
 @Component
-public class CustodyApiHealth extends HealthCheck {
+public class PrisonApiHealth extends HealthCheck {
 
     @Autowired
-    public CustodyApiHealth(final WebClient webClient, final OffenderEventsProperties properties, @Value("${api.health-timeout:1s}") final Duration healthTimeout) {
-        super(webClient, properties.getCustodyApiBaseUrl(), healthTimeout);
+    public PrisonApiHealth(final WebClient webClient, final OffenderEventsProperties properties, @Value("${api.health-timeout:1s}") final Duration healthTimeout) {
+        super(webClient, properties.getPrisonApiBaseUrl(), healthTimeout);
     }
 }

@@ -1,10 +1,10 @@
-# offender-events
-Publishes Events about offender change to Pub / Sub Topics
+# prison offender events
+Publishes Events about prison offender changes to Pub / Sub Topics
 
 
 ## Running localstack and database
 ```bash
-TMPDIR=/private$TMPDIR docker-compose up localstack offender-events-db
+TMPDIR=/private$TMPDIR docker-compose up localstack prison-offender-events-db
 ```
 
 ## Creating the Topic and Queue
