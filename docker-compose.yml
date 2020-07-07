@@ -1,35 +1,35 @@
 version: "3"
 services:
-  offender-events:
-    image: quay.io/hmpps/offender-events:latest
+  prison-offender-events:
+    image: quay.io/hmpps/prison-offender-events:latest
     networks:
       - hmpps
-    container_name: offender-events
+    container_name: prison-offender-events
     depends_on:
-      - offender-events-db
+      - prison-offender-events-db
       - localstack
-      - custody-api
+      - prison-api
     ports:
       - "8084:8080"
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
     environment:
       - SERVER_PORT=8080
-      - DATABASE_ENDPOINT=offender-events-db/offender-events-db
-      - SPRING_DATASOURCE_URL=jdbc:postgresql://offender-events-db/offender-events-db
+      - DATABASE_ENDPOINT=prison-offender-events-db/prison-offender-events-db
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://prison-offender-events-db/prison-offender-events-db
       - DATABASE_USERNAME=offender-events
       - DATABASE_PASSWORD=offender-events
       - SUPERUSER_USERNAME=admin
       - SUPERUSER_PASSWORD=admin_password
-      - CUSTODY_API_BASE_URL=http://custody-api:8080
+      - PRISON_API_BASE_URL=http://prison-api:8080
       - OAUTH_API_BASE_URL=http://oauth:8080/auth
       - SPRING_PROFILES_ACTIVE=postgres,localstack,dev
 
-  custody-api:
-    image: mojdigitalstudio/custody-api:latest
+  prison-api:
+    image: quay.io/hmpps/prison-api:latest
     networks:
       - hmpps
-    container_name: custody-api
+    container_name: prison-api
     depends_on:
       - oauth
     ports:
@@ -38,7 +38,7 @@ services:
       test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
     environment:
       - SERVER_PORT=8080
-      - SPRING_PROFILES_ACTIVE=dev
+      - SPRING_PROFILES_ACTIVE=nomis-hsqldb
 
   oauth:
     image: quay.io/hmpps/hmpps-auth:latest
@@ -75,18 +75,18 @@ services:
       - "${TMPDIR:-/tmp/localstack}:/tmp/localstack"
       - "/var/run/docker.sock:/var/run/docker.sock"
 
-  offender-events-db:
+  prison-offender-events-db:
     image: postgres
     networks:
       - hmpps
-    container_name: offender-events-db
+    container_name: prison-offender-events-db
     restart: always
     ports:
       - "5432:5432"
     environment:
       - POSTGRES_PASSWORD=admin_password
       - POSTGRES_USER=admin
-      - POSTGRES_DB=offender-events-db
+      - POSTGRES_DB=prison-offender-events-db
 
 networks:
   hmpps:

@@ -1,2 +1,2 @@
-rootProject.name = "offender-events"
+rootProject.name = "prison-offender-events"
 

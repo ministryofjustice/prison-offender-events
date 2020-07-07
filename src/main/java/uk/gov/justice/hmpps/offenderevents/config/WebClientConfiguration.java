@@ -23,9 +23,9 @@ public class WebClientConfiguration {
     @Bean
     WebClient oauth2WebClient(OAuth2AuthorizedClientManager authorizedClientManager) {
         final var oauth2Client = new ServletOAuth2AuthorizedClientExchangeFilterFunction(authorizedClientManager);
-        oauth2Client.setDefaultClientRegistrationId("custody-api");
+        oauth2Client.setDefaultClientRegistrationId("prison-api");
         return WebClient.builder()
-                .baseUrl(properties.getCustodyApiBaseUrl())
+                .baseUrl(properties.getPrisonApiBaseUrl())
                 .apply(oauth2Client.oauth2Configuration())
                 .exchangeStrategies(ExchangeStrategies.builder()
                         .codecs(configurer -> configurer.defaultCodecs()
