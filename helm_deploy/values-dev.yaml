@@ -20,8 +20,8 @@ ingress:
 
 env:
   JAVA_OPTS: "-Xmx512m"
-  PRISON_API_BASE_URL: "https://gateway.t3.nomis-api.hmpps.dsd.io/elite2api"
-  OAUTH_API_BASE_URL: "https://gateway.t3.nomis-api.hmpps.dsd.io/auth"
+  PRISON_API_BASE_URL: "https://api-dev.prison.service.justice.gov.uk"
+  OAUTH_API_BASE_URL: "https://sign-in-dev.hmpps.service.justice.gov.uk/auth"
   WIND_BACK_SECONDS: "10"
 
 whitelist:
