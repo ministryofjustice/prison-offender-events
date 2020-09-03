@@ -1,5 +1,5 @@
 plugins {
-  id("uk.gov.justice.hmpps.gradle-spring-boot") version "0.4.6"
+  id("uk.gov.justice.hmpps.gradle-spring-boot") version "1.0.2"
 }
 
 configurations {
@@ -11,8 +11,8 @@ dependencies {
     annotationProcessor("org.projectlombok:lombok:1.18.12")
 
     runtime("com.h2database:h2:1.4.200")
-    runtime("org.flywaydb:flyway-core:6.4.4")
-    runtime("org.postgresql:postgresql:42.2.14")
+    runtime("org.flywaydb:flyway-core:6.5.5")
+    runtime("org.postgresql:postgresql:42.2.16")
 
     compileOnly("org.projectlombok:lombok:1.18.12")
 
@@ -24,10 +24,10 @@ dependencies {
     implementation("org.springframework.boot:spring-boot-starter-security")
     implementation("org.springframework.boot:spring-boot-starter-oauth2-client")
 
-    implementation("org.springframework.cloud:spring-cloud-starter-aws-messaging:2.2.2.RELEASE")
+    implementation("org.springframework.cloud:spring-cloud-starter-aws-messaging:2.2.4.RELEASE")
 
-    implementation("net.javacrumbs.shedlock:shedlock-spring:4.12.0")
-    implementation("net.javacrumbs.shedlock:shedlock-provider-jdbc-template:4.12.0")
+    implementation("net.javacrumbs.shedlock:shedlock-spring:4.14.0")
+    implementation("net.javacrumbs.shedlock:shedlock-provider-jdbc-template:4.14.0")
 
     implementation("javax.annotation:javax.annotation-api:1.3.2")
     implementation("javax.xml.bind:jaxb-api:2.3.1")
@@ -39,8 +39,8 @@ dependencies {
     implementation("io.jsonwebtoken:jjwt:0.9.1")
 
     implementation("net.sf.ehcache:ehcache:2.10.6")
-    implementation("org.apache.commons:commons-text:1.8")
-    implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.11.1")
+    implementation("org.apache.commons:commons-text:1.9")
+    implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.11.2")
     implementation("com.pauldijou:jwt-core_2.11:4.3.0")
     implementation("com.google.code.gson:gson:2.8.6")
     implementation("com.google.guava:guava:29.0-jre")
@@ -52,6 +52,6 @@ dependencies {
     testImplementation("com.tngtech.java:junit-dataprovider:1.13.1")
     testImplementation("net.javacrumbs.json-unit:json-unit-assertj:2.18.1")
     testImplementation("io.github.http-builder-ng:http-builder-ng-apache:1.0.4")
-    testImplementation("com.github.tomakehurst:wiremock-standalone:2.26.3")
+    testImplementation("com.github.tomakehurst:wiremock-standalone:2.27.1")
     testImplementation("junit:junit:4.13")
 }
