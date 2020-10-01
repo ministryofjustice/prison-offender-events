@@ -1,5 +1,5 @@
 plugins {
-  id("uk.gov.justice.hmpps.gradle-spring-boot") version "1.0.2"
+  id("uk.gov.justice.hmpps.gradle-spring-boot") version "1.0.6"
 }
 
 configurations {
@@ -11,7 +11,7 @@ dependencies {
     annotationProcessor("org.projectlombok:lombok:1.18.12")
 
     runtime("com.h2database:h2:1.4.200")
-    runtime("org.flywaydb:flyway-core:6.5.5")
+    runtime("org.flywaydb:flyway-core:6.5.6")
     runtime("org.postgresql:postgresql:42.2.16")
 
     compileOnly("org.projectlombok:lombok:1.18.12")
@@ -50,8 +50,8 @@ dependencies {
     testCompileOnly("org.projectlombok:lombok:1.18.12")
     testImplementation("org.springframework.security:spring-security-test")
     testImplementation("com.tngtech.java:junit-dataprovider:1.13.1")
-    testImplementation("net.javacrumbs.json-unit:json-unit-assertj:2.18.1")
+    testImplementation("net.javacrumbs.json-unit:json-unit-assertj:2.19.0")
     testImplementation("io.github.http-builder-ng:http-builder-ng-apache:1.0.4")
-    testImplementation("com.github.tomakehurst:wiremock-standalone:2.27.1")
+    testImplementation("com.github.tomakehurst:wiremock-standalone:2.27.2")
     testImplementation("junit:junit:4.13")
 }
