@@ -1,5 +1,5 @@
 plugins {
-  id("uk.gov.justice.hmpps.gradle-spring-boot") version "1.0.6"
+  id("uk.gov.justice.hmpps.gradle-spring-boot") version "1.1.2"
 }
 
 configurations {
@@ -8,13 +8,13 @@ configurations {
 
 dependencies {
     annotationProcessor("org.springframework.boot:spring-boot-configuration-processor")
-    annotationProcessor("org.projectlombok:lombok:1.18.12")
+    annotationProcessor("org.projectlombok:lombok:1.18.16")
 
     runtime("com.h2database:h2:1.4.200")
     runtime("org.flywaydb:flyway-core:6.5.6")
     runtime("org.postgresql:postgresql:42.2.16")
 
-    compileOnly("org.projectlombok:lombok:1.18.12")
+    compileOnly("org.projectlombok:lombok:1.18.16")
 
     implementation("org.springframework.boot:spring-boot-starter-actuator")
     implementation("org.springframework.boot:spring-boot-starter-cache")
@@ -24,7 +24,7 @@ dependencies {
     implementation("org.springframework.boot:spring-boot-starter-security")
     implementation("org.springframework.boot:spring-boot-starter-oauth2-client")
 
-    implementation("org.springframework.cloud:spring-cloud-starter-aws-messaging:2.2.4.RELEASE")
+    implementation("org.springframework.cloud:spring-cloud-starter-aws-messaging:2.2.5.RELEASE")
 
     implementation("net.javacrumbs.shedlock:shedlock-spring:4.14.0")
     implementation("net.javacrumbs.shedlock:shedlock-provider-jdbc-template:4.14.0")
@@ -46,12 +46,12 @@ dependencies {
     implementation("com.google.guava:guava:29.0-jre")
 
     testAnnotationProcessor("org.springframework.boot:spring-boot-configuration-processor")
-    testAnnotationProcessor("org.projectlombok:lombok:1.18.12")
-    testCompileOnly("org.projectlombok:lombok:1.18.12")
+    testAnnotationProcessor("org.projectlombok:lombok:1.18.16")
+    testCompileOnly("org.projectlombok:lombok:1.18.16")
     testImplementation("org.springframework.security:spring-security-test")
     testImplementation("com.tngtech.java:junit-dataprovider:1.13.1")
-    testImplementation("net.javacrumbs.json-unit:json-unit-assertj:2.19.0")
+    testImplementation("net.javacrumbs.json-unit:json-unit-assertj:2.21.0")
     testImplementation("io.github.http-builder-ng:http-builder-ng-apache:1.0.4")
     testImplementation("com.github.tomakehurst:wiremock-standalone:2.27.2")
-    testImplementation("junit:junit:4.13")
+    testImplementation("junit:junit:4.13.1")
 }
