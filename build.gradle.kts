@@ -29,10 +29,6 @@ dependencies {
   implementation("net.javacrumbs.shedlock:shedlock-spring:4.19.0")
   implementation("net.javacrumbs.shedlock:shedlock-provider-jdbc-template:4.19.0")
 
-  implementation("javax.annotation:javax.annotation-api:1.3.2")
-  implementation("javax.xml.bind:jaxb-api:2.3.1")
-  implementation("com.sun.xml.bind:jaxb-impl:3.0.0")
-  implementation("com.sun.xml.bind:jaxb-core:3.0.0")
   implementation("javax.activation:activation:1.1.1")
   implementation("javax.transaction:javax.transaction-api:1.3")
 
