@@ -1,0 +1,13 @@
+{
+  "role": {
+    "name": "prison-offender-events"
+  },
+  "customDimensions": {
+    "service.version": "${BUILD_NUMBER}"
+  },
+  "selfDiagnostics": {
+    "destination": "console",
+    "level": "INFO"
+  }
+}
+

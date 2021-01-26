@@ -22,11 +22,14 @@ env:
   - name: WIND_BACK_SECONDS
     value: "{{ .Values.env.WIND_BACK_SECONDS }}"
 
-  - name: APPLICATIONINSIGHTS_CONNECTION_STRING
+  - name: APPINSIGHTS_INSTRUMENTATIONKEY
     valueFrom:
       secretKeyRef:
         name: {{ template "app.name" . }}
-        key: APPLICATIONINSIGHTS_CONNECTION_STRING
+        key: APPINSIGHTS_INSTRUMENTATIONKEY
+
+  - name: APPLICATIONINSIGHTS_CONNECTION_STRING
+    value: "InstrumentationKey=$(APPINSIGHTS_INSTRUMENTATIONKEY)"
 
   - name: AWS_REGION
     value: "eu-west-2"
