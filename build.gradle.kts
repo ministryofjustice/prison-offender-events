@@ -1,5 +1,5 @@
 plugins {
-  id("uk.gov.justice.hmpps.gradle-spring-boot") version "3.1.6"
+  id("uk.gov.justice.hmpps.gradle-spring-boot") version "3.1.7"
   kotlin("plugin.spring") version "1.4.32"
 }
 
@@ -51,4 +51,12 @@ dependencies {
   testImplementation("io.github.http-builder-ng:http-builder-ng-apache:1.0.4")
   testImplementation("com.github.tomakehurst:wiremock-standalone:2.27.2")
   testImplementation("junit:junit:4.13.2")
+}
+
+tasks {
+  compileKotlin {
+    kotlinOptions {
+      jvmTarget = "15"
+    }
+  }
 }
