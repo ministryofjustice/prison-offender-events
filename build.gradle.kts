@@ -1,5 +1,5 @@
 plugins {
-  id("uk.gov.justice.hmpps.gradle-spring-boot") version "3.2.0-beta"
+  id("uk.gov.justice.hmpps.gradle-spring-boot") version "3.2.1"
   kotlin("plugin.spring") version "1.5.0"
 }
 
@@ -9,13 +9,13 @@ configurations {
 
 dependencies {
   annotationProcessor("org.springframework.boot:spring-boot-configuration-processor")
-  annotationProcessor("org.projectlombok:lombok:1.18.18")
+  annotationProcessor("org.projectlombok:lombok:1.18.20")
 
   runtimeOnly("com.h2database:h2:1.4.200")
-  runtimeOnly("org.flywaydb:flyway-core:7.7.1")
-  runtimeOnly("org.postgresql:postgresql:42.2.19")
+  runtimeOnly("org.flywaydb:flyway-core:7.9.0")
+  runtimeOnly("org.postgresql:postgresql:42.2.20")
 
-  compileOnly("org.projectlombok:lombok:1.18.18")
+  compileOnly("org.projectlombok:lombok:1.18.20")
 
   implementation("org.springframework.boot:spring-boot-starter-actuator")
   implementation("org.springframework.boot:spring-boot-starter-cache")
@@ -37,14 +37,14 @@ dependencies {
 
   implementation("net.sf.ehcache:ehcache:2.10.6")
   implementation("org.apache.commons:commons-text:1.9")
-  implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.12.2")
+  implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.12.3")
   implementation("com.pauldijou:jwt-core_2.11:5.0.0")
   implementation("com.google.code.gson:gson:2.8.6")
   implementation("com.google.guava:guava:30.1.1-jre")
 
   testAnnotationProcessor("org.springframework.boot:spring-boot-configuration-processor")
-  testAnnotationProcessor("org.projectlombok:lombok:1.18.18")
-  testCompileOnly("org.projectlombok:lombok:1.18.18")
+  testAnnotationProcessor("org.projectlombok:lombok:1.18.20")
+  testCompileOnly("org.projectlombok:lombok:1.18.20")
   testImplementation("org.springframework.security:spring-security-test")
   testImplementation("com.tngtech.java:junit-dataprovider:1.13.1")
   testImplementation("net.javacrumbs.json-unit:json-unit-assertj:2.25.0")
