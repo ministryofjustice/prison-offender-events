@@ -15,7 +15,7 @@ public class LocalstackConfig {
     @Bean
     @ConditionalOnProperty(name = "sns.provider", havingValue = "localstack", matchIfMissing = true)
     @Primary
-    public AmazonSNSAsync awsSnsClient(@Value("${sns.endpoint.url}") String serviceEndpoint, @Value("${cloud.aws.region.static}") String region) {
+    public AmazonSNSAsync awsPrisonEventsSnsClient(@Value("${sns.endpoint.url}") String serviceEndpoint, @Value("${cloud.aws.region.static}") String region) {
         return AmazonSNSAsyncClientBuilder.standard()
                 .withEndpointConfiguration(new AwsClientBuilder.EndpointConfiguration(serviceEndpoint, region))
                 .build();
