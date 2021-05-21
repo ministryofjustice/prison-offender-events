@@ -23,26 +23,29 @@ public class EventRetrievalService {
     public static final String POLL_NAME = "offenderEvents";
 
     private final ExternalApiService externalApiService;
-    private final SnsService snsService;
+    private final PrisonEventsEmitter prisonEventsEmitter;
     private final PollAuditRepository repository;
+    private final HMPPSDomainEventsEmitter hmppsDomainEventsEmitter;
     private final int pollInterval;
     private final int maxEventRangeMinutes;
     private final int windBackSeconds;
 
 
     public EventRetrievalService(final ExternalApiService externalApiService,
-                                 final SnsService snsService,
+                                 final PrisonEventsEmitter prisonEventsEmitter,
+                                 final HMPPSDomainEventsEmitter hmppsDomainEventsEmitter,
                                  final PollAuditRepository repository,
                                  @Value("${application.events.poll.frequency:60000}") final int pollInterval,
                                  @Value("${wind.back.seconds:10}") int windBackSeconds,
                                  @Value("${application.events.max.range.minutes:20}") final int maxEventRangeMinutes) {
         this.externalApiService = externalApiService;
-        this.snsService = snsService;
+        this.prisonEventsEmitter = prisonEventsEmitter;
         this.repository = repository;
         this.pollInterval = pollInterval;
         this.maxEventRangeMinutes = maxEventRangeMinutes;
         this.windBackSeconds = windBackSeconds;
         log.info("Using {} wind back seconds", windBackSeconds);
+        this.hmppsDomainEventsEmitter = hmppsDomainEventsEmitter;
     }
 
     public void pollEvents(final LocalDateTime currentTime) {
@@ -63,7 +66,8 @@ public class EventRetrievalService {
             log.debug("Getting events between {} and {}", startTime, endTime);
             final var events = externalApiService.getEvents(startTime, endTime);
             log.debug("There are {} events {}", events.size(), events);
-            events.forEach(snsService::sendEvent);
+            events.forEach(prisonEventsEmitter::sendEvent);
+            events.forEach(hmppsDomainEventsEmitter::convertAndSendWhenSignificant);
 
             final var lastEventTime = events.stream()
                     .max(Comparator.comparing(OffenderEvent::getEventDatetime))

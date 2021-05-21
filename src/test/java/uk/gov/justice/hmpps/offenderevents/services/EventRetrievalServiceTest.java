@@ -1,10 +1,11 @@
 package uk.gov.justice.hmpps.offenderevents.services;
 
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
 import uk.gov.justice.hmpps.offenderevents.model.OffenderEvent;
 import uk.gov.justice.hmpps.offenderevents.model.PollAudit;
 import uk.gov.justice.hmpps.offenderevents.repository.PollAuditRepository;
@@ -19,7 +20,7 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 import static uk.gov.justice.hmpps.offenderevents.services.EventRetrievalService.POLL_NAME;
 
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
 public class EventRetrievalServiceTest {
 
     public static final int WIND_BACK_SECONDS = 400;
@@ -28,7 +29,10 @@ public class EventRetrievalServiceTest {
     @Mock
     private ExternalApiService externalApiService;
     @Mock
-    private SnsService snsService;
+    private PrisonEventsEmitter prisonEventsEmitter;
+    @Mock
+    private HMPPSDomainEventsEmitter hmppsDomainEventsEmitter;
+
     @Mock
     private PollAuditRepository repository;
 
@@ -36,9 +40,9 @@ public class EventRetrievalServiceTest {
 
     private EventRetrievalService eventRetrievalService;
 
-    @Before
+    @BeforeEach
     public void setup() {
-        eventRetrievalService = new EventRetrievalService(externalApiService, snsService, repository, POLL_INTERVAL, WIND_BACK_SECONDS, maxEventRangeMinutes);
+        eventRetrievalService = new EventRetrievalService(externalApiService, prisonEventsEmitter, hmppsDomainEventsEmitter, repository, POLL_INTERVAL, WIND_BACK_SECONDS, maxEventRangeMinutes);
     }
 
     @Test
@@ -57,9 +61,9 @@ public class EventRetrievalServiceTest {
                 );
         when(externalApiService.getEvents(eq(eventTimeStart), eq(windBackPoint))).thenReturn(events);
 
-        snsService.sendEvent(eq(events.get(2)));
-        snsService.sendEvent(eq(events.get(1)));
-        snsService.sendEvent(eq(events.get(0)));
+        prisonEventsEmitter.sendEvent(eq(events.get(2)));
+        prisonEventsEmitter.sendEvent(eq(events.get(1)));
+        prisonEventsEmitter.sendEvent(eq(events.get(0)));
 
         final var resultPoll = PollAudit.builder().pollName(POLL_NAME).nextStartTime(events.get(2).getEventDatetime().plus(1, MICROS)).numberOfRecords(3).build();
         repository.save(eq(resultPoll));
@@ -68,7 +72,7 @@ public class EventRetrievalServiceTest {
         verify(repository).findById(eq(POLL_NAME));
 
         verify(externalApiService).getEvents(eq(eventTimeStart), eq(windBackPoint));
-        verify(snsService, times(3)).sendEvent(any(OffenderEvent.class));
+        verify(prisonEventsEmitter, times(3)).sendEvent(any(OffenderEvent.class));
     }
 
 
@@ -89,9 +93,9 @@ public class EventRetrievalServiceTest {
                 );
         when(externalApiService.getEvents(eq(lastRun), eq(windBackPoint))).thenReturn(events);
 
-        snsService.sendEvent(eq(events.get(2)));
-        snsService.sendEvent(eq(events.get(1)));
-        snsService.sendEvent(eq(events.get(0)));
+        prisonEventsEmitter.sendEvent(eq(events.get(2)));
+        prisonEventsEmitter.sendEvent(eq(events.get(1)));
+        prisonEventsEmitter.sendEvent(eq(events.get(0)));
 
         final var resultPoll = PollAudit.builder().pollName(POLL_NAME).nextStartTime(events.get(2).getEventDatetime().plus(1, MICROS)).numberOfRecords(3).build();
         repository.save(eq(resultPoll));
@@ -100,7 +104,7 @@ public class EventRetrievalServiceTest {
         verify(repository).findById(eq(POLL_NAME));
         verify(repository, times(2)).save(any(PollAudit.class));
         verify(externalApiService).getEvents(eq(lastRun), eq(windBackPoint));
-        verify(snsService, times(3)).sendEvent(any(OffenderEvent.class));
+        verify(prisonEventsEmitter, times(3)).sendEvent(any(OffenderEvent.class));
     }
 
     @Test
@@ -119,10 +123,10 @@ public class EventRetrievalServiceTest {
                 );
         when(externalApiService.getEvents(eq(lastRun), eq(lastRun.plusMinutes(maxEventRangeMinutes)))).thenReturn(events);
 
-        snsService.sendEvent(eq(events.get(3)));
-        snsService.sendEvent(eq(events.get(2)));
-        snsService.sendEvent(eq(events.get(1)));
-        snsService.sendEvent(eq(events.get(0)));
+        prisonEventsEmitter.sendEvent(eq(events.get(3)));
+        prisonEventsEmitter.sendEvent(eq(events.get(2)));
+        prisonEventsEmitter.sendEvent(eq(events.get(1)));
+        prisonEventsEmitter.sendEvent(eq(events.get(0)));
 
         final var resultPoll = PollAudit.builder().pollName(POLL_NAME).nextStartTime(events.get(2).getEventDatetime().plus(1, MICROS)).numberOfRecords(3).build();
         repository.save(eq(resultPoll));
@@ -130,7 +134,7 @@ public class EventRetrievalServiceTest {
 
         verify(repository).findById(eq(POLL_NAME));
         verify(externalApiService).getEvents(eq(lastRun), eq(lastRun.plusMinutes(maxEventRangeMinutes)));
-        verify(snsService, times(4)).sendEvent(any(OffenderEvent.class));
+        verify(prisonEventsEmitter, times(4)).sendEvent(any(OffenderEvent.class));
     }
 
     @Test
@@ -146,7 +150,7 @@ public class EventRetrievalServiceTest {
         verify(repository, times(1)).findById(eq(POLL_NAME));
         verify(repository, times(1)).save(eq(poller));
         verifyNoInteractions(externalApiService);
-        verifyNoInteractions(snsService);
+        verifyNoInteractions(prisonEventsEmitter);
     }
 
     @Test
@@ -165,8 +169,8 @@ public class EventRetrievalServiceTest {
                 );
         when(externalApiService.getEvents(eq(lastRun), eq(windBackPoint))).thenReturn(events);
 
-        snsService.sendEvent(eq(events.get(0)));
-        snsService.sendEvent(eq(events.get(1)));
+        prisonEventsEmitter.sendEvent(eq(events.get(0)));
+        prisonEventsEmitter.sendEvent(eq(events.get(1)));
 
         final var resultPoll = PollAudit.builder().pollName(POLL_NAME).nextStartTime(events.get(1).getEventDatetime().plus(1, MICROS)).numberOfRecords(2).build();
 
@@ -174,7 +178,27 @@ public class EventRetrievalServiceTest {
 
         verify(repository, times(1)).findById(eq(POLL_NAME));
         verify(externalApiService).getEvents(eq(lastRun), eq(windBackPoint));
-        verify(snsService, times(2)).sendEvent(any(OffenderEvent.class));
+        verify(prisonEventsEmitter, times(2)).sendEvent(any(OffenderEvent.class));
+    }
+
+    @Test
+    @DisplayName("Will pass event to HMPPS domain emitter as well an main topic")
+    void willPassEventToHMPPSDomainEmitter() {
+        final var now = LocalDateTime.now();
+
+        when(repository.findById(eq(POLL_NAME)))
+            .thenReturn(Optional.of(PollAudit.builder().pollName(POLL_NAME).nextStartTime(LocalDateTime.now().minusMinutes(10)).build()));
+        final var events = List.of
+            (
+                OffenderEvent.builder().eventType("OFFENDER_MOVEMENT-RECEPTION").bookingId(-1L).eventDatetime(now).build(),
+                OffenderEvent.builder().eventType("OFFENDER_ATE_A_BANANA").bookingId(-2L).eventDatetime(now).build()
+            );
+        when(externalApiService.getEvents(any(), any())).thenReturn(events);
+
+        eventRetrievalService.pollEvents(now);
+
+        verify(prisonEventsEmitter, times(2)).sendEvent(any(OffenderEvent.class));
+        verify(hmppsDomainEventsEmitter, times(2)).convertAndSendWhenSignificant(any(OffenderEvent.class));
     }
 
 }

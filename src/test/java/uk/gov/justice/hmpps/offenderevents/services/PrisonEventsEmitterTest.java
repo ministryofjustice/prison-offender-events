@@ -15,17 +15,17 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.verify;
 
 @RunWith(MockitoJUnitRunner.class)
-public class SnsServiceTest {
+public class PrisonEventsEmitterTest {
 
     @Mock
     private AmazonSNSAsync amazonSns;
     private final ObjectMapper objectMapper = new ObjectMapper();
 
-    private SnsService service;
+    private PrisonEventsEmitter service;
 
     @Before
     public void setup() {
-        service = new SnsService(amazonSns, "topicARN",  objectMapper);
+        service = new PrisonEventsEmitter(amazonSns, "topicARN",  objectMapper);
     }
 
     @Test

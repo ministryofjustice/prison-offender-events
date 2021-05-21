@@ -15,16 +15,16 @@ import java.util.Map;
 
 @Service
 @Slf4j
-public class SnsService {
+public class PrisonEventsEmitter {
 
     private final NotificationMessagingTemplate topicTemplate;
     private final AmazonSNSAsync amazonSns;
     private final String topicArn;
     private final ObjectMapper objectMapper;
 
-    public SnsService(@Qualifier("awsSnsClient") final AmazonSNSAsync amazonSns,
-                      @Value("${sns.topic.arn}") final String topicArn,
-                      final ObjectMapper objectMapper) {
+    public PrisonEventsEmitter(@Qualifier("awsPrisonEventsSnsClient") final AmazonSNSAsync amazonSns,
+                               @Value("${sns.topic.arn}") final String topicArn,
+                               final ObjectMapper objectMapper) {
 
         this.topicTemplate = new NotificationMessagingTemplate(amazonSns);
         this.topicArn = topicArn;
