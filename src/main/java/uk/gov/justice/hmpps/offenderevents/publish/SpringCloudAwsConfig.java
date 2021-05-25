@@ -24,4 +24,14 @@ public class SpringCloudAwsConfig {
                 .withRegion(region)
                 .build();
     }
+    @Bean
+    @ConditionalOnProperty(name = "sns.provider", havingValue = "aws")
+    public AmazonSNSAsync awsHMPPSEventsSnsClient(@Value("${hmpps.sns.aws.access.key.id}") String accessKey, @Value("${hmpps.sns.aws.secret.access.key}") String secretKey,
+                                       @Value("${cloud.aws.region.static}") String region) {
+        var creds = new BasicAWSCredentials(accessKey, secretKey);
+        return AmazonSNSAsyncClientBuilder.standard()
+                .withCredentials(new AWSStaticCredentialsProvider(creds))
+                .withRegion(region)
+                .build();
+    }
 }

@@ -4,7 +4,7 @@ oauth:
 prison:
   api.base.url: ${PRISON_API_BASE_URL:http://localhost:8081}
 
-prisonapi:
+offender.events:
   client:
-    clientId: ${OFFENDER_EVENTS_CLIENT_ID:offender-events-client}
-    clientSecret: ${OFFENDER_EVENTS_CLIENT_SECRET:clientsecret}
+    id: ${OFFENDER_EVENTS_CLIENT_ID:offender-events-client}
+    secret: ${OFFENDER_EVENTS_CLIENT_SECRET:clientsecret}
