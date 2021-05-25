@@ -20,4 +20,11 @@ public class LocalstackConfig {
                 .withEndpointConfiguration(new AwsClientBuilder.EndpointConfiguration(serviceEndpoint, region))
                 .build();
     }
+    @Bean
+    @ConditionalOnProperty(name = "sns.provider", havingValue = "localstack", matchIfMissing = true)
+    public AmazonSNSAsync awsHMPPSEventsSnsClient(@Value("${hmpps.sns.endpoint.url}") String serviceEndpoint, @Value("${cloud.aws.region.static}") String region) {
+        return AmazonSNSAsyncClientBuilder.standard()
+                .withEndpointConfiguration(new AwsClientBuilder.EndpointConfiguration(serviceEndpoint, region))
+                .build();
+    }
 }
