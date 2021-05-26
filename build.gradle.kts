@@ -42,6 +42,11 @@ dependencies {
   implementation("com.google.code.gson:gson:2.8.6")
   implementation("com.google.guava:guava:30.1.1-jre")
 
+  // needed for record serialisation
+  implementation("com.fasterxml.jackson.core:jackson-core:2.12.3")
+  implementation("com.fasterxml.jackson.core:jackson-databind:2.12.3")
+  implementation("com.fasterxml.jackson.core:jackson-annotations:2.12.3")
+
   testAnnotationProcessor("org.springframework.boot:spring-boot-configuration-processor")
   testAnnotationProcessor("org.projectlombok:lombok:1.18.20")
   testCompileOnly("org.projectlombok:lombok:1.18.20")
