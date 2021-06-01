@@ -15,16 +15,18 @@ public class ResourceServerConfiguration extends WebSecurityConfigurerAdapter {
     public void configure(final HttpSecurity http) throws Exception {
 
         http.headers().frameOptions().sameOrigin().and()
-                .sessionManagement()
-                .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+            .sessionManagement()
+            .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
 
-                // Can't have CSRF protection as requires session
-                .and().csrf().disable()
-                .authorizeRequests(auth ->
-                        auth.antMatchers("/webjars/**", "/favicon.ico", "/csrf",
-                                "/health/**", "/info", "/h2-console/**").permitAll()
-                                .anyRequest()
-                                .authenticated());
+            // Can't have CSRF protection as requires session
+            .and().csrf().disable()
+            .authorizeRequests(auth ->
+                auth.antMatchers("/webjars/**", "/favicon.ico", "/csrf",
+                    "/health/**", "/info", "/h2-console/**",
+                    "/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html"
+                ).permitAll()
+                    .anyRequest()
+                    .authenticated());
 
     }
 
