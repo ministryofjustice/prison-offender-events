@@ -7,9 +7,12 @@ import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.security.oauth2.client.servlet.OAuth2ClientAutoConfiguration;
+import org.springframework.boot.autoconfigure.security.servlet.SecurityAutoConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.context.ActiveProfiles;
+import uk.gov.justice.hmpps.offenderevents.config.OffenderEventsProperties;
+import uk.gov.justice.hmpps.offenderevents.config.WebClientConfiguration;
 import uk.gov.justice.hmpps.offenderevents.services.wiremock.HMPPSAuthExtension;
 import uk.gov.justice.hmpps.offenderevents.services.wiremock.PrisonApiExtension;
 
@@ -17,14 +20,10 @@ import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 
 @ExtendWith({PrisonApiExtension.class, HMPPSAuthExtension.class})
 @ActiveProfiles(profiles = "test")
-@SpringBootTest
+@SpringBootTest(classes = {PrisonApiService.class, WebClientConfiguration.class, OffenderEventsProperties.class, SecurityAutoConfiguration.class, OAuth2ClientAutoConfiguration.class})
 class PrisonApiServiceTest {
     @Autowired
     private PrisonApiService service;
-    @MockBean
-    private HMPPSDomainEventsEmitter hmppsDomainEventsEmitter;
-    @MockBean
-    private PrisonEventsEmitter prisonEventsEmitter;
 
     @Nested
     class GetPrisonerDetails {

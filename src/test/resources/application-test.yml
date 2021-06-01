@@ -16,10 +16,3 @@ offender.events:
     id: offender-events-client
     secret: clientsecret
 
-sns.aws.access.key.id:
-sns.aws.secret.access.key:
-sns.topic.arn:
-hmpps.sns.aws.access.key.id:
-hmpps.sns.aws.secret.access.key:
-hmpps.sns.topic.arn:
-sns.provider:
