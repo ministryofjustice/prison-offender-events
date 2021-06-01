@@ -3,7 +3,6 @@ package uk.gov.justice.hmpps.offenderevents.services;
 import com.amazonaws.services.sns.AmazonSNSAsync;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
@@ -12,6 +11,8 @@ import org.springframework.cloud.aws.messaging.core.TopicMessageChannel;
 import org.springframework.stereotype.Service;
 import uk.gov.justice.hmpps.offenderevents.model.OffenderEvent;
 
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.Map;
 import java.util.Optional;
 
@@ -44,10 +45,13 @@ public class HMPPSDomainEventsEmitter {
     }
 
     private HMPPSDomainEvent toPrisonerReceived(OffenderEvent event) {
-        return new HMPPSDomainEvent("PRISONER_RECEIVED", event.getOffenderIdDisplay());
+        return new HMPPSDomainEvent("prison-offender-events.prisoner.received", new AdditionalInformation(event.getOffenderIdDisplay()), event
+            .getEventDatetime(), "A prisoner has been received into prison");
     }
+
     private HMPPSDomainEvent toPrisonerReleased(OffenderEvent event) {
-        return new HMPPSDomainEvent("PRISONER_RELEASED", event.getOffenderIdDisplay());
+        return new HMPPSDomainEvent("prison-offender-events.prisoner.released", new AdditionalInformation(event.getOffenderIdDisplay()), event
+            .getEventDatetime(), "A prisoner has been released from prison");
     }
 
     public void sendEvent(final HMPPSDomainEvent payload) {
@@ -63,6 +67,22 @@ public class HMPPSDomainEventsEmitter {
     }
 }
 
-@JsonSerialize
-record HMPPSDomainEvent(String eventType, String nomsNumber) {
+record HMPPSDomainEvent(String eventType, AdditionalInformation additionalInformation, int version,
+                        String occurredAt, String publishedAt, String description) {
+    public HMPPSDomainEvent(String eventType,
+                            AdditionalInformation additionalInformation,
+                            LocalDateTime occurredAt,
+                            String description) {
+        this(eventType,
+            additionalInformation,
+            1,
+            occurredAt.format(DateTimeFormatter.ISO_DATE_TIME),
+            LocalDateTime
+                .now()
+                .format(DateTimeFormatter.ISO_DATE_TIME),
+            description);
+    }
+}
+
+record AdditionalInformation(String nomsNumber) {
 }

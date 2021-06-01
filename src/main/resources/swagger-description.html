@@ -1,0 +1,40 @@
+<h3>Generate events for the offender changes in prison</h3>
+<p>Background service for generating events for the <b>offender-events</b> topic and <b>hmpps-domain-events</b> topic from DPS and NOMIS changes indicating a change to an offender in prison</p>
+<p>
+    Events are generated when this service detects a change in NOMIS/DPS via database triggers or when a service determines a significant event has happened.
+</p>
+<p>
+  The events published to the <b>offender-events</b> topic tend to be events closely related the database tables that have been updated and are often fine grained.
+</p>
+<p>
+  The events published to the <b>hmpps-domain-events</b> topic tend to be coarse grained business events to better represent the real world changes.
+</p>
+<h4>Prison specific events - <b>offender-events</b> topic</h4>
+<div>
+    The specific events currently being raised are
+    <ul>
+        <li><b>IMPRISONMENT_STATUS-CHANGED</b> is raised when an offender's imprisonment status is changed changed</li>
+        <li><b>???</b> all other events should be documented here</li>
+    </ul>
+</div>
+<h4>HMPPS domain events - <b>hmpps-domain-events</b> topic</h4>
+<div>
+    The specific events currently being raised are
+    <ul>
+        <li><b>prison-offender-events.prisoner.released</b> is raised when a prisoner is released from prison (as opposed to be transferred to another prison or a temporary absence)</li>
+        <li><b>prison-offender-events.prisoner.received</b> is raised when a prisoner is received to prison, this may be due to remand, a conviction or a recall from a broken licence</li>
+    </ul>
+</div>
+<h3>Topic subscription</h3>
+<p>Clients are expected to use a SQS AWS queue to receive events with queue subscribed to <b>prison-events-topic</b> or <b>hmpps-domain-topic</b> or both. </p>
+<p>Clients can subscribe to one or more events. A typical subscription could be:</p>
+<pre>
+    resource "aws_sns_topic_subscription" "my_probation_subscription" {
+    provider      = aws.london
+    topic_arn     = module.hmpps-domain-events.topic_arn
+    protocol      = "sqs"
+    endpoint      = module.my_queue.sqs_arn
+    filter_policy = "{\"eventType\":[ \"prison-offender-events.prisoner.released\", \"prison-offender-events.prisoner.receive\"] }"
+    }
+</pre>
+<p>and this would be defined in the Cloud Platform hmpps-domain-events namespace or the offender-events namespace for <b>offender_events</b></p>

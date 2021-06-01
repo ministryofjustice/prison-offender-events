@@ -47,6 +47,10 @@ dependencies {
   implementation("com.fasterxml.jackson.core:jackson-databind:2.12.3")
   implementation("com.fasterxml.jackson.core:jackson-annotations:2.12.3")
 
+  implementation("org.springdoc:springdoc-openapi-ui:1.5.4")
+  implementation("org.springdoc:springdoc-openapi-data-rest:1.5.4")
+  implementation("org.springdoc:springdoc-openapi-kotlin:1.5.4")
+
   testAnnotationProcessor("org.springframework.boot:spring-boot-configuration-processor")
   testAnnotationProcessor("org.projectlombok:lombok:1.18.20")
   testCompileOnly("org.projectlombok:lombok:1.18.20")
@@ -56,6 +60,7 @@ dependencies {
   testImplementation("io.github.http-builder-ng:http-builder-ng-apache:1.0.4")
   testImplementation("com.github.tomakehurst:wiremock-standalone:2.27.2")
   testImplementation("junit:junit:4.13.2")
+  testImplementation("net.javacrumbs.json-unit:json-unit-assertj:2.25.0")
 }
 
 tasks {
