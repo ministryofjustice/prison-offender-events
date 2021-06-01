@@ -23,15 +23,17 @@ public class HMPPSDomainEventsEmitter {
     private final AmazonSNSAsync amazonSns;
     private final String topicArn;
     private final ObjectMapper objectMapper;
+    private final ReceivePrisonerReasonCalculator receivePrisonerReasonCalculator;
 
     HMPPSDomainEventsEmitter(@Qualifier("awsHMPPSEventsSnsClient") final AmazonSNSAsync amazonSns,
                              @Value("${hmpps.sns.topic.arn}") final String topicArn,
-                             final ObjectMapper objectMapper) {
+                             final ObjectMapper objectMapper,
+                             final ReceivePrisonerReasonCalculator receivePrisonerReasonCalculator) {
         this.topicTemplate = new NotificationMessagingTemplate(amazonSns);
         this.topicArn = topicArn;
         this.amazonSns = amazonSns;
         this.objectMapper = objectMapper;
-
+        this.receivePrisonerReasonCalculator = receivePrisonerReasonCalculator;
     }
 
     public void convertAndSendWhenSignificant(OffenderEvent event) {
@@ -45,12 +47,15 @@ public class HMPPSDomainEventsEmitter {
     }
 
     private HMPPSDomainEvent toPrisonerReceived(OffenderEvent event) {
-        return new HMPPSDomainEvent("prison-offender-events.prisoner.received", new AdditionalInformation(event.getOffenderIdDisplay()), event
+        final var offenderNumber = event.getOffenderIdDisplay();
+        return new HMPPSDomainEvent("prison-offender-events.prisoner.received", new AdditionalInformation(offenderNumber, receivePrisonerReasonCalculator
+            .calculateReasonForPrisoner(offenderNumber)
+            .name()), event
             .getEventDatetime(), "A prisoner has been received into prison");
     }
 
     private HMPPSDomainEvent toPrisonerReleased(OffenderEvent event) {
-        return new HMPPSDomainEvent("prison-offender-events.prisoner.released", new AdditionalInformation(event.getOffenderIdDisplay()), event
+        return new HMPPSDomainEvent("prison-offender-events.prisoner.released", new AdditionalInformation(event.getOffenderIdDisplay(), null), event
             .getEventDatetime(), "A prisoner has been released from prison");
     }
 
@@ -84,5 +89,5 @@ record HMPPSDomainEvent(String eventType, AdditionalInformation additionalInform
     }
 }
 
-record AdditionalInformation(String nomsNumber) {
+record AdditionalInformation(String nomsNumber, String reason) {
 }
