@@ -16,7 +16,10 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 import uk.gov.justice.hmpps.offenderevents.model.OffenderEvent;
+import uk.gov.justice.hmpps.offenderevents.services.ReceivePrisonerReasonCalculator.Reason;
 
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
@@ -25,8 +28,10 @@ import java.util.stream.Stream;
 import static net.javacrumbs.jsonunit.assertj.JsonAssertions.assertThatJson;
 import static org.assertj.core.api.Assertions.within;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
+import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 class HMPPSDomainEventsEmitterTest {
@@ -34,6 +39,9 @@ class HMPPSDomainEventsEmitterTest {
 
     @Mock
     private AmazonSNSAsync amazonSns;
+
+    @Mock
+    private ReceivePrisonerReasonCalculator receivePrisonerReasonCalculator;
 
     @Captor
     private ArgumentCaptor<PublishRequest> publishRequest;
@@ -48,7 +56,7 @@ class HMPPSDomainEventsEmitterTest {
 
     @BeforeEach
     void setUp() {
-        emitter = new HMPPSDomainEventsEmitter(amazonSns, "sometopicarn", new ObjectMapper());
+        emitter = new HMPPSDomainEventsEmitter(amazonSns, "sometopicarn", new ObjectMapper(), receivePrisonerReasonCalculator);
     }
 
     @Test
@@ -62,7 +70,10 @@ class HMPPSDomainEventsEmitterTest {
     @ParameterizedTest
     @MethodSource("eventMap")
     @DisplayName("Will send to topic for these events")
+    @MockitoSettings(strictness = Strictness.LENIENT)
     void willSendToTopicForTheseEvents(String prisonEventType, String eventType) {
+        when(receivePrisonerReasonCalculator.calculateReasonForPrisoner(any())).thenReturn(Reason.UNKNOWN);
+
         emitter.convertAndSendWhenSignificant(OffenderEvent
             .builder()
             .eventType(prisonEventType)
@@ -87,6 +98,8 @@ class HMPPSDomainEventsEmitterTest {
 
         @BeforeEach
         void setUp() {
+            when(receivePrisonerReasonCalculator.calculateReasonForPrisoner(any())).thenReturn(Reason.RECALL);
+
             emitter.convertAndSendWhenSignificant(OffenderEvent
                 .builder()
                 .eventType("OFFENDER_MOVEMENT-RECEPTION")
@@ -121,11 +134,16 @@ class HMPPSDomainEventsEmitterTest {
         }
 
         @Test
+        @DisplayName("will indicate the reason for a prisoners entry")
+        void willIndicateTheReasonForAPrisonersEntry() {
+            assertThatJson(payload).node("additionalInformation.reason").isEqualTo("RECALL");
+        }
+
+        @Test
         @DisplayName("will describe the event as a receive")
         void willDescribeTheEventAsAReceive() {
             assertThatJson(payload).node("description").isEqualTo("A prisoner has been received into prison");
         }
-
     }
 
     @Nested

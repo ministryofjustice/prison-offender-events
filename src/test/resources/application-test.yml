@@ -1,0 +1,18 @@
+server:
+  shutdown: immediate
+
+
+management.endpoint:
+  health.cache.time-to-live: 0
+  info.cache.time-to-live: 0
+
+oauth:
+  api.base.url: http://localhost:8090/auth
+
+prison.api.base.url: http://localhost:8086
+
+offender.events:
+  client:
+    id: offender-events-client
+    secret: clientsecret
+
