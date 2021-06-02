@@ -184,21 +184,53 @@ public class EventRetrievalServiceTest {
     @Test
     @DisplayName("Will pass event to HMPPS domain emitter as well an main topic")
     void willPassEventToHMPPSDomainEmitter() {
-        final var now = LocalDateTime.now();
-
-        when(repository.findById(eq(POLL_NAME)))
-            .thenReturn(Optional.of(PollAudit.builder().pollName(POLL_NAME).nextStartTime(LocalDateTime.now().minusMinutes(10)).build()));
-        final var events = List.of
+        stubEventsToProcess(List.of
             (
-                OffenderEvent.builder().eventType("OFFENDER_MOVEMENT-RECEPTION").bookingId(-1L).eventDatetime(now).build(),
-                OffenderEvent.builder().eventType("OFFENDER_ATE_A_BANANA").bookingId(-2L).eventDatetime(now).build()
-            );
-        when(externalApiService.getEvents(any(), any())).thenReturn(events);
+                OffenderEvent
+                    .builder()
+                    .eventType("OFFENDER_MOVEMENT-RECEPTION")
+                    .bookingId(-1L)
+                    .build(),
+                OffenderEvent.builder().eventType("OFFENDER_ATE_A_BANANA").bookingId(-2L).build()
+            ));
 
-        eventRetrievalService.pollEvents(now);
+        eventRetrievalService.pollEvents(LocalDateTime.now());
 
         verify(prisonEventsEmitter, times(2)).sendEvent(any(OffenderEvent.class));
         verify(hmppsDomainEventsEmitter, times(2)).convertAndSendWhenSignificant(any(OffenderEvent.class));
+    }
+
+    @Test
+    @DisplayName("will swallow exceptions from HMPPS domain emitter so that others events are not blocked")
+    void willSwallowExceptionsFromHMPPSDomainEmitterSoThatOthersEventsAreNotBlocked() {
+        doNothing()
+            .doThrow(new RuntimeException("Oh no!")).when(hmppsDomainEventsEmitter).convertAndSendWhenSignificant(any(OffenderEvent.class));
+
+        stubEventsToProcess(List.of
+            (
+                OffenderEvent.builder().eventType("OFFENDER_MOVEMENT-RECEPTION").bookingId(-1L).build(),
+                OffenderEvent.builder().eventType("OFFENDER_MOVEMENT-RECEPTION").bookingId(-2L).build()
+            ));
+
+        eventRetrievalService.pollEvents(LocalDateTime.now());
+
+        verify(prisonEventsEmitter, times(2)).sendEvent(any(OffenderEvent.class));
+        verify(hmppsDomainEventsEmitter, times(2)).convertAndSendWhenSignificant(any(OffenderEvent.class));
+        verify(repository, times(2)).save(any());
+    }
+
+    private void stubEventsToProcess(List<OffenderEvent> events) {
+        final var now = LocalDateTime.now();
+
+        when(repository.findById(eq(POLL_NAME)))
+            .thenReturn(Optional.of(PollAudit
+                .builder()
+                .pollName(POLL_NAME)
+                .nextStartTime(LocalDateTime.now().minusMinutes(10))
+                .build()));
+        when(externalApiService.getEvents(any(), any()))
+            .thenReturn(events.stream().map(event -> event.toBuilder().eventDatetime(now).build()).toList());
+
     }
 
 }
