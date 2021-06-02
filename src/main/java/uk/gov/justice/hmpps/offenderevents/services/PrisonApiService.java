@@ -29,7 +29,19 @@ public class PrisonApiService {
 
 }
 
-record PrisonerDetails(String legalStatus, boolean recall) {
+record PrisonerDetails(LegalStatus legalStatus, boolean recall) {
 }
 
 
+enum LegalStatus {
+    RECALL,
+    DEAD,
+    INDETERMINATE_SENTENCE,
+    SENTENCED,
+    CONVICTED_UNSENTENCED,
+    CIVIL_PRISONER,
+    IMMIGRATION_DETAINEE,
+    REMAND,
+    UNKNOWN,
+    OTHER;
+}

@@ -4,9 +4,14 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import uk.gov.justice.hmpps.offenderevents.services.ReceivePrisonerReasonCalculator.Reason;
+
+import java.util.stream.Stream;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.mockito.ArgumentMatchers.any;
@@ -48,9 +53,42 @@ class ReceivePrisonerReasonCalculatorTest {
         assertThat(calculator.calculateReasonForPrisoner("A1234GH")).isEqualTo(Reason.UNKNOWN);
     }
 
+    @Test
+    @DisplayName("reason is REMAND when legal status is REMAND")
+    void reasonIsREMANDWhenLegalStatusIsREMAND() {
+        when(prisonApiService.getPrisonerDetails(any())).thenReturn(prisonerDetails("REMAND", false));
+
+        assertThat(calculator.calculateReasonForPrisoner("A1234GH")).isEqualTo(Reason.REMAND);
+    }
+
+    @ParameterizedTest
+    @MethodSource("legalStatusMap")
+    @DisplayName("legal status is mapped to reason")
+    void legalStatusIsMappedToReason(LegalStatus legalStatus, Reason reason) {
+        when(prisonApiService.getPrisonerDetails(any())).thenReturn(prisonerDetails(legalStatus.name(), false));
+
+        assertThat(calculator.calculateReasonForPrisoner("A1234GH")).isEqualTo(reason);
+    }
+
+    @SuppressWarnings("unused")
+    private static Stream<Arguments> legalStatusMap() {
+        return Stream.of(
+            Arguments.of(LegalStatus.INDETERMINATE_SENTENCE, Reason.CONVICTED),
+            Arguments.of(LegalStatus.SENTENCED, Reason.CONVICTED),
+            Arguments.of(LegalStatus.CIVIL_PRISONER, Reason.CONVICTED),
+            Arguments.of(LegalStatus.CONVICTED_UNSENTENCED, Reason.CONVICTED),
+            Arguments.of(LegalStatus.DEAD, Reason.UNKNOWN),
+            Arguments.of(LegalStatus.OTHER, Reason.UNKNOWN),
+            Arguments.of(LegalStatus.UNKNOWN, Reason.UNKNOWN),
+            Arguments.of(LegalStatus.IMMIGRATION_DETAINEE, Reason.IMMIGRATION_DETAINEE)
+        );
+    }
+
+
+
 
     private PrisonerDetails prisonerDetails(String legalStatus, boolean recall) {
-        return new PrisonerDetails(legalStatus, recall);
+        return new PrisonerDetails(LegalStatus.valueOf(LegalStatus.class, legalStatus), recall);
     }
 
 }
