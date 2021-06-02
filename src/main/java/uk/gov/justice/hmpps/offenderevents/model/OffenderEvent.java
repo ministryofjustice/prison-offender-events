@@ -10,7 +10,7 @@ import java.time.LocalDateTime;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-@Builder
+@Builder(toBuilder = true)
 @EqualsAndHashCode(of = { "eventId", "eventType", "eventDatetime" })
 @ToString(of = { "eventType", "bookingId" })
 public class OffenderEvent {

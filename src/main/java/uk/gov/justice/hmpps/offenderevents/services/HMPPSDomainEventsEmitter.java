@@ -55,7 +55,7 @@ public class HMPPSDomainEventsEmitter {
     }
 
     private HMPPSDomainEvent toPrisonerReleased(OffenderEvent event) {
-        return new HMPPSDomainEvent("prison-offender-events.prisoner.released", new AdditionalInformation(event.getOffenderIdDisplay(), null), event
+        return new HMPPSDomainEvent("prison-offender-events.prisoner.released", new AdditionalInformation(event.getOffenderIdDisplay(), "UNKNOWN"), event
             .getEventDatetime(), "A prisoner has been released from prison");
     }
 

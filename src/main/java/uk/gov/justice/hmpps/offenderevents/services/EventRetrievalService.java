@@ -67,7 +67,7 @@ public class EventRetrievalService {
             final var events = externalApiService.getEvents(startTime, endTime);
             log.debug("There are {} events {}", events.size(), events);
             events.forEach(prisonEventsEmitter::sendEvent);
-            events.forEach(hmppsDomainEventsEmitter::convertAndSendWhenSignificant);
+            events.forEach(this::tryHMPPSDomainEventsEmitter);
 
             final var lastEventTime = events.stream()
                     .max(Comparator.comparing(OffenderEvent::getEventDatetime))
@@ -81,6 +81,15 @@ public class EventRetrievalService {
             log.debug("Recording Event Poll {}", audit);
         } else {
             log.warn("Skipping Event Retrieval as start after end, start = {}, end = {}", startTime, endTime);
+        }
+    }
+
+    private void tryHMPPSDomainEventsEmitter(OffenderEvent event) {
+        // we have no reasonable way to recover from these errors so swallow and log
+        try {
+            hmppsDomainEventsEmitter.convertAndSendWhenSignificant(event);
+        } catch (Exception e) {
+            log.error(String.format("Unable to process a HMPPS domain event for %s", event), e);
         }
     }
 }
