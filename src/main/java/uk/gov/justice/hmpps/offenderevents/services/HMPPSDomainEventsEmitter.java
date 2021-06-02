@@ -3,6 +3,7 @@ package uk.gov.justice.hmpps.offenderevents.services;
 import com.amazonaws.services.sns.AmazonSNSAsync;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.microsoft.applicationinsights.TelemetryClient;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
@@ -24,16 +25,20 @@ public class HMPPSDomainEventsEmitter {
     private final String topicArn;
     private final ObjectMapper objectMapper;
     private final ReceivePrisonerReasonCalculator receivePrisonerReasonCalculator;
+    private final TelemetryClient telemetryClient;
+
 
     HMPPSDomainEventsEmitter(@Qualifier("awsHMPPSEventsSnsClient") final AmazonSNSAsync amazonSns,
                              @Value("${hmpps.sns.topic.arn}") final String topicArn,
                              final ObjectMapper objectMapper,
-                             final ReceivePrisonerReasonCalculator receivePrisonerReasonCalculator) {
+                             final ReceivePrisonerReasonCalculator receivePrisonerReasonCalculator,
+                             final TelemetryClient telemetryClient) {
         this.topicTemplate = new NotificationMessagingTemplate(amazonSns);
         this.topicArn = topicArn;
         this.amazonSns = amazonSns;
         this.objectMapper = objectMapper;
         this.receivePrisonerReasonCalculator = receivePrisonerReasonCalculator;
+        this.telemetryClient = telemetryClient;
     }
 
     public void convertAndSendWhenSignificant(OffenderEvent event) {
@@ -43,7 +48,19 @@ public class HMPPSDomainEventsEmitter {
             default -> Optional.empty();
         };
 
-        hmppsEvent.ifPresent(this::sendEvent);
+        hmppsEvent.ifPresent(hmppsDomainEvent -> {
+            sendEvent(hmppsDomainEvent);
+            telemetryClient.trackEvent(hmppsDomainEvent.eventType(), asTelemetryMap(hmppsDomainEvent), null);
+        });
+    }
+
+    private Map<String, String> asTelemetryMap(HMPPSDomainEvent hmppsDomainEvent) {
+        return Map.of("occurredAt",
+            hmppsDomainEvent.occurredAt(),
+            "nomsNumber",
+            hmppsDomainEvent.additionalInformation().nomsNumber(),
+            "reason",
+            hmppsDomainEvent.additionalInformation().reason());
     }
 
     private HMPPSDomainEvent toPrisonerReceived(OffenderEvent event) {

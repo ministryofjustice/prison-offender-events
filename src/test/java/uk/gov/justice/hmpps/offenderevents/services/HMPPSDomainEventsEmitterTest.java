@@ -4,6 +4,7 @@ import com.amazonaws.services.sns.AmazonSNSAsync;
 import com.amazonaws.services.sns.model.MessageAttributeValue;
 import com.amazonaws.services.sns.model.PublishRequest;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.microsoft.applicationinsights.TelemetryClient;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -23,12 +24,16 @@ import uk.gov.justice.hmpps.offenderevents.services.ReceivePrisonerReasonCalcula
 
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
+import java.util.Map;
 import java.util.stream.Stream;
 
 import static net.javacrumbs.jsonunit.assertj.JsonAssertions.assertThatJson;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.within;
-import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyMap;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
@@ -43,8 +48,14 @@ class HMPPSDomainEventsEmitterTest {
     @Mock
     private ReceivePrisonerReasonCalculator receivePrisonerReasonCalculator;
 
+    @Mock
+    private TelemetryClient telemetryClient;
+
     @Captor
-    private ArgumentCaptor<PublishRequest> publishRequest;
+    private ArgumentCaptor<PublishRequest> publishRequestCaptor;
+
+    @Captor
+    private ArgumentCaptor<Map<String, String>> telemetryAttributesCaptor;
 
     @SuppressWarnings("unused")
     private static Stream<Arguments> eventMap() {
@@ -56,7 +67,7 @@ class HMPPSDomainEventsEmitterTest {
 
     @BeforeEach
     void setUp() {
-        emitter = new HMPPSDomainEventsEmitter(amazonSns, "sometopicarn", new ObjectMapper(), receivePrisonerReasonCalculator);
+        emitter = new HMPPSDomainEventsEmitter(amazonSns, "sometopicarn", new ObjectMapper(), receivePrisonerReasonCalculator, telemetryClient);
     }
 
     @Test
@@ -81,20 +92,23 @@ class HMPPSDomainEventsEmitterTest {
             .eventDatetime(LocalDateTime.now())
             .build());
 
-        verify(amazonSns).publish(publishRequest.capture());
+        verify(amazonSns).publish(publishRequestCaptor.capture());
 
-        final var payload = publishRequest.getValue().getMessage();
-        final var messageAttributes = publishRequest.getValue().getMessageAttributes();
+        final var payload = publishRequestCaptor.getValue().getMessage();
+        final var messageAttributes = publishRequestCaptor.getValue().getMessageAttributes();
 
         assertThatJson(payload).node("eventType").isEqualTo(eventType);
         assertThatJson(payload).node("version").isEqualTo(1);
         assertThat(messageAttributes.get("eventType"))
             .isEqualTo(new MessageAttributeValue().withStringValue(eventType).withDataType("String"));
+
+        verify(telemetryClient).trackEvent(eq(eventType), anyMap(), isNull());
     }
 
     @Nested
     class PrisonerReceived {
         private String payload;
+        private Map<String, String> telemetryAttributes;
 
         @BeforeEach
         void setUp() {
@@ -106,8 +120,10 @@ class HMPPSDomainEventsEmitterTest {
                 .offenderIdDisplay("A1234GH")
                 .eventDatetime(LocalDateTime.parse("2020-12-04T10:42:43"))
                 .build());
-            verify(amazonSns).publish(publishRequest.capture());
-            payload = publishRequest.getValue().getMessage();
+            verify(amazonSns).publish(publishRequestCaptor.capture());
+            payload = publishRequestCaptor.getValue().getMessage();
+            verify(telemetryClient).trackEvent(any(), telemetryAttributesCaptor.capture(), isNull());
+            telemetryAttributes = telemetryAttributesCaptor.getValue();
         }
 
         @Test
@@ -117,8 +133,8 @@ class HMPPSDomainEventsEmitterTest {
         }
 
         @Test
-        @DisplayName("will user current time as publishedAT")
-        void willUserCurrentTimeAsPublishedAT() {
+        @DisplayName("will user current time as publishedAt")
+        void willUserCurrentTimeAsPublishedAt() {
             assertThatJson(payload)
                 .node("publishedAt")
                 .asString()
@@ -144,11 +160,30 @@ class HMPPSDomainEventsEmitterTest {
         void willDescribeTheEventAsAReceive() {
             assertThatJson(payload).node("description").isEqualTo("A prisoner has been received into prison");
         }
+
+        @Test
+        @DisplayName("will add noms number to telemetry event")
+        void willAddNomsNumberToTelemetryEvent() {
+          assertThat(telemetryAttributes).containsEntry("nomsNumber", "A1234GH");
+        }
+
+        @Test
+        @DisplayName("will add reason to telemetry event")
+        void willAddReasonToTelemetryEvent() {
+            assertThat(telemetryAttributes).containsEntry("reason", "RECALL");
+        }
+
+        @Test
+        @DisplayName("will add occurredAt to telemetry event")
+        void willAddOccurredAtToTelemetryEvent() {
+            assertThat(telemetryAttributes).containsEntry("occurredAt", "2020-12-04T10:42:43");
+        }
     }
 
     @Nested
     class PrisonerReleased {
         private String payload;
+        private Map<String, String> telemetryAttributes;
 
         @BeforeEach
         void setUp() {
@@ -158,8 +193,10 @@ class HMPPSDomainEventsEmitterTest {
                 .offenderIdDisplay("A1234GH")
                 .eventDatetime(LocalDateTime.parse("2020-12-04T10:42:43"))
                 .build());
-            verify(amazonSns).publish(publishRequest.capture());
-            payload = publishRequest.getValue().getMessage();
+            verify(amazonSns).publish(publishRequestCaptor.capture());
+            payload = publishRequestCaptor.getValue().getMessage();
+            verify(telemetryClient).trackEvent(any(), telemetryAttributesCaptor.capture(), isNull());
+            telemetryAttributes = telemetryAttributesCaptor.getValue();
         }
 
         @Test
@@ -189,6 +226,23 @@ class HMPPSDomainEventsEmitterTest {
         @DisplayName("will describe the event as a release")
         void willDescribeTheEventAsAReceive() {
             assertThatJson(payload).node("description").isEqualTo("A prisoner has been released from prison");
+        }
+        @Test
+        @DisplayName("will add noms number to telemetry event")
+        void willAddNomsNumberToTelemetryEvent() {
+            assertThat(telemetryAttributes).containsEntry("nomsNumber", "A1234GH");
+        }
+
+        @Test
+        @DisplayName("will add reason to telemetry event")
+        void willAddReasonToTelemetryEvent() {
+            assertThat(telemetryAttributes).containsEntry("reason", "UNKNOWN");
+        }
+
+        @Test
+        @DisplayName("will add occurredAt to telemetry event")
+        void willAddOccurredAtToTelemetryEvent() {
+            assertThat(telemetryAttributes).containsEntry("occurredAt", "2020-12-04T10:42:43");
         }
     }
 }
