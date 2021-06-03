@@ -4,10 +4,6 @@ import org.springframework.stereotype.Component;
 
 @Component
 public class ReceivePrisonerReasonCalculator {
-    enum Reason {
-        RECALL,
-        UNKNOWN
-    }
     private final PrisonApiService prisonApiService;
 
     public ReceivePrisonerReasonCalculator(PrisonApiService prisonApiService) {
@@ -17,10 +13,25 @@ public class ReceivePrisonerReasonCalculator {
     public Reason calculateReasonForPrisoner(String offenderNumber) {
         final var prisonerDetails = prisonApiService.getPrisonerDetails(offenderNumber);
 
-        if (prisonerDetails.recall() || prisonerDetails.legalStatus().equals("RECALL")) {
+        if (prisonerDetails.recall()) {
             return Reason.RECALL;
         }
 
-        return Reason.UNKNOWN;
+        return switch (prisonerDetails.legalStatus()) {
+            case RECALL -> Reason.RECALL;
+            case CIVIL_PRISONER, CONVICTED_UNSENTENCED, SENTENCED, INDETERMINATE_SENTENCE -> Reason.CONVICTED;
+            case IMMIGRATION_DETAINEE -> Reason.IMMIGRATION_DETAINEE;
+            case REMAND -> Reason.REMAND;
+            case DEAD, OTHER, UNKNOWN -> Reason.UNKNOWN;
+        };
     }
+
+    enum Reason {
+        RECALL,
+        REMAND,
+        CONVICTED,
+        IMMIGRATION_DETAINEE,
+        UNKNOWN
+    }
+
 }

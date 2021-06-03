@@ -54,8 +54,11 @@
                 <li><b>nomsNumber</b> string - NOMIS offender number</li>
                 <li><b>reason</b> enum - reason for the receive. Will be one of these values
                   <ul>
-                    <li><b>RECALL</b></li>
-                    <li><b>UNKNOWN</b></li>
+                    <li><b>RECALL</b> prisoner is subject to a recall on their licence</li>
+                    <li><b>REMAND</b> remanded in custody waiting court case result</li>
+                    <li><b>CONVICTED</b> convicted on new charged</li>
+                    <li><b>IMMIGRATION_DETAINEE</b> prisoner is subject to a deportation order</li>
+                    <li><b>UNKNOWN</b> prisoner's legal status is unknown at this time so reason for booking is unknown </li>
                   </ul>
                 </li>
               </ul>

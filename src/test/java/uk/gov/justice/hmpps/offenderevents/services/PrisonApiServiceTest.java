@@ -48,7 +48,7 @@ class PrisonApiServiceTest {
         void canParseTheLegalStatus() {
             final var prisonerDetails = service.getPrisonerDetails("A7841DY");
 
-            assertThat(prisonerDetails.legalStatus()).isEqualTo("REMAND");
+            assertThat(prisonerDetails.legalStatus()).isEqualTo(LegalStatus.REMAND);
         }
 
         @Test
