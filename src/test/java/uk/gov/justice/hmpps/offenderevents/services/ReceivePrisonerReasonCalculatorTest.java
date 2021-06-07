@@ -46,6 +46,16 @@ class ReceivePrisonerReasonCalculatorTest {
     }
 
     @Test
+    @DisplayName("TAP movement type takes precedence over recall")
+    void tAPMovementTypeTakesPrecedenceOverRecall() {
+        when(prisonApiService.getPrisonerDetails(any())).thenReturn(prisonerDetails("RECALL", true, "ADM"));
+        assertThat(calculator.calculateReasonForPrisoner("A1234GH")).isEqualTo(Reason.RECALL);
+
+        when(prisonApiService.getPrisonerDetails(any())).thenReturn(prisonerDetails("RECALL", true, "TAP"));
+        assertThat(calculator.calculateReasonForPrisoner("A1234GH")).isEqualTo(Reason.TEMPORARY_ABSENCE_RETURN);
+    }
+
+    @Test
     @DisplayName("reason in UNKNOWN when legal status is UNKNOWN and recall is false")
     void reasonInUNKNOWNWhenLegalStatusIsUNKNOWNAndRecallIsFalse() {
         when(prisonApiService.getPrisonerDetails(any())).thenReturn(prisonerDetails("UNKNOWN", false));
@@ -88,7 +98,11 @@ class ReceivePrisonerReasonCalculatorTest {
 
 
     private PrisonerDetails prisonerDetails(String legalStatus, boolean recall) {
-        return new PrisonerDetails(LegalStatus.valueOf(LegalStatus.class, legalStatus), recall);
+        return new PrisonerDetails(LegalStatus.valueOf(LegalStatus.class, legalStatus), recall, "ADM");
+    }
+
+    private PrisonerDetails prisonerDetails(String legalStatus, boolean recall, String lastMovementTypCode) {
+        return new PrisonerDetails(LegalStatus.valueOf(LegalStatus.class, legalStatus), recall, lastMovementTypCode);
     }
 
 }
