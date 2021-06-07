@@ -26,6 +26,8 @@ dependencies {
   implementation("org.springframework.boot:spring-boot-starter-oauth2-client")
 
   implementation("org.springframework.cloud:spring-cloud-starter-aws-messaging:2.2.6.RELEASE")
+  implementation("org.springframework:spring-jms")
+  implementation("com.amazonaws:amazon-sqs-java-messaging-lib:1.0.8")
 
   implementation("net.javacrumbs.shedlock:shedlock-spring:4.22.1")
   implementation("net.javacrumbs.shedlock:shedlock-provider-jdbc-template:4.22.1")

@@ -112,4 +112,40 @@ env:
         name: hmpps-domain-events-topic
         key: topic_arn
 
+  - name: SQS_AWS_ACCESS_KEY_ID
+    valueFrom:
+      secretKeyRef:
+        name: prisoner-offender-events-queue
+        key: access_key_id
+
+  - name: SQS_AWS_SECRET_ACCESS_KEY
+    valueFrom:
+      secretKeyRef:
+        name: prisoner-offender-events-queue
+        key: secret_access_key
+
+  - name: SQS_QUEUE_NAME
+    valueFrom:
+      secretKeyRef:
+        name: prisoner-offender-events-queue
+        key: sqs_queue_name
+
+  - name: SQS_AWS_DLQ_ACCESS_KEY_ID
+    valueFrom:
+      secretKeyRef:
+        name: prisoner-offender-events-dlq
+        key: access_key_id
+
+  - name: SQS_AWS_DLQ_SECRET_ACCESS_KEY
+    valueFrom:
+      secretKeyRef:
+        name: prisoner-offender-events-dlq
+        key: secret_access_key
+
+  - name: SQS_DLQ_NAME
+    valueFrom:
+      secretKeyRef:
+        name: prisoner-offender-events-dlq
+        key: sqs_queue_name
+
 {{- end -}}
