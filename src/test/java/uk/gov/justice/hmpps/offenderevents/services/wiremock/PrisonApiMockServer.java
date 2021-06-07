@@ -10,18 +10,18 @@ public class PrisonApiMockServer extends WireMockServer {
         super(8086);
     }
 
-    public void stubPrisonerDetails(String offenderNumber, String legalStatus, boolean recall) {
+    public void stubPrisonerDetails(String offenderNumber, String legalStatus, boolean recall, String lastMovementTypeCode) {
         stubFor(
             get(String.format("/api/offenders/%s", offenderNumber)).willReturn(
                 aResponse()
                     .withHeader("Content-Type", "application/json")
-                    .withBody(prisonerDetails(offenderNumber, legalStatus, recall))
+                    .withBody(prisonerDetails(offenderNumber, legalStatus, recall, lastMovementTypeCode))
                     .withStatus(200)
             )
         );
     }
 
-    private String prisonerDetails(String offenderNumber, String legalStatus, boolean recall) {
+    private String prisonerDetails(String offenderNumber, String legalStatus, boolean recall, String lastMovementTypeCode) {
         return String.format("""
             {
                 "offenderNo": "%s",
@@ -72,7 +72,7 @@ public class PrisonApiMockServer extends WireMockServer {
                 "aliases": [],
                 "status": "ACTIVE IN",
                 "statusReason": "ADM-N",
-                "lastMovementTypeCode": "ADM",
+                "lastMovementTypeCode": "%s",
                 "lastMovementReasonCode": "N",
                 "legalStatus": "%s",
                 "recall": %b,
@@ -89,6 +89,6 @@ public class PrisonApiMockServer extends WireMockServer {
                 "receptionDate": "2021-06-01",
                 "locationDescription": "Moorland (HMP & YOI)"
             }            
-                        """, offenderNumber, legalStatus, recall);
+                        """, offenderNumber, lastMovementTypeCode, legalStatus, recall);
     }
 }

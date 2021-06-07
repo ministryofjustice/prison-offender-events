@@ -13,6 +13,9 @@ public class ReceivePrisonerReasonCalculator {
     public Reason calculateReasonForPrisoner(String offenderNumber) {
         final var prisonerDetails = prisonApiService.getPrisonerDetails(offenderNumber);
 
+        if (prisonerDetails.typeOfMovement() == MovementType.TEMPORARY_ABSENCE_RETURN) {
+            return Reason.TEMPORARY_ABSENCE_RETURN;
+        }
         if (prisonerDetails.recall()) {
             return Reason.RECALL;
         }
@@ -31,7 +34,8 @@ public class ReceivePrisonerReasonCalculator {
         REMAND,
         CONVICTED,
         IMMIGRATION_DETAINEE,
-        UNKNOWN
+        UNKNOWN,
+        TEMPORARY_ABSENCE_RETURN
     }
 
 }

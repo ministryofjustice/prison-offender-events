@@ -29,7 +29,14 @@ public class PrisonApiService {
 
 }
 
-record PrisonerDetails(LegalStatus legalStatus, boolean recall) {
+record PrisonerDetails(LegalStatus legalStatus, boolean recall, String lastMovementTypeCode) {
+    public MovementType typeOfMovement() {
+        return switch (lastMovementTypeCode) {
+            case "TAP" -> MovementType.TEMPORARY_ABSENCE_RETURN;
+            case "ADM" -> MovementType.ADMISSION;
+            default -> MovementType.OTHER;
+        };
+    }
 }
 
 
@@ -43,5 +50,11 @@ enum LegalStatus {
     IMMIGRATION_DETAINEE,
     REMAND,
     UNKNOWN,
-    OTHER;
+    OTHER
+}
+
+enum MovementType {
+    TEMPORARY_ABSENCE_RETURN,
+    ADMISSION,
+    OTHER
 }
