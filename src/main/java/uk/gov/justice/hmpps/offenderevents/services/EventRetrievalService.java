@@ -25,7 +25,6 @@ public class EventRetrievalService {
     private final ExternalApiService externalApiService;
     private final PrisonEventsEmitter prisonEventsEmitter;
     private final PollAuditRepository repository;
-    private final HMPPSDomainEventsEmitter hmppsDomainEventsEmitter;
     private final int pollInterval;
     private final int maxEventRangeMinutes;
     private final int windBackSeconds;
@@ -33,7 +32,6 @@ public class EventRetrievalService {
 
     public EventRetrievalService(final ExternalApiService externalApiService,
                                  final PrisonEventsEmitter prisonEventsEmitter,
-                                 final HMPPSDomainEventsEmitter hmppsDomainEventsEmitter,
                                  final PollAuditRepository repository,
                                  @Value("${application.events.poll.frequency:60000}") final int pollInterval,
                                  @Value("${wind.back.seconds:10}") int windBackSeconds,
@@ -45,7 +43,6 @@ public class EventRetrievalService {
         this.maxEventRangeMinutes = maxEventRangeMinutes;
         this.windBackSeconds = windBackSeconds;
         log.info("Using {} wind back seconds", windBackSeconds);
-        this.hmppsDomainEventsEmitter = hmppsDomainEventsEmitter;
     }
 
     public void pollEvents(final LocalDateTime currentTime) {
@@ -67,7 +64,6 @@ public class EventRetrievalService {
             final var events = externalApiService.getEvents(startTime, endTime);
             log.debug("There are {} events {}", events.size(), events);
             events.forEach(prisonEventsEmitter::sendEvent);
-            events.forEach(this::tryHMPPSDomainEventsEmitter);
 
             final var lastEventTime = events.stream()
                     .max(Comparator.comparing(OffenderEvent::getEventDatetime))
@@ -81,15 +77,6 @@ public class EventRetrievalService {
             log.debug("Recording Event Poll {}", audit);
         } else {
             log.warn("Skipping Event Retrieval as start after end, start = {}, end = {}", startTime, endTime);
-        }
-    }
-
-    private void tryHMPPSDomainEventsEmitter(OffenderEvent event) {
-        // we have no reasonable way to recover from these errors so swallow and log
-        try {
-            hmppsDomainEventsEmitter.convertAndSendWhenSignificant(event);
-        } catch (Exception e) {
-            log.error(String.format("Unable to process a HMPPS domain event for %s", event), e);
         }
     }
 }

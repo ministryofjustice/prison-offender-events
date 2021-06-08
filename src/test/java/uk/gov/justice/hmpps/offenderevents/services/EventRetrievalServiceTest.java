@@ -1,7 +1,6 @@
 package uk.gov.justice.hmpps.offenderevents.services;
 
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
@@ -31,18 +30,15 @@ public class EventRetrievalServiceTest {
     @Mock
     private PrisonEventsEmitter prisonEventsEmitter;
     @Mock
-    private HMPPSDomainEventsEmitter hmppsDomainEventsEmitter;
-
-    @Mock
     private PollAuditRepository repository;
 
-    private int maxEventRangeMinutes = 60;
+    private final int maxEventRangeMinutes = 60;
 
     private EventRetrievalService eventRetrievalService;
 
     @BeforeEach
     public void setup() {
-        eventRetrievalService = new EventRetrievalService(externalApiService, prisonEventsEmitter, hmppsDomainEventsEmitter, repository, POLL_INTERVAL, WIND_BACK_SECONDS, maxEventRangeMinutes);
+        eventRetrievalService = new EventRetrievalService(externalApiService, prisonEventsEmitter, repository, POLL_INTERVAL, WIND_BACK_SECONDS, maxEventRangeMinutes);
     }
 
     @Test
@@ -172,65 +168,13 @@ public class EventRetrievalServiceTest {
         prisonEventsEmitter.sendEvent(eq(events.get(0)));
         prisonEventsEmitter.sendEvent(eq(events.get(1)));
 
-        final var resultPoll = PollAudit.builder().pollName(POLL_NAME).nextStartTime(events.get(1).getEventDatetime().plus(1, MICROS)).numberOfRecords(2).build();
+        PollAudit.builder().pollName(POLL_NAME).nextStartTime(events.get(1).getEventDatetime().plus(1, MICROS)).numberOfRecords(2).build();
 
         eventRetrievalService.pollEvents(now);
 
         verify(repository, times(1)).findById(eq(POLL_NAME));
         verify(externalApiService).getEvents(eq(lastRun), eq(windBackPoint));
         verify(prisonEventsEmitter, times(2)).sendEvent(any(OffenderEvent.class));
-    }
-
-    @Test
-    @DisplayName("Will pass event to HMPPS domain emitter as well an main topic")
-    void willPassEventToHMPPSDomainEmitter() {
-        stubEventsToProcess(List.of
-            (
-                OffenderEvent
-                    .builder()
-                    .eventType("OFFENDER_MOVEMENT-RECEPTION")
-                    .bookingId(-1L)
-                    .build(),
-                OffenderEvent.builder().eventType("OFFENDER_ATE_A_BANANA").bookingId(-2L).build()
-            ));
-
-        eventRetrievalService.pollEvents(LocalDateTime.now());
-
-        verify(prisonEventsEmitter, times(2)).sendEvent(any(OffenderEvent.class));
-        verify(hmppsDomainEventsEmitter, times(2)).convertAndSendWhenSignificant(any(OffenderEvent.class));
-    }
-
-    @Test
-    @DisplayName("will swallow exceptions from HMPPS domain emitter so that others events are not blocked")
-    void willSwallowExceptionsFromHMPPSDomainEmitterSoThatOthersEventsAreNotBlocked() {
-        doNothing()
-            .doThrow(new RuntimeException("Oh no!")).when(hmppsDomainEventsEmitter).convertAndSendWhenSignificant(any(OffenderEvent.class));
-
-        stubEventsToProcess(List.of
-            (
-                OffenderEvent.builder().eventType("OFFENDER_MOVEMENT-RECEPTION").bookingId(-1L).build(),
-                OffenderEvent.builder().eventType("OFFENDER_MOVEMENT-RECEPTION").bookingId(-2L).build()
-            ));
-
-        eventRetrievalService.pollEvents(LocalDateTime.now());
-
-        verify(prisonEventsEmitter, times(2)).sendEvent(any(OffenderEvent.class));
-        verify(hmppsDomainEventsEmitter, times(2)).convertAndSendWhenSignificant(any(OffenderEvent.class));
-        verify(repository, times(2)).save(any());
-    }
-
-    private void stubEventsToProcess(List<OffenderEvent> events) {
-        final var now = LocalDateTime.now();
-
-        when(repository.findById(eq(POLL_NAME)))
-            .thenReturn(Optional.of(PollAudit
-                .builder()
-                .pollName(POLL_NAME)
-                .nextStartTime(LocalDateTime.now().minusMinutes(10))
-                .build()));
-        when(externalApiService.getEvents(any(), any()))
-            .thenReturn(events.stream().map(event -> event.toBuilder().eventDatetime(now).build()).toList());
-
     }
 
 }
