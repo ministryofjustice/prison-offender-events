@@ -24,4 +24,15 @@ public class SubscribeSpringCloudAwsConfig {
             .withRegion(region)
             .build();
     }
+
+    @Bean
+    @ConditionalOnProperty(name = "sqs.provider", havingValue = "aws")
+    public AmazonSQS awsSqsDlqClient(@Value("${sqs.aws.dlq.access.key.id}") String accessKey,
+                                  @Value("${sqs.aws.dlq.secret.access.key}") String secretKey,
+                                  @Value("${cloud.aws.region.static}") String region) {
+        return AmazonSQSClientBuilder.standard()
+            .withCredentials(new AWSStaticCredentialsProvider(new BasicAWSCredentials(accessKey, secretKey)))
+            .withRegion(region)
+            .build();
+    }
 }

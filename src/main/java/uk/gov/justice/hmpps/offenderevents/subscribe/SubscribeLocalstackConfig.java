@@ -22,4 +22,14 @@ public class SubscribeLocalstackConfig {
             .build();
     }
 
+
+    @Bean
+    @ConditionalOnProperty(name = "sqs.provider", havingValue = "localstack", matchIfMissing = true)
+    public AmazonSQS awsSqsDlqClient(@Value("${sqs.endpoint.url}") String serviceEndpoint,
+                                  @Value("${cloud.aws.region.static}") String region) {
+        return AmazonSQSClientBuilder.standard()
+            .withEndpointConfiguration(new AwsClientBuilder.EndpointConfiguration(serviceEndpoint, region))
+            .build();
+    }
+
 }
