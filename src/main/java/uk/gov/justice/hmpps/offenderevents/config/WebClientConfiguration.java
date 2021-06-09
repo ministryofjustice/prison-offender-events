@@ -8,7 +8,6 @@ import org.springframework.security.oauth2.client.OAuth2AuthorizedClientProvider
 import org.springframework.security.oauth2.client.OAuth2AuthorizedClientService;
 import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository;
 import org.springframework.security.oauth2.client.web.reactive.function.client.ServletOAuth2AuthorizedClientExchangeFilterFunction;
-import org.springframework.web.reactive.function.client.ExchangeStrategies;
 import org.springframework.web.reactive.function.client.WebClient;
 
 @Configuration
@@ -21,17 +20,23 @@ public class WebClientConfiguration {
     }
 
     @Bean
-    WebClient oauth2WebClient(OAuth2AuthorizedClientManager authorizedClientManager) {
+    WebClient prisonApiWebClient(OAuth2AuthorizedClientManager authorizedClientManager) {
         final var oauth2Client = new ServletOAuth2AuthorizedClientExchangeFilterFunction(authorizedClientManager);
         oauth2Client.setDefaultClientRegistrationId("prison-api");
         return WebClient.builder()
-                .baseUrl(properties.getPrisonApiBaseUrl())
-                .apply(oauth2Client.oauth2Configuration())
-                .exchangeStrategies(ExchangeStrategies.builder()
-                        .codecs(configurer -> configurer.defaultCodecs()
-                                .maxInMemorySize(-1))
-                        .build())
-                .build();
+            .baseUrl(properties.getPrisonApiBaseUrl())
+            .apply(oauth2Client.oauth2Configuration())
+            .build();
+    }
+
+    @Bean
+    WebClient communityApiWebClient(OAuth2AuthorizedClientManager authorizedClientManager) {
+        final var oauth2Client = new ServletOAuth2AuthorizedClientExchangeFilterFunction(authorizedClientManager);
+        oauth2Client.setDefaultClientRegistrationId("community-api");
+        return WebClient.builder()
+            .baseUrl(properties.getCommunityApiBaseUrl())
+            .apply(oauth2Client.oauth2Configuration())
+            .build();
     }
 
     @Bean

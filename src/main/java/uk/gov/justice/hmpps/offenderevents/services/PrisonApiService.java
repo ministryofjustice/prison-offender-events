@@ -11,16 +11,16 @@ import java.time.Duration;
 @Slf4j
 public class PrisonApiService {
 
-    private final WebClient oauth2WebClient;
+    private final WebClient webClient;
     private final Duration timeout;
 
-    public PrisonApiService(final WebClient oauth2WebClient, @Value("${api.prisoner-timeout:30s}") final Duration timeout) {
-        this.oauth2WebClient = oauth2WebClient;
+    public PrisonApiService(final WebClient prisonApiWebClient, @Value("${api.prisoner-timeout:30s}") final Duration timeout) {
+        this.webClient = prisonApiWebClient;
         this.timeout = timeout;
     }
 
     public PrisonerDetails getPrisonerDetails(final String offenderNumber) {
-        return oauth2WebClient.get()
+        return webClient.get()
             .uri(String.format("/api/offenders/%s", offenderNumber))
             .retrieve()
             .bodyToMono(PrisonerDetails.class)
