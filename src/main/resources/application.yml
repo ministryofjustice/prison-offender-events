@@ -47,6 +47,11 @@ spring:
             client-secret: ${offender.events.client.secret}
             authorization-grant-type: client_credentials
             scope: read
+          community-api:
+            provider: hmpps-auth
+            client-id: ${offender.events.client.id}
+            client-secret: ${offender.events.client.secret}
+            authorization-grant-type: client_credentials
         provider:
           hmpps-auth:
             token-uri: ${oauth.api.base.url}/oauth/token

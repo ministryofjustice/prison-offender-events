@@ -16,6 +16,11 @@ public class OffenderEventsProperties {
      */
     private final String prisonApiBaseUrl;
 
+    /**
+     * Prison API Base URL endpoint ("http://localhost:8082")
+     */
+    private final String communityApiBaseUrl;
+
 
     /**
      * OAUTH2 API Rest URL endpoint ("http://localhost:9090/auth")
@@ -23,8 +28,10 @@ public class OffenderEventsProperties {
     private final String oauthApiBaseUrl;
 
     public OffenderEventsProperties(@Value("${prison.api.base.url}") @URL final String prisonApiBaseUrl,
+                                    @Value("${community.api.base.url}") @URL final String communityApiBaseUrl,
                                     @Value("${oauth.api.base.url}") @URL final String oauthApiBaseUrl) {
         this.prisonApiBaseUrl = prisonApiBaseUrl;
+        this.communityApiBaseUrl = communityApiBaseUrl;
         this.oauthApiBaseUrl = oauthApiBaseUrl;
     }
 }
