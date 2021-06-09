@@ -19,8 +19,8 @@ public class ExternalApiService {
     private final WebClient oauth2WebClient;
     private final Duration timeout;
 
-    public ExternalApiService(final WebClient oauth2WebClient, @Value("${api.event-timeout:60s}") final Duration timeout) {
-        this.oauth2WebClient = oauth2WebClient;
+    public ExternalApiService(final WebClient prisonApiWebClient, @Value("${api.event-timeout:60s}") final Duration timeout) {
+        this.oauth2WebClient = prisonApiWebClient;
         this.timeout = timeout;
     }
 
