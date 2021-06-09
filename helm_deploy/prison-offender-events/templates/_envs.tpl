@@ -16,6 +16,9 @@ env:
   - name: PRISON_API_BASE_URL
     value: "{{ .Values.env.PRISON_API_BASE_URL }}"
 
+  - name: COMMUNITY_API_BASE_URL
+    value: "{{ .Values.env.COMMUNITY_API_BASE_URL }}"
+
   - name: OAUTH_API_BASE_URL
     value: "{{ .Values.env.OAUTH_API_BASE_URL }}"
 

@@ -21,6 +21,7 @@ ingress:
 env:
   JAVA_OPTS: "-Xmx512m"
   PRISON_API_BASE_URL: "https://api-dev.prison.service.justice.gov.uk"
+  COMMUNITY_API_BASE_URL: "https://community-api.test.probation.service.justice.gov.uk"
   OAUTH_API_BASE_URL: "https://sign-in-dev.hmpps.service.justice.gov.uk/auth"
   WIND_BACK_SECONDS: "10"
 
