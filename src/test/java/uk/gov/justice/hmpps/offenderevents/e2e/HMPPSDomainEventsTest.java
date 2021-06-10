@@ -23,7 +23,6 @@ import static org.awaitility.Awaitility.await;
 @ExtendWith({PrisonApiExtension.class, CommunityApiExtension.class, HMPPSAuthExtension.class})
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @ActiveProfiles({"integration-test"})
-@DirtiesContext(classMode = DirtiesContext.ClassMode.BEFORE_CLASS)
 public class HMPPSDomainEventsTest {
     private static final String PRISON_EVENTS_SUBSCRIBE_QUEUE_NAME = "test-prison-event_queue";
     private static final String HMPPS_DOMAIN_EVENTS_SUBSCRIBE_QUEUE_NAME = "test-hmpps-domain-event_queue";
@@ -76,6 +75,22 @@ public class HMPPSDomainEventsTest {
             @BeforeEach
             void setUp() {
                 PrisonApiExtension.server.stubPrisonerDetails("A5194DY", "SENTENCED", false, "ADM");
+            }
+
+            @Test
+            @DisplayName("will publish received message using information from prison api and community api")
+            void willPublishReceivedMessageUsingInformationFromPrisonApiAndCommunityApi() {
+                await().until(() -> getNumberOfMessagesCurrentlyOnQueue(PRISON_EVENTS_SUBSCRIBE_QUEUE_NAME) == 1);
+                await().until(() -> getNumberOfMessagesCurrentlyOnQueue(HMPPS_DOMAIN_EVENTS_SUBSCRIBE_QUEUE_NAME) == 1);
+
+                // TODO assert on message and prison-api and community-api call
+            }
+        }
+        @Nested
+        class WhenIsReportedAsRecall {
+            @BeforeEach
+            void setUp() {
+                PrisonApiExtension.server.stubPrisonerDetails("A5194DY", "RECALL", true, "ADM");
             }
 
             @Test

@@ -3,6 +3,8 @@ package uk.gov.justice.hmpps.offenderevents.services.wiremock;
 import com.github.tomakehurst.wiremock.WireMockServer;
 import com.github.tomakehurst.wiremock.client.WireMock;
 
+import java.util.UUID;
+
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 import static com.github.tomakehurst.wiremock.client.WireMock.get;
 import static com.github.tomakehurst.wiremock.stubbing.Scenario.STARTED;
@@ -24,9 +26,10 @@ public class PrisonApiMockServer extends WireMockServer {
     }
 
     public void stubFirstPollWithOffenderEvents(String events) {
+        final var scenarioName = UUID.randomUUID().toString();
         stubFor(
             get(WireMock.urlPathEqualTo("/api/events"))
-                .inScenario("Polling")
+                .inScenario(scenarioName)
                 .whenScenarioStateIs(STARTED)
                 .willReturn(
                     aResponse()
@@ -38,7 +41,7 @@ public class PrisonApiMockServer extends WireMockServer {
         );
         stubFor(
             get(WireMock.urlPathEqualTo("/api/events"))
-                .inScenario("Polling")
+                .inScenario(scenarioName)
                 .whenScenarioStateIs("Subsequent poll")
                 .willReturn(
                     aResponse()
@@ -116,7 +119,7 @@ public class PrisonApiMockServer extends WireMockServer {
                 },
                 "receptionDate": "2021-06-01",
                 "locationDescription": "Moorland (HMP & YOI)"
-            }            
+            }
                         """, offenderNumber, lastMovementTypeCode, legalStatus, recall);
     }
 }
