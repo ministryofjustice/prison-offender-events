@@ -17,3 +17,8 @@ offender.events:
     id: offender-events-client
     secret: clientsecret
 
+application:
+  events:
+    poll:
+      frequency: 1000
+      initialDelay: 0

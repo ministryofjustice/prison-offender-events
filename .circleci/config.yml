@@ -6,10 +6,18 @@ orbs:
 jobs:
   validate:
     executor:
-      name: hmpps/java
-      tag: "16.0"
+      name: hmpps/localstack
+      jdk_tag: "16.0"
+      localstack_tag: "0.12.9.1"
     steps:
       - checkout
+      - hmpps/install_aws_cli
+      - run:
+          name: Wait for SQS and SNS to be ready
+          command: curl -4 --connect-timeout 30 --retry-connrefused --retry 20 --retry-delay 5 http://localhost:4566
+      - run:
+          name: Set up queues
+          command: src/test/resources/localstack/setup-sns-and-sqs.sh
       - restore_cache:
           keys:
             - gradle-{{ checksum "build.gradle.kts" }}

@@ -1,9 +1,11 @@
 package uk.gov.justice.hmpps.offenderevents.services.wiremock;
 
 import com.github.tomakehurst.wiremock.WireMockServer;
+import com.github.tomakehurst.wiremock.client.WireMock;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 import static com.github.tomakehurst.wiremock.client.WireMock.get;
+import static com.github.tomakehurst.wiremock.stubbing.Scenario.STARTED;
 
 public class PrisonApiMockServer extends WireMockServer {
     PrisonApiMockServer() {
@@ -18,6 +20,32 @@ public class PrisonApiMockServer extends WireMockServer {
                     .withBody(prisonerDetails(offenderNumber, legalStatus, recall, lastMovementTypeCode))
                     .withStatus(200)
             )
+        );
+    }
+
+    public void stubFirstPollWithOffenderEvents(String events) {
+        stubFor(
+            get(WireMock.urlPathEqualTo("/api/events"))
+                .inScenario("Polling")
+                .whenScenarioStateIs(STARTED)
+                .willReturn(
+                    aResponse()
+                        .withHeader("Content-Type", "application/json")
+                        .withBody(events)
+                        .withStatus(200)
+                )
+                .willSetStateTo("Subsequent poll")
+        );
+        stubFor(
+            get(WireMock.urlPathEqualTo("/api/events"))
+                .inScenario("Polling")
+                .whenScenarioStateIs("Subsequent poll")
+                .willReturn(
+                    aResponse()
+                        .withHeader("Content-Type", "application/json")
+                        .withBody("[]")
+                        .withStatus(200)
+                )
         );
     }
 
