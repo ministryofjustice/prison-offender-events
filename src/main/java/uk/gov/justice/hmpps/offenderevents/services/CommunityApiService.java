@@ -54,6 +54,6 @@ record NsiWrapper(List<Recall> nsis) {
 
 }
 
-record Recall(LocalDate referralDate) {
+record Recall(LocalDate referralDate, Boolean recallRejectedOrWithdrawn, Boolean outcomeRecall) {
 
 }
