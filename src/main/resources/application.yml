@@ -1,4 +1,10 @@
 spring:
+  profiles:
+    group:
+      integration-test:
+        - "stdout"
+        - "localstack"
+        - "test"
   application:
     name: prison-offender-events
   codec:
@@ -104,4 +110,5 @@ application:
         minutes: 20
     poll:
       frequency: 60000
+      initialDelay: 2000
 

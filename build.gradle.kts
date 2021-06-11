@@ -63,6 +63,7 @@ dependencies {
   testImplementation("com.github.tomakehurst:wiremock-standalone:2.27.2")
   testImplementation("junit:junit:4.13.2")
   testImplementation("net.javacrumbs.json-unit:json-unit-assertj:2.25.0")
+  testImplementation("org.awaitility:awaitility:4.1.0")
 }
 
 tasks {

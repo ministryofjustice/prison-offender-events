@@ -1,9 +1,13 @@
 package uk.gov.justice.hmpps.offenderevents.services.wiremock;
 
 import com.github.tomakehurst.wiremock.WireMockServer;
+import com.github.tomakehurst.wiremock.client.WireMock;
+
+import java.util.UUID;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 import static com.github.tomakehurst.wiremock.client.WireMock.get;
+import static com.github.tomakehurst.wiremock.stubbing.Scenario.STARTED;
 
 public class PrisonApiMockServer extends WireMockServer {
     PrisonApiMockServer() {
@@ -18,6 +22,33 @@ public class PrisonApiMockServer extends WireMockServer {
                     .withBody(prisonerDetails(offenderNumber, legalStatus, recall, lastMovementTypeCode))
                     .withStatus(200)
             )
+        );
+    }
+
+    public void stubFirstPollWithOffenderEvents(String events) {
+        final var scenarioName = UUID.randomUUID().toString();
+        stubFor(
+            get(WireMock.urlPathEqualTo("/api/events"))
+                .inScenario(scenarioName)
+                .whenScenarioStateIs(STARTED)
+                .willReturn(
+                    aResponse()
+                        .withHeader("Content-Type", "application/json")
+                        .withBody(events)
+                        .withStatus(200)
+                )
+                .willSetStateTo("Subsequent poll")
+        );
+        stubFor(
+            get(WireMock.urlPathEqualTo("/api/events"))
+                .inScenario(scenarioName)
+                .whenScenarioStateIs("Subsequent poll")
+                .willReturn(
+                    aResponse()
+                        .withHeader("Content-Type", "application/json")
+                        .withBody("[]")
+                        .withStatus(200)
+                )
         );
     }
 
@@ -88,7 +119,7 @@ public class PrisonApiMockServer extends WireMockServer {
                 },
                 "receptionDate": "2021-06-01",
                 "locationDescription": "Moorland (HMP & YOI)"
-            }            
+            }
                         """, offenderNumber, lastMovementTypeCode, legalStatus, recall);
     }
 }
