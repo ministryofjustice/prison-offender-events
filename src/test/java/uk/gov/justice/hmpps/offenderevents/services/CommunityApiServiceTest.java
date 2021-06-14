@@ -76,6 +76,24 @@ class CommunityApiServiceTest {
                 assertThat(recalls.get(0).referralDate()).isEqualTo("2021-05-12");
                 assertThat(recalls.get(1).referralDate()).isEqualTo("2021-05-13");
             }
+
+            @Test
+            @DisplayName("can parse the recallRejectedOrWithdrawn")
+            void canParseRecallRejectedOrWithdrawn() {
+                final var recalls = service.getRecalls("A7841DY").orElseThrow();
+
+                assertThat(recalls.get(0).recallRejectedOrWithdrawn()).isTrue();
+                assertThat(recalls.get(1).recallRejectedOrWithdrawn()).isFalse();
+            }
+
+            @Test
+            @DisplayName("can parse the outcomeRecall")
+            void canParseOutcomeRecall() {
+                final var recalls = service.getRecalls("A7841DY").orElseThrow();
+
+                assertThat(recalls.get(1).outcomeRecall()).isNull();
+                assertThat(recalls.get(0).outcomeRecall()).isFalse();
+            }
         }
     }
 }

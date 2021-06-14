@@ -153,7 +153,6 @@ public class HMPPSDomainEventsTest {
 
             @Test
             @DisplayName("will publish prison-offender-events.prisoner.received HMPPS domain event by asking community-api")
-            @Disabled("waiting for implementation")
             void willPublishHMPPSDomainEvent() {
                 await().until(() -> getNumberOfMessagesCurrentlyOnQueue(HMPPS_DOMAIN_EVENTS_SUBSCRIBE_QUEUE_NAME) == 1);
                 final var hmppsEventMessages = geMessagesCurrentlyOnQueue(HMPPS_DOMAIN_EVENTS_SUBSCRIBE_QUEUE_NAME);
@@ -162,7 +161,21 @@ public class HMPPSDomainEventsTest {
                     assertThatJson(event).node("additionalInformation.reason").isEqualTo("CONVICTED");
                 });
 
-                CommunityApiExtension.server.verify(getRequestedFor(WireMock.urlEqualTo("/secure/offenders/nomsNumber/A7841DY/convictions/active/nsis/recall")));
+                CommunityApiExtension.server.verify(getRequestedFor(WireMock.urlEqualTo("/secure/offenders/nomsNumber/A5194DY/convictions/active/nsis/recall")));
+            }
+            @Test
+            @DisplayName("will publish a recalled  prison-offender-events.prisoner.received HMPPS domain event when community-api indicates a recall")
+            void willPublishRecallHMPPSDomainEvent() {
+                CommunityApiExtension.server.stubForRecall("A5194DY");
+
+                await().until(() -> getNumberOfMessagesCurrentlyOnQueue(HMPPS_DOMAIN_EVENTS_SUBSCRIBE_QUEUE_NAME) == 1);
+                final var hmppsEventMessages = geMessagesCurrentlyOnQueue(HMPPS_DOMAIN_EVENTS_SUBSCRIBE_QUEUE_NAME);
+                assertThat(hmppsEventMessages).singleElement().satisfies(event -> {
+                    assertThatJson(event).node("eventType").isEqualTo("prison-offender-events.prisoner.received");
+                    assertThatJson(event).node("additionalInformation.reason").isEqualTo("RECALL");
+                });
+
+                CommunityApiExtension.server.verify(getRequestedFor(WireMock.urlEqualTo("/secure/offenders/nomsNumber/A5194DY/convictions/active/nsis/recall")));
             }
         }
     }

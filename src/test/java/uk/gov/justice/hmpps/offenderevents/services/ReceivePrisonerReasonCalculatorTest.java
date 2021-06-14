@@ -2,6 +2,7 @@ package uk.gov.justice.hmpps.offenderevents.services;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -9,8 +10,13 @@ import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 import uk.gov.justice.hmpps.offenderevents.services.ReceivePrisonerReasonCalculator.Reason;
 
+import java.time.LocalDate;
+import java.util.List;
+import java.util.Optional;
 import java.util.stream.Stream;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
@@ -21,17 +27,33 @@ import static org.mockito.Mockito.when;
 class ReceivePrisonerReasonCalculatorTest {
     @Mock
     private PrisonApiService prisonApiService;
+    @Mock
+    private CommunityApiService communityApiService;
 
     private ReceivePrisonerReasonCalculator calculator;
 
+    @SuppressWarnings("unused")
+    private static Stream<Arguments> legalStatusMap() {
+        return Stream.of(
+            Arguments.of(LegalStatus.INDETERMINATE_SENTENCE, Reason.CONVICTED),
+            Arguments.of(LegalStatus.SENTENCED, Reason.CONVICTED),
+            Arguments.of(LegalStatus.CIVIL_PRISONER, Reason.CONVICTED),
+            Arguments.of(LegalStatus.CONVICTED_UNSENTENCED, Reason.CONVICTED),
+            Arguments.of(LegalStatus.DEAD, Reason.UNKNOWN),
+            Arguments.of(LegalStatus.OTHER, Reason.UNKNOWN),
+            Arguments.of(LegalStatus.UNKNOWN, Reason.UNKNOWN),
+            Arguments.of(LegalStatus.IMMIGRATION_DETAINEE, Reason.IMMIGRATION_DETAINEE)
+        );
+    }
+
     @BeforeEach
     void setUp() {
-        calculator = new ReceivePrisonerReasonCalculator(prisonApiService);
+        calculator = new ReceivePrisonerReasonCalculator(prisonApiService, communityApiService);
     }
 
     @Test
     @DisplayName("reason is recall of both legal status RECALL and calculated recall true")
-    void reasonIsRecallOfBothLegalStatusRECALLAndCalculatedRecallTrue() {
+    void reasonIsRecallIfBothLegalStatusRECALLAndCalculatedRecallTrue() {
         when(prisonApiService.getPrisonerDetails(any())).thenReturn(prisonerDetails("RECALL", true));
 
         assertThat(calculator.calculateReasonForPrisoner("A1234GH")).isEqualTo(Reason.RECALL);
@@ -58,6 +80,7 @@ class ReceivePrisonerReasonCalculatorTest {
     @Test
     @DisplayName("reason in UNKNOWN when legal status is UNKNOWN and recall is false")
     void reasonInUNKNOWNWhenLegalStatusIsUNKNOWNAndRecallIsFalse() {
+        when(communityApiService.getRecalls(any())).thenReturn(Optional.empty());
         when(prisonApiService.getPrisonerDetails(any())).thenReturn(prisonerDetails("UNKNOWN", false));
 
         assertThat(calculator.calculateReasonForPrisoner("A1234GH")).isEqualTo(Reason.UNKNOWN);
@@ -74,28 +97,13 @@ class ReceivePrisonerReasonCalculatorTest {
     @ParameterizedTest
     @MethodSource("legalStatusMap")
     @DisplayName("legal status is mapped to reason")
+    @MockitoSettings(strictness = Strictness.LENIENT)
     void legalStatusIsMappedToReason(LegalStatus legalStatus, Reason reason) {
+        when(communityApiService.getRecalls(any())).thenReturn(Optional.empty());
         when(prisonApiService.getPrisonerDetails(any())).thenReturn(prisonerDetails(legalStatus.name(), false));
 
         assertThat(calculator.calculateReasonForPrisoner("A1234GH")).isEqualTo(reason);
     }
-
-    @SuppressWarnings("unused")
-    private static Stream<Arguments> legalStatusMap() {
-        return Stream.of(
-            Arguments.of(LegalStatus.INDETERMINATE_SENTENCE, Reason.CONVICTED),
-            Arguments.of(LegalStatus.SENTENCED, Reason.CONVICTED),
-            Arguments.of(LegalStatus.CIVIL_PRISONER, Reason.CONVICTED),
-            Arguments.of(LegalStatus.CONVICTED_UNSENTENCED, Reason.CONVICTED),
-            Arguments.of(LegalStatus.DEAD, Reason.UNKNOWN),
-            Arguments.of(LegalStatus.OTHER, Reason.UNKNOWN),
-            Arguments.of(LegalStatus.UNKNOWN, Reason.UNKNOWN),
-            Arguments.of(LegalStatus.IMMIGRATION_DETAINEE, Reason.IMMIGRATION_DETAINEE)
-        );
-    }
-
-
-
 
     private PrisonerDetails prisonerDetails(String legalStatus, boolean recall) {
         return new PrisonerDetails(LegalStatus.valueOf(LegalStatus.class, legalStatus), recall, "ADM");
@@ -103,6 +111,212 @@ class ReceivePrisonerReasonCalculatorTest {
 
     private PrisonerDetails prisonerDetails(String legalStatus, boolean recall, String lastMovementTypCode) {
         return new PrisonerDetails(LegalStatus.valueOf(LegalStatus.class, legalStatus), recall, lastMovementTypCode);
+    }
+
+    @Nested
+    @DisplayName("when delegating to probation")
+    class WhenDelegatingToProbation {
+        @Nested
+        @DisplayName("when offender not found")
+        class WhenOffenderNotFound {
+            private static Stream<Arguments> legalStatusMap() {
+                return Stream.of(
+                    Arguments.of(LegalStatus.INDETERMINATE_SENTENCE, Reason.CONVICTED),
+                    Arguments.of(LegalStatus.SENTENCED, Reason.CONVICTED),
+                    Arguments.of(LegalStatus.CIVIL_PRISONER, Reason.CONVICTED),
+                    Arguments.of(LegalStatus.CONVICTED_UNSENTENCED, Reason.CONVICTED),
+                    Arguments.of(LegalStatus.DEAD, Reason.UNKNOWN),
+                    Arguments.of(LegalStatus.OTHER, Reason.UNKNOWN),
+                    Arguments.of(LegalStatus.UNKNOWN, Reason.UNKNOWN),
+                    Arguments.of(LegalStatus.IMMIGRATION_DETAINEE, Reason.IMMIGRATION_DETAINEE)
+                );
+            }
+            @BeforeEach
+            void setUp() {
+                when(communityApiService.getRecalls(any())).thenReturn(Optional.empty());
+            }
+
+            @ParameterizedTest
+            @MethodSource("legalStatusMap")
+            @DisplayName("legal status is mapped to reason")
+            @MockitoSettings(strictness = Strictness.LENIENT)
+            void legalStatusIsMappedToReason(LegalStatus legalStatus, Reason reason) {
+                when(prisonApiService.getPrisonerDetails(any())).thenReturn(prisonerDetails(legalStatus.name(), false));
+
+                assertThat(calculator.calculateReasonForPrisoner("A1234GH")).isEqualTo(reason);
+            }
+
+        }
+
+        @Nested
+        @DisplayName("when offender has no recall requests")
+        class WhenOffenderHasNoRecallRequest {
+            private static Stream<Arguments> legalStatusMap() {
+                return Stream.of(
+                    Arguments.of(LegalStatus.INDETERMINATE_SENTENCE, Reason.CONVICTED),
+                    Arguments.of(LegalStatus.SENTENCED, Reason.CONVICTED),
+                    Arguments.of(LegalStatus.CIVIL_PRISONER, Reason.CONVICTED),
+                    Arguments.of(LegalStatus.CONVICTED_UNSENTENCED, Reason.CONVICTED),
+                    Arguments.of(LegalStatus.DEAD, Reason.UNKNOWN),
+                    Arguments.of(LegalStatus.OTHER, Reason.UNKNOWN),
+                    Arguments.of(LegalStatus.UNKNOWN, Reason.UNKNOWN),
+                    Arguments.of(LegalStatus.IMMIGRATION_DETAINEE, Reason.IMMIGRATION_DETAINEE)
+                );
+            }
+
+            @BeforeEach
+            void setUp() {
+                when(communityApiService.getRecalls(any())).thenReturn(Optional.of(List.of()));
+            }
+
+            @ParameterizedTest
+            @MethodSource("legalStatusMap")
+            @DisplayName("legal status is mapped to reason")
+            @MockitoSettings(strictness = Strictness.LENIENT)
+            void legalStatusIsMappedToReason(LegalStatus legalStatus, Reason reason) {
+                when(prisonApiService.getPrisonerDetails(any())).thenReturn(prisonerDetails(legalStatus.name(), false));
+
+                assertThat(calculator.calculateReasonForPrisoner("A1234GH")).isEqualTo(reason);
+            }
+        }
+
+        @Nested
+        @DisplayName("when has recall in progress with no outcome")
+        class WhenHasRecallInProgressWithNoOutcome {
+            private static Stream<Arguments> legalStatusMap() {
+                return Stream.of(
+                    Arguments.of(LegalStatus.INDETERMINATE_SENTENCE, Reason.RECALL),
+                    Arguments.of(LegalStatus.SENTENCED, Reason.RECALL),
+                    Arguments.of(LegalStatus.CIVIL_PRISONER, Reason.CONVICTED),
+                    Arguments.of(LegalStatus.CONVICTED_UNSENTENCED, Reason.RECALL),
+                    Arguments.of(LegalStatus.DEAD, Reason.UNKNOWN),
+                    Arguments.of(LegalStatus.OTHER, Reason.RECALL),
+                    Arguments.of(LegalStatus.UNKNOWN, Reason.RECALL),
+                    Arguments.of(LegalStatus.IMMIGRATION_DETAINEE, Reason.IMMIGRATION_DETAINEE)
+                );
+            }
+
+            @BeforeEach
+            void setUp() {
+                when(communityApiService.getRecalls(any()))
+                    .thenReturn(Optional.of(List.of(new Recall(LocalDate.now(), false, null))));
+            }
+
+            @ParameterizedTest
+            @MethodSource("legalStatusMap")
+            @DisplayName("legal status is mapped to reason")
+            @MockitoSettings(strictness = Strictness.LENIENT)
+            void legalStatusIsMappedToReason(LegalStatus legalStatus, Reason reason) {
+                when(prisonApiService.getPrisonerDetails(any())).thenReturn(prisonerDetails(legalStatus.name(), false));
+
+                assertThat(calculator.calculateReasonForPrisoner("A1234GH")).isEqualTo(reason);
+            }
+
+        }
+
+        @Nested
+        @DisplayName("when has recall rejected")
+        class WhenHasRecallRejected {
+            private static Stream<Arguments> legalStatusMap() {
+                return Stream.of(
+                    Arguments.of(LegalStatus.INDETERMINATE_SENTENCE, Reason.CONVICTED),
+                    Arguments.of(LegalStatus.SENTENCED, Reason.CONVICTED),
+                    Arguments.of(LegalStatus.CIVIL_PRISONER, Reason.CONVICTED),
+                    Arguments.of(LegalStatus.CONVICTED_UNSENTENCED, Reason.CONVICTED),
+                    Arguments.of(LegalStatus.DEAD, Reason.UNKNOWN),
+                    Arguments.of(LegalStatus.OTHER, Reason.UNKNOWN),
+                    Arguments.of(LegalStatus.UNKNOWN, Reason.UNKNOWN),
+                    Arguments.of(LegalStatus.IMMIGRATION_DETAINEE, Reason.IMMIGRATION_DETAINEE)
+                );
+            }
+
+            @BeforeEach
+            void setUp() {
+                when(communityApiService.getRecalls(any()))
+                    .thenReturn(Optional.of(List.of(new Recall(LocalDate.now(), true, null))));
+            }
+
+            @ParameterizedTest
+            @MethodSource("legalStatusMap")
+            @DisplayName("legal status is mapped to reason")
+            @MockitoSettings(strictness = Strictness.LENIENT)
+            void legalStatusIsMappedToReason(LegalStatus legalStatus, Reason reason) {
+                when(prisonApiService.getPrisonerDetails(any())).thenReturn(prisonerDetails(legalStatus.name(), false));
+
+                assertThat(calculator.calculateReasonForPrisoner("A1234GH")).isEqualTo(reason);
+            }
+
+        }
+
+        @Nested
+        @DisplayName("when has recall outcome but not a recall")
+        class WhenHasRecallOutcomeButNotRecall {
+            private static Stream<Arguments> legalStatusMap() {
+                return Stream.of(
+                    Arguments.of(LegalStatus.INDETERMINATE_SENTENCE, Reason.CONVICTED),
+                    Arguments.of(LegalStatus.SENTENCED, Reason.CONVICTED),
+                    Arguments.of(LegalStatus.CIVIL_PRISONER, Reason.CONVICTED),
+                    Arguments.of(LegalStatus.CONVICTED_UNSENTENCED, Reason.CONVICTED),
+                    Arguments.of(LegalStatus.DEAD, Reason.UNKNOWN),
+                    Arguments.of(LegalStatus.OTHER, Reason.UNKNOWN),
+                    Arguments.of(LegalStatus.UNKNOWN, Reason.UNKNOWN),
+                    Arguments.of(LegalStatus.IMMIGRATION_DETAINEE, Reason.IMMIGRATION_DETAINEE)
+                );
+            }
+
+            @BeforeEach
+            void setUp() {
+                // currently this will not happen, if the outcome is not a recall then it must have been rejected in which case
+                // recall would be in rejected state anyway - but tests incase community-api behavior changes
+                when(communityApiService.getRecalls(any()))
+                    .thenReturn(Optional.of(List.of(new Recall(LocalDate.now(), false, false))));
+            }
+
+            @ParameterizedTest
+            @MethodSource("legalStatusMap")
+            @DisplayName("legal status is mapped to reason")
+            @MockitoSettings(strictness = Strictness.LENIENT)
+            void legalStatusIsMappedToReason(LegalStatus legalStatus, Reason reason) {
+                when(prisonApiService.getPrisonerDetails(any())).thenReturn(prisonerDetails(legalStatus.name(), false));
+
+                assertThat(calculator.calculateReasonForPrisoner("A1234GH")).isEqualTo(reason);
+            }
+
+        }
+
+        @Nested
+        @DisplayName("when has recall outcome that is a recall")
+        class WhenHasRecallOutcomeIsRecall {
+            private static Stream<Arguments> legalStatusMap() {
+                return Stream.of(
+                    Arguments.of(LegalStatus.INDETERMINATE_SENTENCE, Reason.RECALL),
+                    Arguments.of(LegalStatus.SENTENCED, Reason.RECALL),
+                    Arguments.of(LegalStatus.CIVIL_PRISONER, Reason.CONVICTED),
+                    Arguments.of(LegalStatus.CONVICTED_UNSENTENCED, Reason.RECALL),
+                    Arguments.of(LegalStatus.DEAD, Reason.UNKNOWN),
+                    Arguments.of(LegalStatus.OTHER, Reason.RECALL),
+                    Arguments.of(LegalStatus.UNKNOWN, Reason.RECALL),
+                    Arguments.of(LegalStatus.IMMIGRATION_DETAINEE, Reason.IMMIGRATION_DETAINEE)
+                );
+            }
+
+            @BeforeEach
+            void setUp() {
+                when(communityApiService.getRecalls(any()))
+                    .thenReturn(Optional.of(List.of(new Recall(LocalDate.now(), false, true))));
+            }
+
+            @ParameterizedTest
+            @MethodSource("legalStatusMap")
+            @DisplayName("legal status is mapped to reason")
+            @MockitoSettings(strictness = Strictness.LENIENT)
+            void legalStatusIsMappedToReason(LegalStatus legalStatus, Reason reason) {
+                when(prisonApiService.getPrisonerDetails(any())).thenReturn(prisonerDetails(legalStatus.name(), false));
+
+                assertThat(calculator.calculateReasonForPrisoner("A1234GH")).isEqualTo(reason);
+            }
+
+        }
     }
 
 }

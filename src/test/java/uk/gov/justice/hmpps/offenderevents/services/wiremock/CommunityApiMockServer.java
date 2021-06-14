@@ -115,7 +115,9 @@ public class CommunityApiMockServer extends WireMockServer {
                                 "description": "National Probation Service"
                             }
                         },
-                        "active": true
+                        "active": true,
+                        "recallRejectedOrWithdrawn": true,
+                        "outcomeRecall": false
                     },
                     {
                         "nsiId": 2500032227,
@@ -211,7 +213,8 @@ public class CommunityApiMockServer extends WireMockServer {
                                 "description": "National Probation Service"
                             }
                         },
-                        "active": false
+                        "active": false,
+                        "recallRejectedOrWithdrawn": false
                     }
                 ]
             }
