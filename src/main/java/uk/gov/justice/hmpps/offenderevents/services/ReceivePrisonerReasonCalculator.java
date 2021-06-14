@@ -17,7 +17,7 @@ public class ReceivePrisonerReasonCalculator {
         this.communityApiService = communityApiService;
     }
 
-    public RecallReason calculateReasonForPrisoner(String offenderNumber) {
+    public RecallReason calculateMostLikelyReasonForPrisoner(String offenderNumber) {
         final var prisonerDetails = prisonApiService.getPrisonerDetails(offenderNumber);
 
         if (prisonerDetails.typeOfMovement() == MovementType.TEMPORARY_ABSENCE_RETURN) {
@@ -28,7 +28,7 @@ public class ReceivePrisonerReasonCalculator {
         }
 
         final Optional<RecallReason> maybeRecallStatusFromProbation = switch (prisonerDetails.legalStatus()) {
-            case OTHER, UNKNOWN, CONVICTED_UNSENTENCED, SENTENCED, INDETERMINATE_SENTENCE -> calculateReasonForPrisonerFromProbation(offenderNumber);
+            case OTHER, UNKNOWN, CONVICTED_UNSENTENCED, SENTENCED, INDETERMINATE_SENTENCE -> calculateReasonForPrisonerFromProbationOrEmpty(offenderNumber);
             default -> Optional.empty();
         };
 
@@ -44,7 +44,7 @@ public class ReceivePrisonerReasonCalculator {
         });
     }
 
-    private Optional<RecallReason> calculateReasonForPrisonerFromProbation(String offenderNumber) {
+    private Optional<RecallReason> calculateReasonForPrisonerFromProbationOrEmpty(String offenderNumber) {
         final var maybeRecallList = communityApiService.getRecalls(offenderNumber);
         return maybeRecallList
             .filter(recalls -> recalls.stream().anyMatch(this::hasActiveOrCompletedRecall))

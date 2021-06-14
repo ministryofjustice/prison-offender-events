@@ -65,7 +65,7 @@ public class HMPPSDomainEventsEmitter {
 
     private HMPPSDomainEvent toPrisonerReceived(OffenderEvent event) {
         final var offenderNumber = event.getOffenderIdDisplay();
-        final var receivedReason  =  receivePrisonerReasonCalculator.calculateReasonForPrisoner(offenderNumber);
+        final var receivedReason  =  receivePrisonerReasonCalculator.calculateMostLikelyReasonForPrisoner(offenderNumber);
         return new HMPPSDomainEvent("prison-offender-events.prisoner.received",
             new AdditionalInformation(offenderNumber,
                 receivedReason.reason().name(),

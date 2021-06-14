@@ -85,7 +85,7 @@ class HMPPSDomainEventsEmitterTest {
     @DisplayName("Will send to topic for these events")
     @MockitoSettings(strictness = Strictness.LENIENT)
     void willSendToTopicForTheseEvents(String prisonEventType, String eventType) {
-        when(receivePrisonerReasonCalculator.calculateReasonForPrisoner(any())).thenReturn(new RecallReason(Reason.UNKNOWN, Source.PRISON));
+        when(receivePrisonerReasonCalculator.calculateMostLikelyReasonForPrisoner(any())).thenReturn(new RecallReason(Reason.UNKNOWN, Source.PRISON));
 
         emitter.convertAndSendWhenSignificant(OffenderEvent
             .builder()
@@ -114,7 +114,7 @@ class HMPPSDomainEventsEmitterTest {
 
         @BeforeEach
         void setUp() {
-            when(receivePrisonerReasonCalculator.calculateReasonForPrisoner(any())).thenReturn(new RecallReason(Reason.RECALL, Source.PRISON));
+            when(receivePrisonerReasonCalculator.calculateMostLikelyReasonForPrisoner(any())).thenReturn(new RecallReason(Reason.RECALL, Source.PRISON));
 
             emitter.convertAndSendWhenSignificant(OffenderEvent
                 .builder()
