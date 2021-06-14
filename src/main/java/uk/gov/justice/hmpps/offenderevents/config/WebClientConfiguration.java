@@ -8,6 +8,7 @@ import org.springframework.security.oauth2.client.OAuth2AuthorizedClientProvider
 import org.springframework.security.oauth2.client.OAuth2AuthorizedClientService;
 import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository;
 import org.springframework.security.oauth2.client.web.reactive.function.client.ServletOAuth2AuthorizedClientExchangeFilterFunction;
+import org.springframework.web.reactive.function.client.ExchangeStrategies;
 import org.springframework.web.reactive.function.client.WebClient;
 
 @Configuration
@@ -26,6 +27,10 @@ public class WebClientConfiguration {
         return WebClient.builder()
             .baseUrl(properties.getPrisonApiBaseUrl())
             .apply(oauth2Client.oauth2Configuration())
+            .exchangeStrategies(ExchangeStrategies.builder()
+                .codecs(configurer -> configurer.defaultCodecs()
+                    .maxInMemorySize(-1))
+                .build())
             .build();
     }
 
