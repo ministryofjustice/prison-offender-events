@@ -63,3 +63,10 @@ Results in:
 ```bash
 aws --endpoint-url=http://localhost:4576 sqs receive-message --queue-url http://localhost:4576/queue/event_queue
 ```
+
+## Running tests
+The integration tests depend on localstack to be running to access the topics and test queues, this can be started with docker-compose
+
+```bash
+docker-compose -f docker-compose-test.yml
+```

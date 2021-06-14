@@ -21,6 +21,8 @@ import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
 import uk.gov.justice.hmpps.offenderevents.model.OffenderEvent;
 import uk.gov.justice.hmpps.offenderevents.services.ReceivePrisonerReasonCalculator.Reason;
+import uk.gov.justice.hmpps.offenderevents.services.ReceivePrisonerReasonCalculator.RecallReason;
+import uk.gov.justice.hmpps.offenderevents.services.ReceivePrisonerReasonCalculator.Source;
 
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
@@ -83,7 +85,7 @@ class HMPPSDomainEventsEmitterTest {
     @DisplayName("Will send to topic for these events")
     @MockitoSettings(strictness = Strictness.LENIENT)
     void willSendToTopicForTheseEvents(String prisonEventType, String eventType) {
-        when(receivePrisonerReasonCalculator.calculateReasonForPrisoner(any())).thenReturn(Reason.UNKNOWN);
+        when(receivePrisonerReasonCalculator.calculateMostLikelyReasonForPrisoner(any())).thenReturn(new RecallReason(Reason.UNKNOWN, Source.PRISON));
 
         emitter.convertAndSendWhenSignificant(OffenderEvent
             .builder()
@@ -112,7 +114,7 @@ class HMPPSDomainEventsEmitterTest {
 
         @BeforeEach
         void setUp() {
-            when(receivePrisonerReasonCalculator.calculateReasonForPrisoner(any())).thenReturn(Reason.RECALL);
+            when(receivePrisonerReasonCalculator.calculateMostLikelyReasonForPrisoner(any())).thenReturn(new RecallReason(Reason.RECALL, Source.PRISON));
 
             emitter.convertAndSendWhenSignificant(OffenderEvent
                 .builder()

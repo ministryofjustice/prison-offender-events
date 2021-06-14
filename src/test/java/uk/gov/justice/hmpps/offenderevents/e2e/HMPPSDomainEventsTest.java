@@ -8,7 +8,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.tomakehurst.wiremock.client.WireMock;
 import junit.framework.AssertionFailedError;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -138,6 +137,7 @@ public class HMPPSDomainEventsTest {
                 assertThat(hmppsEventMessages).singleElement().satisfies(event -> {
                     assertThatJson(event).node("eventType").isEqualTo("prison-offender-events.prisoner.received");
                     assertThatJson(event).node("additionalInformation.reason").isEqualTo("RECALL");
+                    assertThatJson(event).node("additionalInformation.source").isEqualTo("PRISON");
                 });
 
                 CommunityApiExtension.server.verify(0, getRequestedFor(anyUrl()));
@@ -159,6 +159,7 @@ public class HMPPSDomainEventsTest {
                 assertThat(hmppsEventMessages).singleElement().satisfies(event -> {
                     assertThatJson(event).node("eventType").isEqualTo("prison-offender-events.prisoner.received");
                     assertThatJson(event).node("additionalInformation.reason").isEqualTo("CONVICTED");
+                    assertThatJson(event).node("additionalInformation.source").isEqualTo("PRISON");
                 });
 
                 CommunityApiExtension.server.verify(getRequestedFor(WireMock.urlEqualTo("/secure/offenders/nomsNumber/A5194DY/convictions/active/nsis/recall")));
@@ -173,6 +174,7 @@ public class HMPPSDomainEventsTest {
                 assertThat(hmppsEventMessages).singleElement().satisfies(event -> {
                     assertThatJson(event).node("eventType").isEqualTo("prison-offender-events.prisoner.received");
                     assertThatJson(event).node("additionalInformation.reason").isEqualTo("RECALL");
+                    assertThatJson(event).node("additionalInformation.source").isEqualTo("PROBATION");
                 });
 
                 CommunityApiExtension.server.verify(getRequestedFor(WireMock.urlEqualTo("/secure/offenders/nomsNumber/A5194DY/convictions/active/nsis/recall")));
