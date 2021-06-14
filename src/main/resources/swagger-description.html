@@ -61,6 +61,14 @@
                     <li><b>UNKNOWN</b> prisoner's legal status is unknown at this time so reason for booking is unknown </li>
                   </ul>
                 </li>
+                <li><b>source</b> enum - the primary source system that has determined the reason. Will be one of these values
+                  <ul>
+                    <li><b>PRISON</b> the typical case that the prison system (NOMIS) was used to calculate the reason</li>
+                    <li><b>PROBATION</b> when the probation system (Delius) has an outstanding recall request which has not been recorded in NOMIS yet </li>
+                  </ul>
+                </li>
+                <li><b>detail</b> string - further human readable information about the reason. Example <b>Recall referral date 2021-06-13</b>
+                </li>
               </ul>
             </li>
           </ul>
