@@ -13,6 +13,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
 import uk.gov.justice.hmpps.offenderevents.services.ReceivePrisonerReasonCalculator.Reason;
+import uk.gov.justice.hmpps.offenderevents.services.ReceivePrisonerReasonCalculator.Source;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -56,7 +57,7 @@ class ReceivePrisonerReasonCalculatorTest {
     void reasonIsRecallIfBothLegalStatusRECALLAndCalculatedRecallTrue() {
         when(prisonApiService.getPrisonerDetails(any())).thenReturn(prisonerDetails("RECALL", true));
 
-        assertThat(calculator.calculateReasonForPrisoner("A1234GH")).isEqualTo(Reason.RECALL);
+        assertThat(calculator.calculateReasonForPrisoner("A1234GH").reason()).isEqualTo(Reason.RECALL);
     }
 
     @Test
@@ -64,17 +65,17 @@ class ReceivePrisonerReasonCalculatorTest {
     void reasonIsRecallIfOnlyCalculatedRecallIsTrue() {
         when(prisonApiService.getPrisonerDetails(any())).thenReturn(prisonerDetails("UNKNOWN", true));
 
-        assertThat(calculator.calculateReasonForPrisoner("A1234GH")).isEqualTo(Reason.RECALL);
+        assertThat(calculator.calculateReasonForPrisoner("A1234GH").reason()).isEqualTo(Reason.RECALL);
     }
 
     @Test
     @DisplayName("TAP movement type takes precedence over recall")
     void tAPMovementTypeTakesPrecedenceOverRecall() {
         when(prisonApiService.getPrisonerDetails(any())).thenReturn(prisonerDetails("RECALL", true, "ADM"));
-        assertThat(calculator.calculateReasonForPrisoner("A1234GH")).isEqualTo(Reason.RECALL);
+        assertThat(calculator.calculateReasonForPrisoner("A1234GH").reason()).isEqualTo(Reason.RECALL);
 
         when(prisonApiService.getPrisonerDetails(any())).thenReturn(prisonerDetails("RECALL", true, "TAP"));
-        assertThat(calculator.calculateReasonForPrisoner("A1234GH")).isEqualTo(Reason.TEMPORARY_ABSENCE_RETURN);
+        assertThat(calculator.calculateReasonForPrisoner("A1234GH").reason()).isEqualTo(Reason.TEMPORARY_ABSENCE_RETURN);
     }
 
     @Test
@@ -83,7 +84,7 @@ class ReceivePrisonerReasonCalculatorTest {
         when(communityApiService.getRecalls(any())).thenReturn(Optional.empty());
         when(prisonApiService.getPrisonerDetails(any())).thenReturn(prisonerDetails("UNKNOWN", false));
 
-        assertThat(calculator.calculateReasonForPrisoner("A1234GH")).isEqualTo(Reason.UNKNOWN);
+        assertThat(calculator.calculateReasonForPrisoner("A1234GH").reason()).isEqualTo(Reason.UNKNOWN);
     }
 
     @Test
@@ -91,7 +92,7 @@ class ReceivePrisonerReasonCalculatorTest {
     void reasonIsREMANDWhenLegalStatusIsREMAND() {
         when(prisonApiService.getPrisonerDetails(any())).thenReturn(prisonerDetails("REMAND", false));
 
-        assertThat(calculator.calculateReasonForPrisoner("A1234GH")).isEqualTo(Reason.REMAND);
+        assertThat(calculator.calculateReasonForPrisoner("A1234GH").reason()).isEqualTo(Reason.REMAND);
     }
 
     @ParameterizedTest
@@ -102,7 +103,7 @@ class ReceivePrisonerReasonCalculatorTest {
         when(communityApiService.getRecalls(any())).thenReturn(Optional.empty());
         when(prisonApiService.getPrisonerDetails(any())).thenReturn(prisonerDetails(legalStatus.name(), false));
 
-        assertThat(calculator.calculateReasonForPrisoner("A1234GH")).isEqualTo(reason);
+        assertThat(calculator.calculateReasonForPrisoner("A1234GH").reason()).isEqualTo(reason);
     }
 
     private PrisonerDetails prisonerDetails(String legalStatus, boolean recall) {
@@ -143,7 +144,7 @@ class ReceivePrisonerReasonCalculatorTest {
             void legalStatusIsMappedToReason(LegalStatus legalStatus, Reason reason) {
                 when(prisonApiService.getPrisonerDetails(any())).thenReturn(prisonerDetails(legalStatus.name(), false));
 
-                assertThat(calculator.calculateReasonForPrisoner("A1234GH")).isEqualTo(reason);
+                assertThat(calculator.calculateReasonForPrisoner("A1234GH").reason()).isEqualTo(reason);
             }
 
         }
@@ -176,7 +177,7 @@ class ReceivePrisonerReasonCalculatorTest {
             void legalStatusIsMappedToReason(LegalStatus legalStatus, Reason reason) {
                 when(prisonApiService.getPrisonerDetails(any())).thenReturn(prisonerDetails(legalStatus.name(), false));
 
-                assertThat(calculator.calculateReasonForPrisoner("A1234GH")).isEqualTo(reason);
+                assertThat(calculator.calculateReasonForPrisoner("A1234GH").reason()).isEqualTo(reason);
             }
         }
 
@@ -209,7 +210,7 @@ class ReceivePrisonerReasonCalculatorTest {
             void legalStatusIsMappedToReason(LegalStatus legalStatus, Reason reason) {
                 when(prisonApiService.getPrisonerDetails(any())).thenReturn(prisonerDetails(legalStatus.name(), false));
 
-                assertThat(calculator.calculateReasonForPrisoner("A1234GH")).isEqualTo(reason);
+                assertThat(calculator.calculateReasonForPrisoner("A1234GH").reason()).isEqualTo(reason);
             }
 
         }
@@ -243,7 +244,17 @@ class ReceivePrisonerReasonCalculatorTest {
             void legalStatusIsMappedToReason(LegalStatus legalStatus, Reason reason) {
                 when(prisonApiService.getPrisonerDetails(any())).thenReturn(prisonerDetails(legalStatus.name(), false));
 
-                assertThat(calculator.calculateReasonForPrisoner("A1234GH")).isEqualTo(reason);
+                assertThat(calculator.calculateReasonForPrisoner("A1234GH").reason()).isEqualTo(reason);
+            }
+
+            @Test
+            @DisplayName("reason source will be prison")
+            void reasonSourceWillBeProbationWhenOverridden() {
+                when(prisonApiService.getPrisonerDetails(any())).thenReturn(prisonerDetails(LegalStatus.SENTENCED.name(), false));
+                assertThat(calculator.calculateReasonForPrisoner("A1234GH").source()).isEqualTo(Source.PRISON);
+
+                when(prisonApiService.getPrisonerDetails(any())).thenReturn(prisonerDetails(LegalStatus.IMMIGRATION_DETAINEE.name(), false));
+                assertThat(calculator.calculateReasonForPrisoner("A1234GH").source()).isEqualTo(Source.PRISON);
             }
 
         }
@@ -279,7 +290,7 @@ class ReceivePrisonerReasonCalculatorTest {
             void legalStatusIsMappedToReason(LegalStatus legalStatus, Reason reason) {
                 when(prisonApiService.getPrisonerDetails(any())).thenReturn(prisonerDetails(legalStatus.name(), false));
 
-                assertThat(calculator.calculateReasonForPrisoner("A1234GH")).isEqualTo(reason);
+                assertThat(calculator.calculateReasonForPrisoner("A1234GH").reason()).isEqualTo(reason);
             }
 
         }
@@ -303,7 +314,7 @@ class ReceivePrisonerReasonCalculatorTest {
             @BeforeEach
             void setUp() {
                 when(communityApiService.getRecalls(any()))
-                    .thenReturn(Optional.of(List.of(new Recall(LocalDate.now(), false, true))));
+                    .thenReturn(Optional.of(List.of(new Recall(LocalDate.parse("2021-06-13"), false, true))));
             }
 
             @ParameterizedTest
@@ -313,10 +324,28 @@ class ReceivePrisonerReasonCalculatorTest {
             void legalStatusIsMappedToReason(LegalStatus legalStatus, Reason reason) {
                 when(prisonApiService.getPrisonerDetails(any())).thenReturn(prisonerDetails(legalStatus.name(), false));
 
-                assertThat(calculator.calculateReasonForPrisoner("A1234GH")).isEqualTo(reason);
+                assertThat(calculator.calculateReasonForPrisoner("A1234GH").reason()).isEqualTo(reason);
             }
 
+            @Test
+            @DisplayName("reason source will be probation when overridden")
+            void reasonSourceWillBeProbationWhenOverridden() {
+                when(prisonApiService.getPrisonerDetails(any())).thenReturn(prisonerDetails(LegalStatus.SENTENCED.name(), false));
+                assertThat(calculator.calculateReasonForPrisoner("A1234GH").source()).isEqualTo(Source.PROBATION);
+
+                when(prisonApiService.getPrisonerDetails(any())).thenReturn(prisonerDetails(LegalStatus.IMMIGRATION_DETAINEE.name(), false));
+                assertThat(calculator.calculateReasonForPrisoner("A1234GH").source()).isEqualTo(Source.PRISON);
+            }
+
+            @Test
+            @DisplayName("will add a further information message when overridden")
+            void willAddAFurtherInformationMessageWhenOverridden() {
+                when(prisonApiService.getPrisonerDetails(any())).thenReturn(prisonerDetails(LegalStatus.SENTENCED.name(), false));
+                assertThat(calculator.calculateReasonForPrisoner("A1234GH").details()).isEqualTo("Recall referral date 2021-06-13");
+
+                when(prisonApiService.getPrisonerDetails(any())).thenReturn(prisonerDetails(LegalStatus.IMMIGRATION_DETAINEE.name(), false));
+                assertThat(calculator.calculateReasonForPrisoner("A1234GH").details()).isNull();
+            }
         }
     }
-
 }

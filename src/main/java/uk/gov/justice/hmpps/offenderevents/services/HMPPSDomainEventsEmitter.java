@@ -65,10 +65,15 @@ public class HMPPSDomainEventsEmitter {
 
     private HMPPSDomainEvent toPrisonerReceived(OffenderEvent event) {
         final var offenderNumber = event.getOffenderIdDisplay();
-        return new HMPPSDomainEvent("prison-offender-events.prisoner.received", new AdditionalInformation(offenderNumber, receivePrisonerReasonCalculator
-            .calculateReasonForPrisoner(offenderNumber)
-            .name()), event
-            .getEventDatetime(), "A prisoner has been received into prison");
+        final var receivedReason  =  receivePrisonerReasonCalculator.calculateReasonForPrisoner(offenderNumber);
+        return new HMPPSDomainEvent("prison-offender-events.prisoner.received",
+            new AdditionalInformation(offenderNumber,
+                receivedReason.reason().name(),
+                receivedReason.source().name(),
+                receivedReason.details()
+            ),
+            event.getEventDatetime(),
+            "A prisoner has been received into prison");
     }
 
     private HMPPSDomainEvent toPrisonerReleased(OffenderEvent event) {
@@ -106,5 +111,8 @@ record HMPPSDomainEvent(String eventType, AdditionalInformation additionalInform
     }
 }
 
-record AdditionalInformation(String nomsNumber, String reason) {
+record AdditionalInformation(String nomsNumber, String reason, String source, String details) {
+    AdditionalInformation(String nomsNumber, String reason) {
+        this(nomsNumber, reason, null, null);
+    }
 }
