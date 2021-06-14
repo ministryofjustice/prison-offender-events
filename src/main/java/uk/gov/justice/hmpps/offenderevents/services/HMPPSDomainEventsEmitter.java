@@ -60,7 +60,12 @@ public class HMPPSDomainEventsEmitter {
             "nomsNumber",
             hmppsDomainEvent.additionalInformation().nomsNumber(),
             "reason",
-            hmppsDomainEvent.additionalInformation().reason());
+            hmppsDomainEvent.additionalInformation().reason(),
+            "source",
+            Optional.ofNullable(hmppsDomainEvent.additionalInformation().source()).orElse("unknown"),
+            "details",
+            Optional.ofNullable(hmppsDomainEvent.additionalInformation().details()).orElse("")
+            );
     }
 
     private HMPPSDomainEvent toPrisonerReceived(OffenderEvent event) {

@@ -114,7 +114,7 @@ class HMPPSDomainEventsEmitterTest {
 
         @BeforeEach
         void setUp() {
-            when(receivePrisonerReasonCalculator.calculateMostLikelyReasonForPrisoner(any())).thenReturn(new RecallReason(Reason.RECALL, Source.PRISON));
+            when(receivePrisonerReasonCalculator.calculateMostLikelyReasonForPrisoner(any())).thenReturn(new RecallReason(Reason.RECALL, Source.PRISON, "some details"));
 
             emitter.convertAndSendWhenSignificant(OffenderEvent
                 .builder()
@@ -179,6 +179,17 @@ class HMPPSDomainEventsEmitterTest {
         @DisplayName("will add occurredAt to telemetry event")
         void willAddOccurredAtToTelemetryEvent() {
             assertThat(telemetryAttributes).containsEntry("occurredAt", "2020-12-04T10:42:43");
+        }
+
+        @Test
+        @DisplayName("will add source to telemetry event")
+        void willAddSourceToTelemetryEvent() {
+            assertThat(telemetryAttributes).containsEntry("source", "PRISON");
+        }
+        @Test
+        @DisplayName("will add details to telemetry event when present")
+        void willAddDetailsToTelemetryEvent() {
+            assertThat(telemetryAttributes).containsEntry("details", "some details");
         }
     }
 
