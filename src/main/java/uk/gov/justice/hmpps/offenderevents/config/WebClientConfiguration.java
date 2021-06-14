@@ -41,6 +41,10 @@ public class WebClientConfiguration {
         return WebClient.builder()
             .baseUrl(properties.getCommunityApiBaseUrl())
             .apply(oauth2Client.oauth2Configuration())
+            .exchangeStrategies(ExchangeStrategies.builder()
+                .codecs(configurer -> configurer.defaultCodecs()
+                    .maxInMemorySize(1024 * 1024 ))
+                .build())
             .build();
     }
 
