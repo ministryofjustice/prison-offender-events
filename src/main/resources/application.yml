@@ -7,8 +7,6 @@ spring:
         - "test"
   application:
     name: prison-offender-events
-  codec:
-    max-in-memory-size: -1
 
   jackson:
     date-format: "yyyy-MM-dd HH:mm:ss"
