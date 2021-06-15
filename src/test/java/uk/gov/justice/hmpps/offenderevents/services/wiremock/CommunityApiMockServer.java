@@ -1,6 +1,7 @@
 package uk.gov.justice.hmpps.offenderevents.services.wiremock;
 
 import com.github.tomakehurst.wiremock.WireMockServer;
+import org.intellij.lang.annotations.Language;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 import static com.github.tomakehurst.wiremock.client.WireMock.get;
@@ -21,6 +22,7 @@ public class CommunityApiMockServer extends WireMockServer {
         );
     }
 
+    @Language("JSON")
     private String recall() {
         return """
             {

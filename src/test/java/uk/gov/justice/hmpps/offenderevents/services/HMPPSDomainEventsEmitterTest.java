@@ -20,9 +20,9 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
 import uk.gov.justice.hmpps.offenderevents.model.OffenderEvent;
-import uk.gov.justice.hmpps.offenderevents.services.ReceivePrisonerReasonCalculator.Reason;
 import uk.gov.justice.hmpps.offenderevents.services.ReceivePrisonerReasonCalculator.RecallReason;
 import uk.gov.justice.hmpps.offenderevents.services.ReceivePrisonerReasonCalculator.Source;
+import uk.gov.justice.hmpps.offenderevents.services.ReleasePrisonerReasonCalculator.ReleaseReason;
 
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
@@ -39,6 +39,9 @@ import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
+import static uk.gov.justice.hmpps.offenderevents.services.ReceivePrisonerReasonCalculator.Reason.RECALL;
+import static uk.gov.justice.hmpps.offenderevents.services.ReceivePrisonerReasonCalculator.Reason.UNKNOWN;
+import static uk.gov.justice.hmpps.offenderevents.services.ReleasePrisonerReasonCalculator.Reason.TEMPORARY_ABSENCE;
 
 @ExtendWith(MockitoExtension.class)
 class HMPPSDomainEventsEmitterTest {
@@ -49,6 +52,9 @@ class HMPPSDomainEventsEmitterTest {
 
     @Mock
     private ReceivePrisonerReasonCalculator receivePrisonerReasonCalculator;
+
+    @Mock
+    private ReleasePrisonerReasonCalculator releasePrisonerReasonCalculator;
 
     @Mock
     private TelemetryClient telemetryClient;
@@ -69,7 +75,12 @@ class HMPPSDomainEventsEmitterTest {
 
     @BeforeEach
     void setUp() {
-        emitter = new HMPPSDomainEventsEmitter(amazonSns, "sometopicarn", new ObjectMapper(), receivePrisonerReasonCalculator, telemetryClient);
+        emitter = new HMPPSDomainEventsEmitter(amazonSns,
+            "sometopicarn",
+            new ObjectMapper(),
+            receivePrisonerReasonCalculator,
+            releasePrisonerReasonCalculator,
+            telemetryClient);
     }
 
     @Test
@@ -85,7 +96,11 @@ class HMPPSDomainEventsEmitterTest {
     @DisplayName("Will send to topic for these events")
     @MockitoSettings(strictness = Strictness.LENIENT)
     void willSendToTopicForTheseEvents(String prisonEventType, String eventType) {
-        when(receivePrisonerReasonCalculator.calculateMostLikelyReasonForPrisoner(any())).thenReturn(new RecallReason(Reason.UNKNOWN, Source.PRISON));
+        when(receivePrisonerReasonCalculator.calculateMostLikelyReasonForPrisoner(any()))
+            .thenReturn(new RecallReason(UNKNOWN, Source.PRISON));
+        when(releasePrisonerReasonCalculator.calculateReasonForRelease(any()))
+            .thenReturn(new ReleaseReason(TEMPORARY_ABSENCE));
+
 
         emitter.convertAndSendWhenSignificant(OffenderEvent
             .builder()
@@ -114,7 +129,8 @@ class HMPPSDomainEventsEmitterTest {
 
         @BeforeEach
         void setUp() {
-            when(receivePrisonerReasonCalculator.calculateMostLikelyReasonForPrisoner(any())).thenReturn(new RecallReason(Reason.RECALL, Source.PRISON, "some details"));
+            when(receivePrisonerReasonCalculator.calculateMostLikelyReasonForPrisoner(any()))
+                .thenReturn(new RecallReason(RECALL, Source.PRISON, "some details"));
 
             emitter.convertAndSendWhenSignificant(OffenderEvent
                 .builder()
@@ -166,7 +182,7 @@ class HMPPSDomainEventsEmitterTest {
         @Test
         @DisplayName("will add noms number to telemetry event")
         void willAddNomsNumberToTelemetryEvent() {
-          assertThat(telemetryAttributes).containsEntry("nomsNumber", "A1234GH");
+            assertThat(telemetryAttributes).containsEntry("nomsNumber", "A1234GH");
         }
 
         @Test
@@ -186,6 +202,7 @@ class HMPPSDomainEventsEmitterTest {
         void willAddSourceToTelemetryEvent() {
             assertThat(telemetryAttributes).containsEntry("source", "PRISON");
         }
+
         @Test
         @DisplayName("will add details to telemetry event when present")
         void willAddDetailsToTelemetryEvent() {
@@ -200,6 +217,9 @@ class HMPPSDomainEventsEmitterTest {
 
         @BeforeEach
         void setUp() {
+            when(releasePrisonerReasonCalculator.calculateReasonForRelease(any()))
+                .thenReturn(new ReleaseReason(TEMPORARY_ABSENCE));
+
             emitter.convertAndSendWhenSignificant(OffenderEvent
                 .builder()
                 .eventType("OFFENDER_MOVEMENT-DISCHARGE")
@@ -219,8 +239,8 @@ class HMPPSDomainEventsEmitterTest {
         }
 
         @Test
-        @DisplayName("will user current time as publishedAT")
-        void willUserCurrentTimeAsPublishedAT() {
+        @DisplayName("will user current time as publishedAt")
+        void willUserCurrentTimeAsPublishedAt() {
             assertThatJson(payload)
                 .node("publishedAt")
                 .asString()
@@ -234,12 +254,19 @@ class HMPPSDomainEventsEmitterTest {
         void additionalInformationWillContainOffenderNumberAsNOMSNumber() {
             assertThatJson(payload).node("additionalInformation.nomsNumber").isEqualTo("A1234GH");
         }
+        @Test
+        @DisplayName("will indicate the reason for a prisoners exit")
+        void willIndicateTheReasonForAPrisonersExit() {
+            assertThatJson(payload).node("additionalInformation.reason").isEqualTo("TEMPORARY_ABSENCE");
+        }
+
 
         @Test
         @DisplayName("will describe the event as a release")
         void willDescribeTheEventAsAReceive() {
             assertThatJson(payload).node("description").isEqualTo("A prisoner has been released from prison");
         }
+
         @Test
         @DisplayName("will add noms number to telemetry event")
         void willAddNomsNumberToTelemetryEvent() {
@@ -249,7 +276,7 @@ class HMPPSDomainEventsEmitterTest {
         @Test
         @DisplayName("will add reason to telemetry event")
         void willAddReasonToTelemetryEvent() {
-            assertThat(telemetryAttributes).containsEntry("reason", "UNKNOWN");
+            assertThat(telemetryAttributes).containsEntry("reason", "TEMPORARY_ABSENCE");
         }
 
         @Test
