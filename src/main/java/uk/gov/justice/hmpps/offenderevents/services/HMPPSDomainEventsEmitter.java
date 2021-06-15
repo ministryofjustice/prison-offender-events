@@ -25,6 +25,7 @@ public class HMPPSDomainEventsEmitter {
     private final String topicArn;
     private final ObjectMapper objectMapper;
     private final ReceivePrisonerReasonCalculator receivePrisonerReasonCalculator;
+    private final ReleasePrisonerReasonCalculator releasePrisonerReasonCalculator;
     private final TelemetryClient telemetryClient;
 
 
@@ -32,12 +33,14 @@ public class HMPPSDomainEventsEmitter {
                              @Value("${hmpps.sns.topic.arn}") final String topicArn,
                              final ObjectMapper objectMapper,
                              final ReceivePrisonerReasonCalculator receivePrisonerReasonCalculator,
+                             final ReleasePrisonerReasonCalculator releasePrisonerReasonCalculator,
                              final TelemetryClient telemetryClient) {
         this.topicTemplate = new NotificationMessagingTemplate(amazonSns);
         this.topicArn = topicArn;
         this.amazonSns = amazonSns;
         this.objectMapper = objectMapper;
         this.receivePrisonerReasonCalculator = receivePrisonerReasonCalculator;
+        this.releasePrisonerReasonCalculator = releasePrisonerReasonCalculator;
         this.telemetryClient = telemetryClient;
     }
 
@@ -65,12 +68,12 @@ public class HMPPSDomainEventsEmitter {
             Optional.ofNullable(hmppsDomainEvent.additionalInformation().source()).orElse("unknown"),
             "details",
             Optional.ofNullable(hmppsDomainEvent.additionalInformation().details()).orElse("")
-            );
+        );
     }
 
     private HMPPSDomainEvent toPrisonerReceived(OffenderEvent event) {
         final var offenderNumber = event.getOffenderIdDisplay();
-        final var receivedReason  =  receivePrisonerReasonCalculator.calculateMostLikelyReasonForPrisoner(offenderNumber);
+        final var receivedReason = receivePrisonerReasonCalculator.calculateMostLikelyReasonForPrisoner(offenderNumber);
         return new HMPPSDomainEvent("prison-offender-events.prisoner.received",
             new AdditionalInformation(offenderNumber,
                 receivedReason.reason().name(),
@@ -82,8 +85,13 @@ public class HMPPSDomainEventsEmitter {
     }
 
     private HMPPSDomainEvent toPrisonerReleased(OffenderEvent event) {
-        return new HMPPSDomainEvent("prison-offender-events.prisoner.released", new AdditionalInformation(event.getOffenderIdDisplay(), "UNKNOWN"), event
-            .getEventDatetime(), "A prisoner has been released from prison");
+        final var offenderNumber = event.getOffenderIdDisplay();
+        final var releaseReason = releasePrisonerReasonCalculator.calculateReasonForRelease(offenderNumber);
+        return new HMPPSDomainEvent("prison-offender-events.prisoner.released",
+            new AdditionalInformation(offenderNumber,
+                releaseReason.reason().name()),
+            event.getEventDatetime(),
+            "A prisoner has been released from prison");
     }
 
     public void sendEvent(final HMPPSDomainEvent payload) {
