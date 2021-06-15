@@ -34,9 +34,12 @@
                 <li><b>nomsNumber</b> string - NOMIS offender number</li>
                 <li><b>reason</b> enum - reason for the release. Will be one of these values
                   <ul>
-                    <li><b>UNKNOWN</b></li>
+                    <li><b>TEMPORARY_ABSENCE_RELEASE</b> prisoner has been temporarily released and is expected to return</li>
+                    <li><b>RELEASED_TO_HOSPITAL</b> prisoner has been discharged in to the care of a hospital</li>
+                    <li><b>UNKNOWN</b> not sure why the prisoner has been released</li>
                   </ul>
                 </li>
+                <li><b>detail</b> string - further human readable information about the reason. Example <b>Movement reason code YY</b>
               </ul>
             </li>
           </ul>

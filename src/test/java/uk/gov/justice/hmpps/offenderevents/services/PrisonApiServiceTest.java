@@ -29,7 +29,7 @@ class PrisonApiServiceTest {
     class GetPrisonerDetails {
         @BeforeEach
         void setUp() {
-            PrisonApiExtension.server.stubPrisonerDetails("A7841DY", "REMAND", false, "ADM");
+            PrisonApiExtension.server.stubPrisonerDetails("A7841DY", "REMAND", false, "ADM", "HP");
         }
 
         @Test
@@ -65,6 +65,14 @@ class PrisonApiServiceTest {
             final var prisonerDetails = service.getPrisonerDetails("A7841DY");
 
             assertThat(prisonerDetails.lastMovementTypeCode()).isEqualTo("ADM");
+        }
+
+        @Test
+        @DisplayName("can parse last movement reason code")
+        void canParseLastMovementReasonCode() {
+            final var prisonerDetails = service.getPrisonerDetails("A7841DY");
+
+            assertThat(prisonerDetails.lastMovementReasonCode()).isEqualTo("HP");
         }
 
     }

@@ -107,11 +107,11 @@ class ReceivePrisonerReasonCalculatorTest {
     }
 
     private PrisonerDetails prisonerDetails(String legalStatus, boolean recall) {
-        return new PrisonerDetails(LegalStatus.valueOf(LegalStatus.class, legalStatus), recall, "ADM");
+        return new PrisonerDetails(LegalStatus.valueOf(LegalStatus.class, legalStatus), recall, "ADM", "N");
     }
 
     private PrisonerDetails prisonerDetails(String legalStatus, boolean recall, String lastMovementTypCode) {
-        return new PrisonerDetails(LegalStatus.valueOf(LegalStatus.class, legalStatus), recall, lastMovementTypCode);
+        return new PrisonerDetails(LegalStatus.valueOf(LegalStatus.class, legalStatus), recall, lastMovementTypCode, "N");
     }
 
     @Nested

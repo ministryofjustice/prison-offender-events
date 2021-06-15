@@ -20,7 +20,7 @@ public class ReceivePrisonerReasonCalculator {
     public RecallReason calculateMostLikelyReasonForPrisoner(String offenderNumber) {
         final var prisonerDetails = prisonApiService.getPrisonerDetails(offenderNumber);
 
-        if (prisonerDetails.typeOfMovement() == MovementType.TEMPORARY_ABSENCE_RETURN) {
+        if (prisonerDetails.typeOfMovement() == MovementType.TEMPORARY_ABSENCE) {
             return new RecallReason(Reason.TEMPORARY_ABSENCE_RETURN, Source.PRISON);
         }
         if (prisonerDetails.recall()) {
