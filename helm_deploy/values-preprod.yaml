@@ -24,6 +24,7 @@ env:
   COMMUNITY_API_BASE_URL: "https://community-api.pre-prod.delius.probation.hmpps.dsd.io"
   OAUTH_API_BASE_URL: "https://sign-in-preprod.hmpps.service.justice.gov.uk/auth"
   WIND_BACK_SECONDS: "10"
+  APPLICATIONINSIGHTS_CONFIGURATION_FILE: applicationinsights.json
 
 whitelist:
   office: "217.33.148.210/32"
