@@ -29,12 +29,20 @@ public class PrisonApiService {
 
 }
 
-record PrisonerDetails(LegalStatus legalStatus, boolean recall, String lastMovementTypeCode) {
+record PrisonerDetails(LegalStatus legalStatus, boolean recall, String lastMovementTypeCode, String lastMovementReasonCode) {
     public MovementType typeOfMovement() {
         return switch (lastMovementTypeCode) {
             case "TAP" -> MovementType.TEMPORARY_ABSENCE;
             case "ADM" -> MovementType.ADMISSION;
+            case "REL" -> MovementType.RELEASED;
             default -> MovementType.OTHER;
+        };
+    }
+
+    public MovementReason movementReason() {
+        return switch (lastMovementReasonCode) {
+            case "HP" -> MovementReason.HOSPITALISATION;
+            default -> MovementReason.OTHER;
         };
     }
 }
@@ -56,5 +64,11 @@ enum LegalStatus {
 enum MovementType {
     TEMPORARY_ABSENCE,
     ADMISSION,
+    RELEASED,
+    OTHER
+}
+
+enum MovementReason {
+    HOSPITALISATION,
     OTHER
 }

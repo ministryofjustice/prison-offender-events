@@ -41,7 +41,7 @@ import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 import static uk.gov.justice.hmpps.offenderevents.services.ReceivePrisonerReasonCalculator.Reason.RECALL;
 import static uk.gov.justice.hmpps.offenderevents.services.ReceivePrisonerReasonCalculator.Reason.UNKNOWN;
-import static uk.gov.justice.hmpps.offenderevents.services.ReleasePrisonerReasonCalculator.Reason.TEMPORARY_ABSENCE;
+import static uk.gov.justice.hmpps.offenderevents.services.ReleasePrisonerReasonCalculator.Reason.TEMPORARY_ABSENCE_RELEASE;
 
 @ExtendWith(MockitoExtension.class)
 class HMPPSDomainEventsEmitterTest {
@@ -99,7 +99,7 @@ class HMPPSDomainEventsEmitterTest {
         when(receivePrisonerReasonCalculator.calculateMostLikelyReasonForPrisoner(any()))
             .thenReturn(new RecallReason(UNKNOWN, Source.PRISON));
         when(releasePrisonerReasonCalculator.calculateReasonForRelease(any()))
-            .thenReturn(new ReleaseReason(TEMPORARY_ABSENCE));
+            .thenReturn(new ReleaseReason(TEMPORARY_ABSENCE_RELEASE));
 
 
         emitter.convertAndSendWhenSignificant(OffenderEvent
@@ -218,7 +218,7 @@ class HMPPSDomainEventsEmitterTest {
         @BeforeEach
         void setUp() {
             when(releasePrisonerReasonCalculator.calculateReasonForRelease(any()))
-                .thenReturn(new ReleaseReason(TEMPORARY_ABSENCE));
+                .thenReturn(new ReleaseReason(TEMPORARY_ABSENCE_RELEASE, "some details"));
 
             emitter.convertAndSendWhenSignificant(OffenderEvent
                 .builder()
@@ -257,7 +257,7 @@ class HMPPSDomainEventsEmitterTest {
         @Test
         @DisplayName("will indicate the reason for a prisoners exit")
         void willIndicateTheReasonForAPrisonersExit() {
-            assertThatJson(payload).node("additionalInformation.reason").isEqualTo("TEMPORARY_ABSENCE");
+            assertThatJson(payload).node("additionalInformation.reason").isEqualTo("TEMPORARY_ABSENCE_RELEASE");
         }
 
 
@@ -276,13 +276,19 @@ class HMPPSDomainEventsEmitterTest {
         @Test
         @DisplayName("will add reason to telemetry event")
         void willAddReasonToTelemetryEvent() {
-            assertThat(telemetryAttributes).containsEntry("reason", "TEMPORARY_ABSENCE");
+            assertThat(telemetryAttributes).containsEntry("reason", "TEMPORARY_ABSENCE_RELEASE");
         }
 
         @Test
         @DisplayName("will add occurredAt to telemetry event")
         void willAddOccurredAtToTelemetryEvent() {
             assertThat(telemetryAttributes).containsEntry("occurredAt", "2020-12-04T10:42:43");
+        }
+
+        @Test
+        @DisplayName("will add details to telemetry event when present")
+        void willAddDetailsToTelemetryEvent() {
+            assertThat(telemetryAttributes).containsEntry("details", "some details");
         }
     }
 }

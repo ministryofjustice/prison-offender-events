@@ -15,17 +15,29 @@ public class ReleasePrisonerReasonCalculator {
         final var prisonerDetails = prisonApiService.getPrisonerDetails(offenderNumber);
 
         if (prisonerDetails.typeOfMovement() == MovementType.TEMPORARY_ABSENCE) {
-            return new ReleaseReason(Reason.TEMPORARY_ABSENCE);
+            return new ReleaseReason(Reason.TEMPORARY_ABSENCE_RELEASE);
         }
 
-        return new ReleaseReason(Reason.UNKNOWN);
+        if (prisonerDetails.typeOfMovement() == MovementType.RELEASED) {
+            final var reason = switch (prisonerDetails.movementReason()) {
+                case HOSPITALISATION -> Reason.RELEASED_TO_HOSPITAL;
+                default -> Reason.UNKNOWN;
+            };
+            return new ReleaseReason(reason, String.format("Movement reason code %s",  prisonerDetails.lastMovementReasonCode()));
+        }
+
+        return new ReleaseReason(Reason.UNKNOWN, String.format("Movement type code %s",  prisonerDetails.lastMovementTypeCode()));
     }
 
     enum Reason {
         UNKNOWN,
-        TEMPORARY_ABSENCE
+        TEMPORARY_ABSENCE_RELEASE,
+        RELEASED_TO_HOSPITAL,
     }
 
-    record ReleaseReason(Reason reason) {
+    record ReleaseReason(Reason reason, String details) {
+        public ReleaseReason(Reason reason) {
+            this(reason, null);
+        }
     }
 }
