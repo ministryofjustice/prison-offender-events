@@ -33,6 +33,7 @@ WORKDIR /app
 COPY --from=builder --chown=appuser:appgroup /app/build/libs/prison-offender-events*.jar /app/app.jar
 COPY --from=builder --chown=appuser:appgroup /app/build/libs/applicationinsights-agent*.jar /app/agent.jar
 COPY --from=builder --chown=appuser:appgroup /app/applicationinsights.json /app
+COPY --from=builder --chown=appuser:appgroup /app/applicationinsights.dev.json /app
 
 USER 2000
 
