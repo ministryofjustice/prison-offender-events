@@ -290,5 +290,12 @@ class HMPPSDomainEventsEmitterTest {
         void willAddDetailsToTelemetryEvent() {
             assertThat(telemetryAttributes).containsEntry("details", "some details");
         }
+
+        @Test
+        @DisplayName("source will be absent from event and telemetry when not present")
+        void sourceWillBeAbsentFromEventAndTelemetryWhenNotPresent() {
+            assertThatJson(payload).node("additionalInformation.source").isAbsent();
+            assertThat(telemetryAttributes).doesNotContainKey("source");
+        }
     }
 }
