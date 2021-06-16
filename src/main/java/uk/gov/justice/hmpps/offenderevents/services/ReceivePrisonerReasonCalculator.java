@@ -17,11 +17,14 @@ public class ReceivePrisonerReasonCalculator {
         this.communityApiService = communityApiService;
     }
 
-    public RecallReason calculateMostLikelyReasonForPrisoner(String offenderNumber) {
+    public RecallReason calculateMostLikelyReasonForPrisonerReceive(String offenderNumber) {
         final var prisonerDetails = prisonApiService.getPrisonerDetails(offenderNumber);
 
         if (prisonerDetails.typeOfMovement() == MovementType.TEMPORARY_ABSENCE) {
             return new RecallReason(Reason.TEMPORARY_ABSENCE_RETURN, Source.PRISON);
+        }
+        if (prisonerDetails.typeOfMovement() == MovementType.COURT) {
+            return new RecallReason(Reason.RETURN_FROM_COURT, Source.PRISON);
         }
         if (prisonerDetails.recall()) {
             return new RecallReason(Reason.RECALL, Source.PRISON);
@@ -81,7 +84,8 @@ public class ReceivePrisonerReasonCalculator {
         CONVICTED,
         IMMIGRATION_DETAINEE,
         UNKNOWN,
-        TEMPORARY_ABSENCE_RETURN
+        TEMPORARY_ABSENCE_RETURN,
+        RETURN_FROM_COURT
     }
 
     enum Source {

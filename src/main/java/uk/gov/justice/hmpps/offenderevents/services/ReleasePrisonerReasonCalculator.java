@@ -18,6 +18,10 @@ public class ReleasePrisonerReasonCalculator {
             return new ReleaseReason(Reason.TEMPORARY_ABSENCE_RELEASE);
         }
 
+        if (prisonerDetails.typeOfMovement() == MovementType.COURT) {
+            return new ReleaseReason(Reason.SENT_TO_COURT);
+        }
+
         if (prisonerDetails.typeOfMovement() == MovementType.RELEASED) {
             final var reason = switch (prisonerDetails.movementReason()) {
                 case HOSPITALISATION -> Reason.RELEASED_TO_HOSPITAL;
@@ -33,6 +37,7 @@ public class ReleasePrisonerReasonCalculator {
         UNKNOWN,
         TEMPORARY_ABSENCE_RELEASE,
         RELEASED_TO_HOSPITAL,
+        SENT_TO_COURT
     }
 
     record ReleaseReason(Reason reason, String details) {

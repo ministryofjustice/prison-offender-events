@@ -34,6 +34,17 @@ class ReleasePrisonerReasonCalculatorTest {
     }
 
     @Test
+    @DisplayName("when last movement is CRT then reason is sent to court")
+    void whenLastMovementIsCRTThenReasonIsSentToCourt() {
+        when(prisonApiService.getPrisonerDetails("A1234GF")).thenReturn(prisonerDetails("CRT"));
+
+        final var reason = calculator.calculateReasonForRelease("A1234GF");
+
+        assertThat(reason.reason()).isEqualTo(Reason.SENT_TO_COURT);
+    }
+
+
+    @Test
     @DisplayName("when release to hospital reason is hospital release")
     void whenReleaseToHospitalReasonIsHospitalRelease() {
         when(prisonApiService.getPrisonerDetails("A1234GF")).thenReturn(prisonerDetails("REL", "HP"));

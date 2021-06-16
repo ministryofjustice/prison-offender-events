@@ -35,6 +35,7 @@ record PrisonerDetails(LegalStatus legalStatus, boolean recall, String lastMovem
             case "TAP" -> MovementType.TEMPORARY_ABSENCE;
             case "ADM" -> MovementType.ADMISSION;
             case "REL" -> MovementType.RELEASED;
+            case "CRT" -> MovementType.COURT;
             default -> MovementType.OTHER;
         };
     }
@@ -63,6 +64,7 @@ enum LegalStatus {
 
 enum MovementType {
     TEMPORARY_ABSENCE,
+    COURT,
     ADMISSION,
     RELEASED,
     OTHER
