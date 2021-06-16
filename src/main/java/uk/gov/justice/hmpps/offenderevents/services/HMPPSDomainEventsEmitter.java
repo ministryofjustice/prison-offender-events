@@ -1,6 +1,8 @@
 package uk.gov.justice.hmpps.offenderevents.services;
 
 import com.amazonaws.services.sns.AmazonSNSAsync;
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.microsoft.applicationinsights.TelemetryClient;
@@ -14,8 +16,12 @@ import uk.gov.justice.hmpps.offenderevents.model.OffenderEvent;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 @Slf4j
@@ -58,17 +64,22 @@ public class HMPPSDomainEventsEmitter {
     }
 
     private Map<String, String> asTelemetryMap(HMPPSDomainEvent hmppsDomainEvent) {
-        return Map.of("occurredAt",
+        var elements = new HashMap<>(Map.of("occurredAt",
             hmppsDomainEvent.occurredAt(),
             "nomsNumber",
             hmppsDomainEvent.additionalInformation().nomsNumber(),
             "reason",
-            hmppsDomainEvent.additionalInformation().reason(),
-            "source",
-            Optional.ofNullable(hmppsDomainEvent.additionalInformation().source()).orElse("unknown"),
-            "details",
-            Optional.ofNullable(hmppsDomainEvent.additionalInformation().details()).orElse("")
-        );
+            hmppsDomainEvent.additionalInformation().reason()
+        ));
+
+        Optional.ofNullable(hmppsDomainEvent.additionalInformation().source()).ifPresent(source -> {
+            elements.put("source", source);
+        });
+        Optional.ofNullable(hmppsDomainEvent.additionalInformation().details()).ifPresent(details -> {
+            elements.put("details", details);
+        });
+
+        return elements;
     }
 
     private HMPPSDomainEvent toPrisonerReceived(OffenderEvent event) {
@@ -126,8 +137,6 @@ record HMPPSDomainEvent(String eventType, AdditionalInformation additionalInform
     }
 }
 
+@JsonInclude(Include.NON_NULL)
 record AdditionalInformation(String nomsNumber, String reason, String source, String details) {
-    AdditionalInformation(String nomsNumber, String reason) {
-        this(nomsNumber, reason, null, null);
-    }
 }
