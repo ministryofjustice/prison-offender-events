@@ -19,19 +19,26 @@ public class ReceivePrisonerReasonCalculator {
 
     public RecallReason calculateMostLikelyReasonForPrisonerReceive(String offenderNumber) {
         final var prisonerDetails = prisonApiService.getPrisonerDetails(offenderNumber);
+        final var details = String.format("%s:%s", prisonerDetails.status(), prisonerDetails.statusReason());
 
         if (prisonerDetails.typeOfMovement() == MovementType.TEMPORARY_ABSENCE) {
-            return new RecallReason(Reason.TEMPORARY_ABSENCE_RETURN, Source.PRISON);
+            return new RecallReason(Reason.TEMPORARY_ABSENCE_RETURN, Source.PRISON, details);
         }
         if (prisonerDetails.typeOfMovement() == MovementType.COURT) {
-            return new RecallReason(Reason.RETURN_FROM_COURT, Source.PRISON);
+            return new RecallReason(Reason.RETURN_FROM_COURT, Source.PRISON, details);
+        }
+        if (prisonerDetails.typeOfMovement() == MovementType.ADMISSION && prisonerDetails.movementReason() == MovementReason.TRANSFER) {
+            return new RecallReason(Reason.TRANSFERRED, Source.PRISON, details);
+        }
+        if (prisonerDetails.typeOfMovement() == MovementType.ADMISSION && prisonerDetails.movementReason() == MovementReason.RECALL) {
+            return new RecallReason(Reason.RECALL, Source.PRISON, details);
         }
         if (prisonerDetails.recall()) {
-            return new RecallReason(Reason.RECALL, Source.PRISON);
+            return new RecallReason(Reason.RECALL, Source.PRISON, details);
         }
 
         final Optional<RecallReason> maybeRecallStatusFromProbation = switch (prisonerDetails.legalStatus()) {
-            case OTHER, UNKNOWN, CONVICTED_UNSENTENCED, SENTENCED, INDETERMINATE_SENTENCE -> calculateReasonForPrisonerFromProbationOrEmpty(offenderNumber);
+            case OTHER, UNKNOWN, CONVICTED_UNSENTENCED, SENTENCED, INDETERMINATE_SENTENCE -> calculateReasonForPrisonerFromProbationOrEmpty(offenderNumber, details);
             default -> Optional.empty();
         };
 
@@ -43,17 +50,17 @@ public class ReceivePrisonerReasonCalculator {
                 case REMAND -> Reason.REMAND;
                 case DEAD, OTHER, UNKNOWN -> Reason.UNKNOWN;
             };
-            return new RecallReason(reason, Source.PRISON);
+            return new RecallReason(reason, Source.PRISON, details);
         });
     }
 
-    private Optional<RecallReason> calculateReasonForPrisonerFromProbationOrEmpty(String offenderNumber) {
+    private Optional<RecallReason> calculateReasonForPrisonerFromProbationOrEmpty(String offenderNumber, String details) {
         final var maybeRecallList = communityApiService.getRecalls(offenderNumber);
         return maybeRecallList
             .filter(recalls -> recalls.stream().anyMatch(this::hasActiveOrCompletedRecall))
             .map(recalls -> new RecallReason(Reason.RECALL,
                 Source.PROBATION,
-                String.format("Recall referral date %s", latestRecallReferralDate(maybeRecallList.get()))));
+                String.format("%s Recall referral date %s", details, latestRecallReferralDate(maybeRecallList.get()))));
     }
 
     private String latestRecallReferralDate(List<Recall> recalls) {
@@ -85,7 +92,8 @@ public class ReceivePrisonerReasonCalculator {
         IMMIGRATION_DETAINEE,
         UNKNOWN,
         TEMPORARY_ABSENCE_RETURN,
-        RETURN_FROM_COURT
+        RETURN_FROM_COURT,
+        TRANSFERRED
     }
 
     enum Source {

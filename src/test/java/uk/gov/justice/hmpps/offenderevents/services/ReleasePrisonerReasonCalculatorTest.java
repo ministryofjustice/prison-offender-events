@@ -43,6 +43,16 @@ class ReleasePrisonerReasonCalculatorTest {
         assertThat(reason.reason()).isEqualTo(Reason.SENT_TO_COURT);
     }
 
+    @Test
+    @DisplayName("when last movement is a TRN then the reason is transferred")
+    void whenLastMovementIsATRNThenTheReasonIsTransfer() {
+        when(prisonApiService.getPrisonerDetails("A1234GF")).thenReturn(prisonerDetails("TRN"));
+
+        final var reason = calculator.calculateReasonForRelease("A1234GF");
+
+        assertThat(reason.reason()).isEqualTo(Reason.TRANSFERRED);
+    }
+
 
     @Test
     @DisplayName("when release to hospital reason is hospital release")
@@ -83,7 +93,8 @@ class ReleasePrisonerReasonCalculatorTest {
 
 
     private PrisonerDetails prisonerDetails(String lastMovementTypCode, String lastMovementReasonCode) {
-        return new PrisonerDetails(LegalStatus.SENTENCED, false, lastMovementTypCode, lastMovementReasonCode);
+        return new PrisonerDetails(LegalStatus.SENTENCED, false, lastMovementTypCode, lastMovementReasonCode, "ACTIVE OUT", String
+            .format("%s-%s", lastMovementTypCode, lastMovementReasonCode));
     }
 
     private PrisonerDetails prisonerDetails(String lastMovementTypCode) {
