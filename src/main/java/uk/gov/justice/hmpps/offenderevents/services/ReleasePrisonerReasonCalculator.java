@@ -2,8 +2,6 @@ package uk.gov.justice.hmpps.offenderevents.services;
 
 import org.springframework.stereotype.Component;
 
-import static uk.gov.justice.hmpps.offenderevents.services.MovementType.TEMPORARY_ABSENCE;
-
 @Component
 public class ReleasePrisonerReasonCalculator {
     private final PrisonApiService prisonApiService;
@@ -15,33 +13,45 @@ public class ReleasePrisonerReasonCalculator {
 
     public ReleaseReason calculateReasonForRelease(String offenderNumber) {
         final var prisonerDetails = prisonApiService.getPrisonerDetails(offenderNumber);
+        final var currentLocation = prisonerDetails.currentLocation();
+        final var currentPrisonStatus = prisonerDetails.currentPrisonStatus();
 
-        return switch (prisonerDetails.typeOfMovement()) {
-            case TEMPORARY_ABSENCE -> new ReleaseReason(Reason.TEMPORARY_ABSENCE_RELEASE);
-            case COURT -> new ReleaseReason(Reason.SENT_TO_COURT);
-            case TRANSFER -> new ReleaseReason(Reason.TRANSFERRED);
-            case RELEASED -> {
-                final var reason = switch (prisonerDetails.movementReason()) {
-                    case HOSPITALISATION -> Reason.RELEASED_TO_HOSPITAL;
-                    default -> Reason.UNKNOWN;
-                };
-                yield new ReleaseReason(reason, String.format("Movement reason code %s",  prisonerDetails.lastMovementReasonCode()));
-            }
-            default -> new ReleaseReason(Reason.UNKNOWN, String.format("Movement type code %s",  prisonerDetails.lastMovementTypeCode()));
-        };
+        final var reasonWithDetails =
+            switch (prisonerDetails.typeOfMovement()) {
+                case TEMPORARY_ABSENCE -> new ReasonWithDetails(Reason.TEMPORARY_ABSENCE_RELEASE);
+                case COURT -> new ReasonWithDetails(Reason.SENT_TO_COURT);
+                case TRANSFER -> new ReasonWithDetails(Reason.TRANSFERRED);
+                case RELEASED -> {
+                    final var reason = switch (prisonerDetails.movementReason()) {
+                        case HOSPITALISATION -> Reason.RELEASED_TO_HOSPITAL;
+                        default -> Reason.RELEASED;
+                    };
+                    yield new ReasonWithDetails(reason, String.format("Movement reason code %s", prisonerDetails.lastMovementReasonCode()));
+                }
+                default -> new ReasonWithDetails(Reason.UNKNOWN, String.format("Movement type code %s", prisonerDetails.lastMovementTypeCode()));
+            };
+
+        return new ReleaseReason(reasonWithDetails.reason(), reasonWithDetails.details(), currentLocation, currentPrisonStatus);
     }
 
     enum Reason {
         UNKNOWN,
         TEMPORARY_ABSENCE_RELEASE,
         RELEASED_TO_HOSPITAL,
+        RELEASED,
         SENT_TO_COURT,
         TRANSFERRED
     }
 
-    record ReleaseReason(Reason reason, String details) {
-        public ReleaseReason(Reason reason) {
+    record ReasonWithDetails(Reason reason, String details) {
+        public ReasonWithDetails(Reason reason) {
             this(reason, null);
+        }
+    }
+
+    record ReleaseReason(Reason reason, String details, CurrentLocation currentLocation, CurrentPrisonStatus currentPrisonStatus) {
+        public ReleaseReason(Reason reason, CurrentLocation currentLocation, CurrentPrisonStatus currentPrisonStatus) {
+            this(reason, null, currentLocation, currentPrisonStatus);
         }
     }
 }

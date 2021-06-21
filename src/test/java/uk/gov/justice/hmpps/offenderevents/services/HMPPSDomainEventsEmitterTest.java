@@ -97,9 +97,9 @@ class HMPPSDomainEventsEmitterTest {
     @MockitoSettings(strictness = Strictness.LENIENT)
     void willSendToTopicForTheseEvents(String prisonEventType, String eventType) {
         when(receivePrisonerReasonCalculator.calculateMostLikelyReasonForPrisonerReceive(any()))
-            .thenReturn(new RecallReason(UNKNOWN, Source.PRISON));
+            .thenReturn(new RecallReason(UNKNOWN, Source.PRISON, CurrentLocation.IN_PRISON, CurrentPrisonStatus.UNDER_PRISON_CARE));
         when(releasePrisonerReasonCalculator.calculateReasonForRelease(any()))
-            .thenReturn(new ReleaseReason(TEMPORARY_ABSENCE_RELEASE));
+            .thenReturn(new ReleaseReason(TEMPORARY_ABSENCE_RELEASE, CurrentLocation.OUTSIDE_PRISON, CurrentPrisonStatus.NOT_UNDER_PRISON_CARE));
 
 
         emitter.convertAndSendWhenSignificant(OffenderEvent
@@ -130,7 +130,7 @@ class HMPPSDomainEventsEmitterTest {
         @BeforeEach
         void setUp() {
             when(receivePrisonerReasonCalculator.calculateMostLikelyReasonForPrisonerReceive(any()))
-                .thenReturn(new RecallReason(RECALL, Source.PRISON, "some details"));
+                .thenReturn(new RecallReason(RECALL, Source.PRISON, "some details", CurrentLocation.IN_PRISON, CurrentPrisonStatus.UNDER_PRISON_CARE));
 
             emitter.convertAndSendWhenSignificant(OffenderEvent
                 .builder()
@@ -180,6 +180,13 @@ class HMPPSDomainEventsEmitterTest {
         }
 
         @Test
+        @DisplayName("will describe the prisoners current location and status")
+        void willDescribeThePrisonersCurrentLocation() {
+            assertThatJson(payload).node("additionalInformation.currentLocation").isEqualTo("IN_PRISON");
+            assertThatJson(payload).node("additionalInformation.currentPrisonStatus").isEqualTo("UNDER_PRISON_CARE");
+        }
+
+        @Test
         @DisplayName("will add noms number to telemetry event")
         void willAddNomsNumberToTelemetryEvent() {
             assertThat(telemetryAttributes).containsEntry("nomsNumber", "A1234GH");
@@ -208,6 +215,14 @@ class HMPPSDomainEventsEmitterTest {
         void willAddDetailsToTelemetryEvent() {
             assertThat(telemetryAttributes).containsEntry("details", "some details");
         }
+
+        @Test
+        @DisplayName("will add the prisoners current location and status to telemetry")
+        void wilAddThePrisonersCurrentLocationAndStatusToTelemetry() {
+            assertThat(telemetryAttributes).containsEntry("currentLocation", "IN_PRISON");
+            assertThat(telemetryAttributes).containsEntry("currentPrisonStatus", "UNDER_PRISON_CARE");
+        }
+
     }
 
     @Nested
@@ -218,7 +233,7 @@ class HMPPSDomainEventsEmitterTest {
         @BeforeEach
         void setUp() {
             when(releasePrisonerReasonCalculator.calculateReasonForRelease(any()))
-                .thenReturn(new ReleaseReason(TEMPORARY_ABSENCE_RELEASE, "some details"));
+                .thenReturn(new ReleaseReason(TEMPORARY_ABSENCE_RELEASE, "some details", CurrentLocation.OUTSIDE_PRISON, CurrentPrisonStatus.NOT_UNDER_PRISON_CARE));
 
             emitter.convertAndSendWhenSignificant(OffenderEvent
                 .builder()
@@ -254,6 +269,7 @@ class HMPPSDomainEventsEmitterTest {
         void additionalInformationWillContainOffenderNumberAsNOMSNumber() {
             assertThatJson(payload).node("additionalInformation.nomsNumber").isEqualTo("A1234GH");
         }
+
         @Test
         @DisplayName("will indicate the reason for a prisoners exit")
         void willIndicateTheReasonForAPrisonersExit() {
@@ -265,6 +281,15 @@ class HMPPSDomainEventsEmitterTest {
         @DisplayName("will describe the event as a release")
         void willDescribeTheEventAsAReceive() {
             assertThatJson(payload).node("description").isEqualTo("A prisoner has been released from prison");
+        }
+
+        @Test
+        @DisplayName("will describe the prisoners current location and status")
+        void willDescribeThePrisonersCurrentLocation() {
+            assertThatJson(payload).node("additionalInformation.currentLocation").isEqualTo("OUTSIDE_PRISON");
+            assertThatJson(payload)
+                .node("additionalInformation.currentPrisonStatus")
+                .isEqualTo("NOT_UNDER_PRISON_CARE");
         }
 
         @Test
@@ -297,5 +322,13 @@ class HMPPSDomainEventsEmitterTest {
             assertThatJson(payload).node("additionalInformation.source").isAbsent();
             assertThat(telemetryAttributes).doesNotContainKey("source");
         }
+
+        @Test
+        @DisplayName("will add the prisoners current location and status to telemetry")
+        void wilAddThePrisonersCurrentLocationAndStatusToTelemetry() {
+            assertThat(telemetryAttributes).containsEntry("currentLocation", "OUTSIDE_PRISON");
+            assertThat(telemetryAttributes).containsEntry("currentPrisonStatus", "NOT_UNDER_PRISON_CARE");
+        }
+
     }
 }

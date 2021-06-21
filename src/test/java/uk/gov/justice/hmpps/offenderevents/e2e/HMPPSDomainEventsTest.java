@@ -78,6 +78,7 @@ public class HMPPSDomainEventsTest {
         Arrays.asList(queueNames).forEach(queueName -> {
             final var queueUrl = awsSqsClient.getQueueUrl(queueName).getQueueUrl();
             awsSqsClient.purgeQueue(new PurgeQueueRequest(queueUrl));
+            await().until(() -> getNumberOfMessagesCurrentlyOnQueue(queueName) == 0);
         });
     }
 
@@ -107,7 +108,7 @@ public class HMPPSDomainEventsTest {
         class WhenIsReportedAsRecall {
             @BeforeEach
             void setUp() {
-                PrisonApiExtension.server.stubPrisonerDetails("A5194DY", "RECALL", true, "ADM");
+                PrisonApiExtension.server.stubPrisonerDetails("A5194DY", "RECALL", true, "ADM", "R", "ACTIVE IN");
             }
 
             @Test
@@ -138,6 +139,8 @@ public class HMPPSDomainEventsTest {
                     assertThatJson(event).node("eventType").isEqualTo("prison-offender-events.prisoner.received");
                     assertThatJson(event).node("additionalInformation.reason").isEqualTo("RECALL");
                     assertThatJson(event).node("additionalInformation.source").isEqualTo("PRISON");
+                    assertThatJson(event).node("additionalInformation.currentLocation").isEqualTo("IN_PRISON");
+                    assertThatJson(event).node("additionalInformation.currentPrisonStatus").isEqualTo("UNDER_PRISON_CARE");
                 });
 
                 CommunityApiExtension.server.verify(0, getRequestedFor(anyUrl()));
@@ -178,6 +181,88 @@ public class HMPPSDomainEventsTest {
                 });
 
                 CommunityApiExtension.server.verify(getRequestedFor(WireMock.urlEqualTo("/secure/offenders/nomsNumber/A5194DY/convictions/active/nsis/recall")));
+            }
+        }
+    }
+    @Nested
+    class ReleasePrisoner {
+        @BeforeEach
+        void setUp() {
+            PrisonApiExtension.server.stubFirstPollWithOffenderEvents("""
+                [
+                    {
+                        "eventType":"OFFENDER_MOVEMENT-DISCHARGE",
+                        "eventDatetime":"2021-06-08T14:41:11.526762",
+                        "offenderIdDisplay":"A5194DY",
+                        "bookingId":1201234,
+                        "movementSeq":11,
+                        "nomisEventType":"OFF_DISCH_OASYS"
+                    }
+                ]
+                """);
+
+        }
+
+        @Nested
+        class WhenIsReportedAsTransfer {
+            @BeforeEach
+            void setUp() {
+                PrisonApiExtension.server.stubPrisonerDetails("A5194DY", "RECALL", true, "TRN", "PROD", "INACTIVE TRN");
+            }
+
+            @Test
+            @DisplayName("will publish prison event and hmpps domain event for release transfer")
+            void willPublishPrisonEventForTransferRelease() {
+                await().until(() -> getNumberOfMessagesCurrentlyOnQueue(PRISON_EVENTS_SUBSCRIBE_QUEUE_NAME) == 1);
+                await().until(() -> getNumberOfMessagesCurrentlyOnQueue(HMPPS_DOMAIN_EVENTS_SUBSCRIBE_QUEUE_NAME) == 1);
+            }
+
+            @Test
+            @DisplayName("will publish OFFENDER_MOVEMENT-DISCHARGE prison event")
+            void willPublishPrisonEvent() {
+                await().until(() -> getNumberOfMessagesCurrentlyOnQueue(PRISON_EVENTS_SUBSCRIBE_QUEUE_NAME) == 1);
+                final var prisonEventMessages = geMessagesCurrentlyOnQueue(PRISON_EVENTS_SUBSCRIBE_QUEUE_NAME);
+                assertThat(prisonEventMessages)
+                    .singleElement()
+                    .satisfies(event -> assertThatJson(event)
+                        .node("eventType")
+                        .isEqualTo("OFFENDER_MOVEMENT-DISCHARGE"));
+            }
+
+            @Test
+            @DisplayName("will publish prison-offender-events.prisoner.released HMPPS domain event")
+            void willPublishHMPPSDomainEvent() {
+                await().until(() -> getNumberOfMessagesCurrentlyOnQueue(HMPPS_DOMAIN_EVENTS_SUBSCRIBE_QUEUE_NAME) == 1);
+                final var hmppsEventMessages = geMessagesCurrentlyOnQueue(HMPPS_DOMAIN_EVENTS_SUBSCRIBE_QUEUE_NAME);
+                assertThat(hmppsEventMessages).singleElement().satisfies(event -> {
+                    assertThatJson(event).node("eventType").isEqualTo("prison-offender-events.prisoner.released");
+                    assertThatJson(event).node("additionalInformation.reason").isEqualTo("TRANSFERRED");
+                    assertThatJson(event).node("additionalInformation.currentLocation").isEqualTo("BEING_TRANSFERRED");
+                    assertThatJson(event).node("additionalInformation.currentPrisonStatus").isEqualTo("NOT_UNDER_PRISON_CARE");
+                });
+
+                CommunityApiExtension.server.verify(0, getRequestedFor(anyUrl()));
+            }
+        }
+
+        @Nested
+        class WhenIsReportedAsRelease {
+            @BeforeEach
+            void setUp() {
+                PrisonApiExtension.server.stubPrisonerDetails("A5194DY", "SENTENCED", false, "REL", "CA", "INACTIVE OUT");
+            }
+
+            @Test
+            @DisplayName("will publish prison-offender-events.prisoner.release HMPPS domain event")
+            void willPublishHMPPSDomainEvent() {
+                await().until(() -> getNumberOfMessagesCurrentlyOnQueue(HMPPS_DOMAIN_EVENTS_SUBSCRIBE_QUEUE_NAME) == 1);
+                final var hmppsEventMessages = geMessagesCurrentlyOnQueue(HMPPS_DOMAIN_EVENTS_SUBSCRIBE_QUEUE_NAME);
+                assertThat(hmppsEventMessages).singleElement().satisfies(event -> {
+                    assertThatJson(event).node("eventType").isEqualTo("prison-offender-events.prisoner.released");
+                    assertThatJson(event).node("additionalInformation.reason").isEqualTo("RELEASED");
+                    assertThatJson(event).node("additionalInformation.currentLocation").isEqualTo("OUTSIDE_PRISON");
+                    assertThatJson(event).node("additionalInformation.currentPrisonStatus").isEqualTo("NOT_UNDER_PRISON_CARE");
+                });
             }
         }
     }

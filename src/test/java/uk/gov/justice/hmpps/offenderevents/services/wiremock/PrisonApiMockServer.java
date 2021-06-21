@@ -15,14 +15,14 @@ public class PrisonApiMockServer extends WireMockServer {
     }
 
     public void stubPrisonerDetails(String offenderNumber, String legalStatus, boolean recall, String lastMovementTypeCode) {
-        stubPrisonerDetails(offenderNumber, legalStatus, recall, lastMovementTypeCode, "N");
+        stubPrisonerDetails(offenderNumber, legalStatus, recall, lastMovementTypeCode, "N", "INACTIVE OUT");
     }
-    public void stubPrisonerDetails(String offenderNumber, String legalStatus, boolean recall, String lastMovementTypeCode, String lastMovementReasonCode) {
+    public void stubPrisonerDetails(String offenderNumber, String legalStatus, boolean recall, String lastMovementTypeCode, String lastMovementReasonCode, String status) {
         stubFor(
             get(String.format("/api/offenders/%s", offenderNumber)).willReturn(
                 aResponse()
                     .withHeader("Content-Type", "application/json")
-                    .withBody(prisonerDetails(offenderNumber, legalStatus, recall, lastMovementTypeCode, lastMovementReasonCode))
+                    .withBody(prisonerDetails(offenderNumber, legalStatus, recall, lastMovementTypeCode, lastMovementReasonCode, status))
                     .withStatus(200)
             )
         );
@@ -55,7 +55,7 @@ public class PrisonApiMockServer extends WireMockServer {
         );
     }
 
-    private String prisonerDetails(String offenderNumber, String legalStatus, boolean recall, String lastMovementTypeCode, String lastMovementReasonCode) {
+    private String prisonerDetails(String offenderNumber, String legalStatus, boolean recall, String lastMovementTypeCode, String lastMovementReasonCode, String status) {
         return String.format("""
             {
                 "offenderNo": "%s",
@@ -104,7 +104,7 @@ public class PrisonApiMockServer extends WireMockServer {
                 "offenceHistory": [],
                 "sentenceTerms": [],
                 "aliases": [],
-                "status": "ACTIVE IN",
+                "status": "%s",
                 "statusReason": "ADM-N",
                 "lastMovementTypeCode": "%s",
                 "lastMovementReasonCode": "%s",
@@ -123,6 +123,6 @@ public class PrisonApiMockServer extends WireMockServer {
                 "receptionDate": "2021-06-01",
                 "locationDescription": "Moorland (HMP & YOI)"
             }
-                        """, offenderNumber, lastMovementTypeCode, lastMovementReasonCode, legalStatus, recall);
+                        """, offenderNumber, status, lastMovementTypeCode, lastMovementReasonCode, legalStatus, recall);
     }
 }
