@@ -78,6 +78,7 @@ public class HMPPSDomainEventsTest {
         Arrays.asList(queueNames).forEach(queueName -> {
             final var queueUrl = awsSqsClient.getQueueUrl(queueName).getQueueUrl();
             awsSqsClient.purgeQueue(new PurgeQueueRequest(queueUrl));
+            await().until(() -> getNumberOfMessagesCurrentlyOnQueue(queueName) == 0);
         });
     }
 
