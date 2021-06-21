@@ -24,30 +24,33 @@ public class ReceivePrisonerReasonCalculator {
         final var currentPrisonStatus = prisonerDetails.currentPrisonStatus();
 
         final var reasonWithSourceAndDetails = Optional
-            .ofNullable(switch (prisonerDetails.typeOfMovement()) {
-                case TEMPORARY_ABSENCE -> Reason.TEMPORARY_ABSENCE_RETURN;
-                case COURT -> Reason.RETURN_FROM_COURT;
-                case ADMISSION -> switch (prisonerDetails.movementReason()) {
-                    case TRANSFER -> Reason.TRANSFERRED;
-                    case RECALL -> Reason.RECALL;
+            .ofNullable(
+                switch (prisonerDetails.typeOfMovement()) {
+                    case TEMPORARY_ABSENCE -> Reason.TEMPORARY_ABSENCE_RETURN;
+                    case COURT -> Reason.RETURN_FROM_COURT;
+                    case ADMISSION -> switch (prisonerDetails.movementReason()) {
+                        case TRANSFER -> Reason.TRANSFERRED;
+                        case RECALL -> Reason.RECALL;
+                        default -> null;
+                    };
                     default -> null;
-                };
-                default -> null;
-            })
+                })
             .or(() -> Optional.of(Reason.RECALL).filter(notUsed -> prisonerDetails.recall()))
             .map(reason -> new ReasonWithDetailsAndSource(reason, Source.PRISON, details))
-            .or(() -> switch (prisonerDetails.legalStatus()) {
-                case OTHER, UNKNOWN, CONVICTED_UNSENTENCED, SENTENCED, INDETERMINATE_SENTENCE -> calculateReasonForPrisonerFromProbationOrEmpty(offenderNumber, details);
-                default -> Optional.empty();
-            })
+            .or(() ->
+                switch (prisonerDetails.legalStatus()) {
+                    case OTHER, UNKNOWN, CONVICTED_UNSENTENCED, SENTENCED, INDETERMINATE_SENTENCE -> calculateReasonForPrisonerFromProbationOrEmpty(offenderNumber, details);
+                    default -> Optional.empty();
+                })
             .orElseGet(() -> {
-                final var reason = switch (prisonerDetails.legalStatus()) {
-                    case RECALL -> Reason.RECALL;
-                    case CIVIL_PRISONER, CONVICTED_UNSENTENCED, SENTENCED, INDETERMINATE_SENTENCE -> Reason.CONVICTED;
-                    case IMMIGRATION_DETAINEE -> Reason.IMMIGRATION_DETAINEE;
-                    case REMAND -> Reason.REMAND;
-                    case DEAD, OTHER, UNKNOWN -> Reason.UNKNOWN;
-                };
+                final var reason =
+                    switch (prisonerDetails.legalStatus()) {
+                        case RECALL -> Reason.RECALL;
+                        case CIVIL_PRISONER, CONVICTED_UNSENTENCED, SENTENCED, INDETERMINATE_SENTENCE -> Reason.CONVICTED;
+                        case IMMIGRATION_DETAINEE -> Reason.IMMIGRATION_DETAINEE;
+                        case REMAND -> Reason.REMAND;
+                        case DEAD, OTHER, UNKNOWN -> Reason.UNKNOWN;
+                    };
                 return new ReasonWithDetailsAndSource(reason, Source.PRISON, details);
             });
 
@@ -59,7 +62,8 @@ public class ReceivePrisonerReasonCalculator {
 
     }
 
-    private Optional<ReasonWithDetailsAndSource> calculateReasonForPrisonerFromProbationOrEmpty(String offenderNumber, String details) {
+    private Optional<ReasonWithDetailsAndSource> calculateReasonForPrisonerFromProbationOrEmpty(String offenderNumber,
+                                                                                                String details) {
         final var maybeRecallList = communityApiService.getRecalls(offenderNumber);
         return maybeRecallList
             .filter(recalls -> recalls.stream().anyMatch(this::hasActiveOrCompletedRecall))
