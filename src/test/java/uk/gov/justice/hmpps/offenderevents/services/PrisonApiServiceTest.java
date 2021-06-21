@@ -29,7 +29,7 @@ class PrisonApiServiceTest {
     class GetPrisonerDetails {
         @BeforeEach
         void setUp() {
-            PrisonApiExtension.server.stubPrisonerDetails("A7841DY", "REMAND", false, "ADM", "HP");
+            PrisonApiExtension.server.stubPrisonerDetails("A7841DY", "REMAND", false, "ADM", "HP", "INACTIVE OUT");
         }
 
         @Test
@@ -75,5 +75,71 @@ class PrisonApiServiceTest {
             assertThat(prisonerDetails.lastMovementReasonCode()).isEqualTo("HP");
         }
 
+        @Test
+        @DisplayName("can calculate current location")
+        void canCalculateCurrentLocation() {
+            PrisonApiExtension.server.stubPrisonerDetails("A7841DY",
+                "REMAND",
+                false,
+                "ADM",
+                "HP",
+                "INACTIVE OUT");
+            assertThat(service.getPrisonerDetails("A7841DY").currentLocation())
+                .isEqualTo(CurrentLocation.OUTSIDE_PRISON);
+
+            PrisonApiExtension.server.stubPrisonerDetails("A7841DY",
+                "REMAND",
+                false,
+                "ADM",
+                "HP",
+                "ACTIVE IN");
+            assertThat(service.getPrisonerDetails("A7841DY").currentLocation()).isEqualTo(CurrentLocation.IN_PRISON);
+
+            PrisonApiExtension.server.stubPrisonerDetails("A7841DY",
+                "REMAND",
+                false,
+                "ADM",
+                "HP",
+                "BACON");
+            assertThat(service.getPrisonerDetails("A7841DY").currentLocation()).isNull();
+
+            PrisonApiExtension.server.stubPrisonerDetails("A7841DY",
+                "REMAND",
+                false,
+                "ADM",
+                "HP",
+                "INACTIVE TRN");
+            assertThat(service.getPrisonerDetails("A7841DY").currentLocation()).isEqualTo(CurrentLocation.BEING_TRANSFERRED);
+        }
+
+        @Test
+        @DisplayName("can calculate current status")
+        void canCalculateCurrentStatus() {
+            PrisonApiExtension.server.stubPrisonerDetails("A7841DY",
+                "REMAND",
+                false,
+                "ADM",
+                "HP",
+                "INACTIVE OUT");
+            assertThat(service.getPrisonerDetails("A7841DY").currentPrisonStatus())
+                .isEqualTo(CurrentPrisonStatus.NOT_UNDER_PRISON_CARE);
+
+            PrisonApiExtension.server.stubPrisonerDetails("A7841DY",
+                "REMAND",
+                false,
+                "ADM",
+                "HP",
+                "ACTIVE IN");
+            assertThat(service.getPrisonerDetails("A7841DY").currentPrisonStatus())
+                .isEqualTo(CurrentPrisonStatus.UNDER_PRISON_CARE);
+
+            PrisonApiExtension.server.stubPrisonerDetails("A7841DY",
+                "REMAND",
+                false,
+                "ADM",
+                "HP",
+                "BACON");
+            assertThat(service.getPrisonerDetails("A7841DY").currentPrisonStatus()).isNull();
+        }
     }
 }

@@ -17,11 +17,8 @@ import uk.gov.justice.hmpps.offenderevents.model.OffenderEvent;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 @Service
 @Slf4j
@@ -72,12 +69,26 @@ public class HMPPSDomainEventsEmitter {
             hmppsDomainEvent.additionalInformation().reason()
         ));
 
-        Optional.ofNullable(hmppsDomainEvent.additionalInformation().source()).ifPresent(source -> {
-            elements.put("source", source);
-        });
-        Optional.ofNullable(hmppsDomainEvent.additionalInformation().details()).ifPresent(details -> {
-            elements.put("details", details);
-        });
+        Optional
+            .ofNullable(hmppsDomainEvent.additionalInformation().source())
+            .ifPresent(source -> elements.put("source", source));
+        Optional
+            .ofNullable(hmppsDomainEvent.additionalInformation().details())
+            .ifPresent(details -> elements.put("details", details));
+
+        Optional
+            .ofNullable(hmppsDomainEvent.additionalInformation().currentLocation())
+            .ifPresent(source -> elements.put("currentLocation", hmppsDomainEvent
+                .additionalInformation()
+                .currentLocation()
+                .name()));
+
+        Optional
+            .ofNullable(hmppsDomainEvent.additionalInformation().currentPrisonStatus())
+            .ifPresent(source -> elements.put("currentPrisonStatus", hmppsDomainEvent
+                .additionalInformation()
+                .currentPrisonStatus()
+                .name()));
 
         return elements;
     }
@@ -89,7 +100,9 @@ public class HMPPSDomainEventsEmitter {
             new AdditionalInformation(offenderNumber,
                 receivedReason.reason().name(),
                 receivedReason.source().name(),
-                receivedReason.details()
+                receivedReason.details(),
+                receivedReason.currentLocation(),
+                receivedReason.currentPrisonStatus()
             ),
             event.getEventDatetime(),
             "A prisoner has been received into prison");
@@ -102,7 +115,9 @@ public class HMPPSDomainEventsEmitter {
             new AdditionalInformation(offenderNumber,
                 releaseReason.reason().name(),
                 null,
-                releaseReason.details()),
+                releaseReason.details(),
+                releaseReason.currentLocation(),
+                releaseReason.currentPrisonStatus()),
             event.getEventDatetime(),
             "A prisoner has been released from prison");
     }
@@ -138,5 +153,10 @@ record HMPPSDomainEvent(String eventType, AdditionalInformation additionalInform
 }
 
 @JsonInclude(Include.NON_NULL)
-record AdditionalInformation(String nomsNumber, String reason, String source, String details) {
+record AdditionalInformation(String nomsNumber,
+                             String reason,
+                             String source,
+                             String details,
+                             CurrentLocation currentLocation,
+                             CurrentPrisonStatus currentPrisonStatus) {
 }

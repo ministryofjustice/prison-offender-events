@@ -20,29 +20,32 @@ public class ReceivePrisonerReasonCalculator {
     public RecallReason calculateMostLikelyReasonForPrisonerReceive(String offenderNumber) {
         final var prisonerDetails = prisonApiService.getPrisonerDetails(offenderNumber);
         final var details = String.format("%s:%s", prisonerDetails.status(), prisonerDetails.statusReason());
+        final var currentLocation = prisonerDetails.currentLocation();
+        final var currentPrisonStatus = prisonerDetails.currentPrisonStatus();
 
+        // TODO move to switch for better code reuse
         if (prisonerDetails.typeOfMovement() == MovementType.TEMPORARY_ABSENCE) {
-            return new RecallReason(Reason.TEMPORARY_ABSENCE_RETURN, Source.PRISON, details);
+            return new RecallReason(Reason.TEMPORARY_ABSENCE_RETURN, Source.PRISON, details, currentLocation, currentPrisonStatus);
         }
         if (prisonerDetails.typeOfMovement() == MovementType.COURT) {
-            return new RecallReason(Reason.RETURN_FROM_COURT, Source.PRISON, details);
+            return new RecallReason(Reason.RETURN_FROM_COURT, Source.PRISON, details, currentLocation, currentPrisonStatus);
         }
         if (prisonerDetails.typeOfMovement() == MovementType.ADMISSION && prisonerDetails.movementReason() == MovementReason.TRANSFER) {
-            return new RecallReason(Reason.TRANSFERRED, Source.PRISON, details);
+            return new RecallReason(Reason.TRANSFERRED, Source.PRISON, details, currentLocation, currentPrisonStatus);
         }
         if (prisonerDetails.typeOfMovement() == MovementType.ADMISSION && prisonerDetails.movementReason() == MovementReason.RECALL) {
-            return new RecallReason(Reason.RECALL, Source.PRISON, details);
+            return new RecallReason(Reason.RECALL, Source.PRISON, details, currentLocation, currentPrisonStatus);
         }
         if (prisonerDetails.recall()) {
-            return new RecallReason(Reason.RECALL, Source.PRISON, details);
+            return new RecallReason(Reason.RECALL, Source.PRISON, details, currentLocation, currentPrisonStatus);
         }
 
-        final Optional<RecallReason> maybeRecallStatusFromProbation = switch (prisonerDetails.legalStatus()) {
+        final Optional<ReasonWithDetailsAndSource> maybeRecallStatusFromProbation = switch (prisonerDetails.legalStatus()) {
             case OTHER, UNKNOWN, CONVICTED_UNSENTENCED, SENTENCED, INDETERMINATE_SENTENCE -> calculateReasonForPrisonerFromProbationOrEmpty(offenderNumber, details);
             default -> Optional.empty();
         };
 
-        return maybeRecallStatusFromProbation.orElseGet(() -> {
+        final var reasonWithSourceAndDetails = maybeRecallStatusFromProbation.orElseGet(() -> {
             final var reason = switch (prisonerDetails.legalStatus()) {
                 case RECALL -> Reason.RECALL;
                 case CIVIL_PRISONER, CONVICTED_UNSENTENCED, SENTENCED, INDETERMINATE_SENTENCE -> Reason.CONVICTED;
@@ -50,15 +53,21 @@ public class ReceivePrisonerReasonCalculator {
                 case REMAND -> Reason.REMAND;
                 case DEAD, OTHER, UNKNOWN -> Reason.UNKNOWN;
             };
-            return new RecallReason(reason, Source.PRISON, details);
+            return new ReasonWithDetailsAndSource(reason, Source.PRISON, details);
         });
+
+        return new RecallReason(reasonWithSourceAndDetails.reason(),
+            reasonWithSourceAndDetails.source(),
+            reasonWithSourceAndDetails.details(),
+            currentLocation,
+            currentPrisonStatus);
     }
 
-    private Optional<RecallReason> calculateReasonForPrisonerFromProbationOrEmpty(String offenderNumber, String details) {
+    private Optional<ReasonWithDetailsAndSource> calculateReasonForPrisonerFromProbationOrEmpty(String offenderNumber, String details) {
         final var maybeRecallList = communityApiService.getRecalls(offenderNumber);
         return maybeRecallList
             .filter(recalls -> recalls.stream().anyMatch(this::hasActiveOrCompletedRecall))
-            .map(recalls -> new RecallReason(Reason.RECALL,
+            .map(recalls -> new ReasonWithDetailsAndSource(Reason.RECALL,
                 Source.PROBATION,
                 String.format("%s Recall referral date %s", details, latestRecallReferralDate(maybeRecallList.get()))));
     }
@@ -101,9 +110,14 @@ public class ReceivePrisonerReasonCalculator {
         PROBATION
     }
 
-    record RecallReason(Reason reason, Source source, String details) {
-        public RecallReason(Reason reason, Source source) {
-            this(reason, source, null);
+    record ReasonWithDetailsAndSource(Reason reason, Source source, String details) {
+
+    }
+
+    record RecallReason(Reason reason, Source source, String details, CurrentLocation currentLocation,
+                        CurrentPrisonStatus currentPrisonStatus) {
+        public RecallReason(Reason reason, Source source, CurrentLocation currentLocation, CurrentPrisonStatus currentPrisonStatus) {
+            this(reason, source, null, currentLocation, currentPrisonStatus);
         }
     }
 }
