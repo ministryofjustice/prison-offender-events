@@ -79,6 +79,10 @@ record PrisonerDetails(LegalStatus legalStatus,
                        String statusReason,
                        String latestLocationId
 ) {
+
+    public static final String LICENCE_REVOKED = "L";
+    public static final String RECALL_FROM_HDC = "B";
+
     public MovementType typeOfMovement() {
         return switch (lastMovementTypeCode) {
             case "TAP" -> MovementType.TEMPORARY_ABSENCE;
@@ -94,7 +98,7 @@ record PrisonerDetails(LegalStatus legalStatus,
         return switch (lastMovementReasonCode) {
             case "HP" -> MovementReason.HOSPITALISATION;
             case "INT" -> MovementReason.TRANSFER;
-            case "L" -> MovementReason.RECALL;
+            case LICENCE_REVOKED, RECALL_FROM_HDC -> MovementReason.RECALL;
             default -> MovementReason.OTHER;
         };
     }
