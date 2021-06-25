@@ -18,12 +18,12 @@ public class PrisonApiMockServer extends WireMockServer {
         stubPrisonerDetails(offenderNumber, legalStatus, recall, lastMovementTypeCode, "N", "INACTIVE OUT", "MDI");
     }
     public void stubPrisonerDetails(String offenderNumber, String legalStatus, boolean recall, String lastMovementTypeCode,
-                                    String lastMovementReasonCode, String status, String lastLocationId) {
+                                    String lastMovementReasonCode, String status, String latestLocationId) {
         stubFor(
             get(String.format("/api/offenders/%s", offenderNumber)).willReturn(
                 aResponse()
                     .withHeader("Content-Type", "application/json")
-                    .withBody(prisonerDetails(offenderNumber, legalStatus, recall, lastMovementTypeCode, lastMovementReasonCode, status, lastLocationId))
+                    .withBody(prisonerDetails(offenderNumber, legalStatus, recall, lastMovementTypeCode, lastMovementReasonCode, status, latestLocationId))
                     .withStatus(200)
             )
         );
@@ -57,7 +57,7 @@ public class PrisonApiMockServer extends WireMockServer {
     }
 
     private String prisonerDetails(String offenderNumber, String legalStatus, boolean recall, String lastMovementTypeCode,
-                                   String lastMovementReasonCode, String status, String lastLocationId) {
+                                   String lastMovementReasonCode, String status, String latestLocationId) {
         return String.format("""
             {
                 "offenderNo": "%s",
@@ -124,8 +124,8 @@ public class PrisonApiMockServer extends WireMockServer {
                 },
                 "receptionDate": "2021-06-01",
                 "locationDescription": "Moorland (HMP & YOI)",
-                "lastLocationId": "%s"
+                "latestLocationId": "%s"
             }
-                        """, offenderNumber, status, lastMovementTypeCode, lastMovementReasonCode, legalStatus, recall, lastLocationId);
+                        """, offenderNumber, status, lastMovementTypeCode, lastMovementReasonCode, legalStatus, recall, latestLocationId);
     }
 }

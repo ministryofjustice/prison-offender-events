@@ -77,7 +77,7 @@ record PrisonerDetails(LegalStatus legalStatus,
                        String lastMovementReasonCode,
                        String status,
                        String statusReason,
-                       String lastLocationId
+                       String latestLocationId
 ) {
     public MovementType typeOfMovement() {
         return switch (lastMovementTypeCode) {

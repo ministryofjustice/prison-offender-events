@@ -22,7 +22,7 @@ public class ReceivePrisonerReasonCalculator {
         final var details = String.format("%s:%s", prisonerDetails.status(), prisonerDetails.statusReason());
         final var currentLocation = prisonerDetails.currentLocation();
         final var currentPrisonStatus = prisonerDetails.currentPrisonStatus();
-        final var prisonId = prisonerDetails.lastLocationId();
+        final var prisonId = prisonerDetails.latestLocationId();
 
         final var reasonWithSourceAndDetails = Optional
             .ofNullable(

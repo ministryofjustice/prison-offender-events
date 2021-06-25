@@ -69,10 +69,10 @@ class PrisonApiServiceTest {
 
         @Test
         @DisplayName("can parse last locationId")
-        void canParseLastLocationId() {
+        void canParselatestLocationId() {
             final var prisonerDetails = service.getPrisonerDetails("A7841DY");
 
-            assertThat(prisonerDetails.lastLocationId()).isEqualTo("MDI");
+            assertThat(prisonerDetails.latestLocationId()).isEqualTo("MDI");
         }
 
         @Test
