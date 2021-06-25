@@ -82,6 +82,9 @@ record PrisonerDetails(LegalStatus legalStatus,
 
     public static final String LICENCE_REVOKED = "L";
     public static final String RECALL_FROM_HDC = "B";
+    public static final String TRANSFER_IN = "INT";
+    public static final String TRANSFER_IN_VIA_COURT = "TRNCRT";
+    public static final String TRANSFER_IN_VIA_TAP = "TRNTAP";
 
     public MovementType typeOfMovement() {
         return switch (lastMovementTypeCode) {
@@ -97,7 +100,7 @@ record PrisonerDetails(LegalStatus legalStatus,
     public MovementReason movementReason() {
         return switch (lastMovementReasonCode) {
             case "HP" -> MovementReason.HOSPITALISATION;
-            case "INT" -> MovementReason.TRANSFER;
+            case TRANSFER_IN, TRANSFER_IN_VIA_COURT, TRANSFER_IN_VIA_TAP -> MovementReason.TRANSFER;
             case LICENCE_REVOKED, RECALL_FROM_HDC -> MovementReason.RECALL;
             default -> MovementReason.OTHER;
         };

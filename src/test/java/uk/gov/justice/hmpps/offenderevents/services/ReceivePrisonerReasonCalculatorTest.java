@@ -96,6 +96,26 @@ class ReceivePrisonerReasonCalculatorTest {
 
         when(prisonApiService.getPrisonerDetails(any())).thenReturn(prisonerDetails("RECALL", true, "ADM", "INT"));
         assertThat(calculator.calculateMostLikelyReasonForPrisonerReceive("A1234GH").reason()).isEqualTo(Reason.TRANSFERRED);
+
+    }
+    @Test
+    @DisplayName("movement reason of TRNCRT (transfer via court) means reason is a TRANSFER")
+    void movementReasonOfTRNCRTMeansReasonIsATRANSFER() {
+        when(prisonApiService.getPrisonerDetails(any())).thenReturn(prisonerDetails("RECALL", true, "ADM", "L"));
+        assertThat(calculator.calculateMostLikelyReasonForPrisonerReceive("A1234GH").reason()).isEqualTo(Reason.RECALL);
+
+        when(prisonApiService.getPrisonerDetails(any())).thenReturn(prisonerDetails("RECALL", true, "ADM", "TRNCRT"));
+        assertThat(calculator.calculateMostLikelyReasonForPrisonerReceive("A1234GH").reason()).isEqualTo(Reason.TRANSFERRED);
+    }
+
+    @Test
+    @DisplayName("movement reason of TRNTAP (transfer via TAP) means reason is a TRANSFER")
+    void movementReasonOfTRNTAPMeansReasonIsATRANSFER() {
+        when(prisonApiService.getPrisonerDetails(any())).thenReturn(prisonerDetails("RECALL", true, "ADM", "L"));
+        assertThat(calculator.calculateMostLikelyReasonForPrisonerReceive("A1234GH").reason()).isEqualTo(Reason.RECALL);
+
+        when(prisonApiService.getPrisonerDetails(any())).thenReturn(prisonerDetails("RECALL", true, "ADM", "TRNTAP"));
+        assertThat(calculator.calculateMostLikelyReasonForPrisonerReceive("A1234GH").reason()).isEqualTo(Reason.TRANSFERRED);
     }
 
     @Test
