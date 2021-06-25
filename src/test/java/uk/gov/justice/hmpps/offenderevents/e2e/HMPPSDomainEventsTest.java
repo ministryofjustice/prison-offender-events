@@ -97,6 +97,7 @@ public class HMPPSDomainEventsTest {
                         "offenderIdDisplay":"A5194DY",
                         "bookingId":1201234,
                         "movementSeq":11,
+                        "lastLocationId": "MDI",
                         "nomisEventType":"OFF_RECEP_OASYS"
                     }
                 ]
@@ -138,6 +139,7 @@ public class HMPPSDomainEventsTest {
                 assertThat(hmppsEventMessages).singleElement().satisfies(event -> {
                     assertThatJson(event).node("eventType").isEqualTo("prison-offender-events.prisoner.received");
                     assertThatJson(event).node("additionalInformation.reason").isEqualTo("RECALL");
+                    assertThatJson(event).node("additionalInformation.prisonId").isEqualTo("MDI");
                     assertThatJson(event).node("additionalInformation.source").isEqualTo("PRISON");
                     assertThatJson(event).node("additionalInformation.currentLocation").isEqualTo("IN_PRISON");
                     assertThatJson(event).node("additionalInformation.currentPrisonStatus").isEqualTo("UNDER_PRISON_CARE");
@@ -162,6 +164,7 @@ public class HMPPSDomainEventsTest {
                 assertThat(hmppsEventMessages).singleElement().satisfies(event -> {
                     assertThatJson(event).node("eventType").isEqualTo("prison-offender-events.prisoner.received");
                     assertThatJson(event).node("additionalInformation.reason").isEqualTo("CONVICTED");
+                    assertThatJson(event).node("additionalInformation.prisonId").isEqualTo("MDI");
                     assertThatJson(event).node("additionalInformation.source").isEqualTo("PRISON");
                 });
 
@@ -177,6 +180,7 @@ public class HMPPSDomainEventsTest {
                 assertThat(hmppsEventMessages).singleElement().satisfies(event -> {
                     assertThatJson(event).node("eventType").isEqualTo("prison-offender-events.prisoner.received");
                     assertThatJson(event).node("additionalInformation.reason").isEqualTo("RECALL");
+                    assertThatJson(event).node("additionalInformation.prisonId").isEqualTo("MDI");
                     assertThatJson(event).node("additionalInformation.source").isEqualTo("PROBATION");
                 });
 
@@ -196,6 +200,7 @@ public class HMPPSDomainEventsTest {
                         "offenderIdDisplay":"A5194DY",
                         "bookingId":1201234,
                         "movementSeq":11,
+                        "lastLocationId": "MDI",
                         "nomisEventType":"OFF_DISCH_OASYS"
                     }
                 ]
@@ -237,6 +242,7 @@ public class HMPPSDomainEventsTest {
                 assertThat(hmppsEventMessages).singleElement().satisfies(event -> {
                     assertThatJson(event).node("eventType").isEqualTo("prison-offender-events.prisoner.released");
                     assertThatJson(event).node("additionalInformation.reason").isEqualTo("TRANSFERRED");
+                    assertThatJson(event).node("additionalInformation.prisonId").isEqualTo("MDI");
                     assertThatJson(event).node("additionalInformation.currentLocation").isEqualTo("BEING_TRANSFERRED");
                     assertThatJson(event).node("additionalInformation.currentPrisonStatus").isEqualTo("NOT_UNDER_PRISON_CARE");
                 });
@@ -260,6 +266,7 @@ public class HMPPSDomainEventsTest {
                 assertThat(hmppsEventMessages).singleElement().satisfies(event -> {
                     assertThatJson(event).node("eventType").isEqualTo("prison-offender-events.prisoner.released");
                     assertThatJson(event).node("additionalInformation.reason").isEqualTo("RELEASED");
+                    assertThatJson(event).node("additionalInformation.prisonId").isEqualTo("MDI");
                     assertThatJson(event).node("additionalInformation.currentLocation").isEqualTo("OUTSIDE_PRISON");
                     assertThatJson(event).node("additionalInformation.currentPrisonStatus").isEqualTo("NOT_UNDER_PRISON_CARE");
                 });

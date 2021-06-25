@@ -121,7 +121,8 @@ public class PrisonApiMockServer extends WireMockServer {
                     "iepDetails": []
                 },
                 "receptionDate": "2021-06-01",
-                "locationDescription": "Moorland (HMP & YOI)"
+                "locationDescription": "Moorland (HMP & YOI)",
+                "lastLocationId": "MDI"
             }
                         """, offenderNumber, status, lastMovementTypeCode, lastMovementReasonCode, legalStatus, recall);
     }

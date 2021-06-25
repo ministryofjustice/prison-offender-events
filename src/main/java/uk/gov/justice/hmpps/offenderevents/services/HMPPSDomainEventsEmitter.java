@@ -66,7 +66,9 @@ public class HMPPSDomainEventsEmitter {
             "nomsNumber",
             hmppsDomainEvent.additionalInformation().nomsNumber(),
             "reason",
-            hmppsDomainEvent.additionalInformation().reason()
+            hmppsDomainEvent.additionalInformation().reason(),
+            "prisonId",
+            hmppsDomainEvent.additionalInformation().prisonId()
         ));
 
         Optional
@@ -102,6 +104,7 @@ public class HMPPSDomainEventsEmitter {
                 receivedReason.source().name(),
                 receivedReason.details(),
                 receivedReason.currentLocation(),
+                event.getLastLocationId(),
                 receivedReason.currentPrisonStatus()
             ),
             event.getEventDatetime(),
@@ -117,7 +120,9 @@ public class HMPPSDomainEventsEmitter {
                 null,
                 releaseReason.details(),
                 releaseReason.currentLocation(),
-                releaseReason.currentPrisonStatus()),
+                event.getLastLocationId(),
+                releaseReason.currentPrisonStatus()
+            ),
             event.getEventDatetime(),
             "A prisoner has been released from prison");
     }
@@ -158,5 +163,6 @@ record AdditionalInformation(String nomsNumber,
                              String source,
                              String details,
                              CurrentLocation currentLocation,
+                             String prisonId,
                              CurrentPrisonStatus currentPrisonStatus) {
 }

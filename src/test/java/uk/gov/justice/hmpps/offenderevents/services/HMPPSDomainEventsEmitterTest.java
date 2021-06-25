@@ -168,6 +168,12 @@ class HMPPSDomainEventsEmitterTest {
         }
 
         @Test
+        @DisplayName("will describe the prisoners last (or current) location")
+        void additionalInformationWillContainPrisonId() {
+            assertThatJson(payload).node("additionalInformation.prisonId").isEqualTo("MDI");
+        }
+
+        @Test
         @DisplayName("will indicate the reason for a prisoners entry")
         void willIndicateTheReasonForAPrisonersEntry() {
             assertThatJson(payload).node("additionalInformation.reason").isEqualTo("RECALL");
@@ -268,6 +274,12 @@ class HMPPSDomainEventsEmitterTest {
         @DisplayName("additionalInformation will contain offenderNumber as NOMS number")
         void additionalInformationWillContainOffenderNumberAsNOMSNumber() {
             assertThatJson(payload).node("additionalInformation.nomsNumber").isEqualTo("A1234GH");
+        }
+
+        @Test
+        @DisplayName("will describe the prisoners last (or current) location")
+        void additionalInformationWillContainPrisonId() {
+            assertThatJson(payload).node("additionalInformation.prisonId").isEqualTo("MDI");
         }
 
         @Test
