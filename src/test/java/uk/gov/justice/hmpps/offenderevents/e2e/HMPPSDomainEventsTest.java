@@ -108,7 +108,7 @@ public class HMPPSDomainEventsTest {
         class WhenIsReportedAsRecall {
             @BeforeEach
             void setUp() {
-                PrisonApiExtension.server.stubPrisonerDetails("A5194DY", "RECALL", true, "ADM", "R", "ACTIVE IN");
+                PrisonApiExtension.server.stubPrisonerDetails("A5194DY", "RECALL", true, "ADM", "R", "ACTIVE IN", "MDI");
             }
 
             @Test
@@ -138,6 +138,7 @@ public class HMPPSDomainEventsTest {
                 assertThat(hmppsEventMessages).singleElement().satisfies(event -> {
                     assertThatJson(event).node("eventType").isEqualTo("prison-offender-events.prisoner.received");
                     assertThatJson(event).node("additionalInformation.reason").isEqualTo("RECALL");
+                    assertThatJson(event).node("additionalInformation.prisonId").isEqualTo("MDI");
                     assertThatJson(event).node("additionalInformation.source").isEqualTo("PRISON");
                     assertThatJson(event).node("additionalInformation.currentLocation").isEqualTo("IN_PRISON");
                     assertThatJson(event).node("additionalInformation.currentPrisonStatus").isEqualTo("UNDER_PRISON_CARE");
@@ -162,6 +163,7 @@ public class HMPPSDomainEventsTest {
                 assertThat(hmppsEventMessages).singleElement().satisfies(event -> {
                     assertThatJson(event).node("eventType").isEqualTo("prison-offender-events.prisoner.received");
                     assertThatJson(event).node("additionalInformation.reason").isEqualTo("CONVICTED");
+                    assertThatJson(event).node("additionalInformation.prisonId").isEqualTo("MDI");
                     assertThatJson(event).node("additionalInformation.source").isEqualTo("PRISON");
                 });
 
@@ -177,6 +179,7 @@ public class HMPPSDomainEventsTest {
                 assertThat(hmppsEventMessages).singleElement().satisfies(event -> {
                     assertThatJson(event).node("eventType").isEqualTo("prison-offender-events.prisoner.received");
                     assertThatJson(event).node("additionalInformation.reason").isEqualTo("RECALL");
+                    assertThatJson(event).node("additionalInformation.prisonId").isEqualTo("MDI");
                     assertThatJson(event).node("additionalInformation.source").isEqualTo("PROBATION");
                 });
 
@@ -207,7 +210,7 @@ public class HMPPSDomainEventsTest {
         class WhenIsReportedAsTransfer {
             @BeforeEach
             void setUp() {
-                PrisonApiExtension.server.stubPrisonerDetails("A5194DY", "RECALL", true, "TRN", "PROD", "INACTIVE TRN");
+                PrisonApiExtension.server.stubPrisonerDetails("A5194DY", "RECALL", true, "TRN", "PROD", "INACTIVE TRN", "WWA");
             }
 
             @Test
@@ -237,6 +240,7 @@ public class HMPPSDomainEventsTest {
                 assertThat(hmppsEventMessages).singleElement().satisfies(event -> {
                     assertThatJson(event).node("eventType").isEqualTo("prison-offender-events.prisoner.released");
                     assertThatJson(event).node("additionalInformation.reason").isEqualTo("TRANSFERRED");
+                    assertThatJson(event).node("additionalInformation.prisonId").isEqualTo("WWA");
                     assertThatJson(event).node("additionalInformation.currentLocation").isEqualTo("BEING_TRANSFERRED");
                     assertThatJson(event).node("additionalInformation.currentPrisonStatus").isEqualTo("NOT_UNDER_PRISON_CARE");
                 });
@@ -249,7 +253,7 @@ public class HMPPSDomainEventsTest {
         class WhenIsReportedAsRelease {
             @BeforeEach
             void setUp() {
-                PrisonApiExtension.server.stubPrisonerDetails("A5194DY", "SENTENCED", false, "REL", "CA", "INACTIVE OUT");
+                PrisonApiExtension.server.stubPrisonerDetails("A5194DY", "SENTENCED", false, "REL", "CA", "INACTIVE OUT", "MDI");
             }
 
             @Test
@@ -260,6 +264,7 @@ public class HMPPSDomainEventsTest {
                 assertThat(hmppsEventMessages).singleElement().satisfies(event -> {
                     assertThatJson(event).node("eventType").isEqualTo("prison-offender-events.prisoner.released");
                     assertThatJson(event).node("additionalInformation.reason").isEqualTo("RELEASED");
+                    assertThatJson(event).node("additionalInformation.prisonId").isEqualTo("MDI");
                     assertThatJson(event).node("additionalInformation.currentLocation").isEqualTo("OUTSIDE_PRISON");
                     assertThatJson(event).node("additionalInformation.currentPrisonStatus").isEqualTo("NOT_UNDER_PRISON_CARE");
                 });

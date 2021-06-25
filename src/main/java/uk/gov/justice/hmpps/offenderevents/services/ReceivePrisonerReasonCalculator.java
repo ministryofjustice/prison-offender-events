@@ -22,6 +22,7 @@ public class ReceivePrisonerReasonCalculator {
         final var details = String.format("%s:%s", prisonerDetails.status(), prisonerDetails.statusReason());
         final var currentLocation = prisonerDetails.currentLocation();
         final var currentPrisonStatus = prisonerDetails.currentPrisonStatus();
+        final var prisonId = prisonerDetails.lastLocationId();
 
         final var reasonWithSourceAndDetails = Optional
             .ofNullable(
@@ -58,7 +59,8 @@ public class ReceivePrisonerReasonCalculator {
             reasonWithSourceAndDetails.source(),
             reasonWithSourceAndDetails.details(),
             currentLocation,
-            currentPrisonStatus);
+            currentPrisonStatus,
+            prisonId);
 
     }
 
@@ -115,9 +117,9 @@ public class ReceivePrisonerReasonCalculator {
     }
 
     record RecallReason(Reason reason, Source source, String details, CurrentLocation currentLocation,
-                        CurrentPrisonStatus currentPrisonStatus) {
-        public RecallReason(Reason reason, Source source, CurrentLocation currentLocation, CurrentPrisonStatus currentPrisonStatus) {
-            this(reason, source, null, currentLocation, currentPrisonStatus);
+                        CurrentPrisonStatus currentPrisonStatus, String prisonId) {
+        public RecallReason(Reason reason, Source source, CurrentLocation currentLocation, CurrentPrisonStatus currentPrisonStatus, String prisonId) {
+            this(reason, source, null, currentLocation, currentPrisonStatus, prisonId);
         }
     }
 }

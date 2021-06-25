@@ -29,7 +29,7 @@ class PrisonApiServiceTest {
     class GetPrisonerDetails {
         @BeforeEach
         void setUp() {
-            PrisonApiExtension.server.stubPrisonerDetails("A7841DY", "REMAND", false, "ADM", "HP", "INACTIVE OUT");
+            PrisonApiExtension.server.stubPrisonerDetails("A7841DY", "REMAND", false, "ADM", "HP", "INACTIVE OUT", "MDI");
         }
 
         @Test
@@ -68,6 +68,14 @@ class PrisonApiServiceTest {
         }
 
         @Test
+        @DisplayName("can parse last locationId")
+        void canParseLastLocationId() {
+            final var prisonerDetails = service.getPrisonerDetails("A7841DY");
+
+            assertThat(prisonerDetails.lastLocationId()).isEqualTo("MDI");
+        }
+
+        @Test
         @DisplayName("can parse last movement reason code")
         void canParseLastMovementReasonCode() {
             final var prisonerDetails = service.getPrisonerDetails("A7841DY");
@@ -83,7 +91,8 @@ class PrisonApiServiceTest {
                 false,
                 "ADM",
                 "HP",
-                "INACTIVE OUT");
+                "INACTIVE OUT",
+                "MDI");
             assertThat(service.getPrisonerDetails("A7841DY").currentLocation())
                 .isEqualTo(CurrentLocation.OUTSIDE_PRISON);
 
@@ -92,7 +101,8 @@ class PrisonApiServiceTest {
                 false,
                 "ADM",
                 "HP",
-                "ACTIVE IN");
+                "ACTIVE IN",
+                "MDI");
             assertThat(service.getPrisonerDetails("A7841DY").currentLocation()).isEqualTo(CurrentLocation.IN_PRISON);
 
             PrisonApiExtension.server.stubPrisonerDetails("A7841DY",
@@ -100,7 +110,8 @@ class PrisonApiServiceTest {
                 false,
                 "ADM",
                 "HP",
-                "BACON");
+                "BACON",
+                "MDI");
             assertThat(service.getPrisonerDetails("A7841DY").currentLocation()).isNull();
 
             PrisonApiExtension.server.stubPrisonerDetails("A7841DY",
@@ -108,7 +119,8 @@ class PrisonApiServiceTest {
                 false,
                 "ADM",
                 "HP",
-                "INACTIVE TRN");
+                "INACTIVE TRN",
+                "MDI");
             assertThat(service.getPrisonerDetails("A7841DY").currentLocation()).isEqualTo(CurrentLocation.BEING_TRANSFERRED);
         }
 
@@ -120,7 +132,8 @@ class PrisonApiServiceTest {
                 false,
                 "ADM",
                 "HP",
-                "INACTIVE OUT");
+                "INACTIVE OUT",
+                "MDI");
             assertThat(service.getPrisonerDetails("A7841DY").currentPrisonStatus())
                 .isEqualTo(CurrentPrisonStatus.NOT_UNDER_PRISON_CARE);
 
@@ -129,7 +142,8 @@ class PrisonApiServiceTest {
                 false,
                 "ADM",
                 "HP",
-                "ACTIVE IN");
+                "ACTIVE IN",
+                "MDI");
             assertThat(service.getPrisonerDetails("A7841DY").currentPrisonStatus())
                 .isEqualTo(CurrentPrisonStatus.UNDER_PRISON_CARE);
 
@@ -138,7 +152,8 @@ class PrisonApiServiceTest {
                 false,
                 "ADM",
                 "HP",
-                "BACON");
+                "BACON",
+                "MDI");
             assertThat(service.getPrisonerDetails("A7841DY").currentPrisonStatus()).isNull();
         }
     }

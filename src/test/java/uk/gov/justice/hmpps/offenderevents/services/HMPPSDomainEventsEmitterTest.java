@@ -97,9 +97,9 @@ class HMPPSDomainEventsEmitterTest {
     @MockitoSettings(strictness = Strictness.LENIENT)
     void willSendToTopicForTheseEvents(String prisonEventType, String eventType) {
         when(receivePrisonerReasonCalculator.calculateMostLikelyReasonForPrisonerReceive(any()))
-            .thenReturn(new RecallReason(UNKNOWN, Source.PRISON, CurrentLocation.IN_PRISON, CurrentPrisonStatus.UNDER_PRISON_CARE));
+            .thenReturn(new RecallReason(UNKNOWN, Source.PRISON, CurrentLocation.IN_PRISON, CurrentPrisonStatus.UNDER_PRISON_CARE, "MDI"));
         when(releasePrisonerReasonCalculator.calculateReasonForRelease(any()))
-            .thenReturn(new ReleaseReason(TEMPORARY_ABSENCE_RELEASE, CurrentLocation.OUTSIDE_PRISON, CurrentPrisonStatus.NOT_UNDER_PRISON_CARE));
+            .thenReturn(new ReleaseReason(TEMPORARY_ABSENCE_RELEASE, CurrentLocation.OUTSIDE_PRISON, CurrentPrisonStatus.NOT_UNDER_PRISON_CARE, "MDI"));
 
 
         emitter.convertAndSendWhenSignificant(OffenderEvent
@@ -130,7 +130,7 @@ class HMPPSDomainEventsEmitterTest {
         @BeforeEach
         void setUp() {
             when(receivePrisonerReasonCalculator.calculateMostLikelyReasonForPrisonerReceive(any()))
-                .thenReturn(new RecallReason(RECALL, Source.PRISON, "some details", CurrentLocation.IN_PRISON, CurrentPrisonStatus.UNDER_PRISON_CARE));
+                .thenReturn(new RecallReason(RECALL, Source.PRISON, "some details", CurrentLocation.IN_PRISON, CurrentPrisonStatus.UNDER_PRISON_CARE, "MDI"));
 
             emitter.convertAndSendWhenSignificant(OffenderEvent
                 .builder()
@@ -165,6 +165,12 @@ class HMPPSDomainEventsEmitterTest {
         @DisplayName("additionalInformation will contain offenderNumber as NOMS number")
         void additionalInformationWillContainOffenderNumberAsNOMSNumber() {
             assertThatJson(payload).node("additionalInformation.nomsNumber").isEqualTo("A1234GH");
+        }
+
+        @Test
+        @DisplayName("will describe the prisoners last (or current) location")
+        void additionalInformationWillContainPrisonId() {
+            assertThatJson(payload).node("additionalInformation.prisonId").isEqualTo("MDI");
         }
 
         @Test
@@ -233,7 +239,8 @@ class HMPPSDomainEventsEmitterTest {
         @BeforeEach
         void setUp() {
             when(releasePrisonerReasonCalculator.calculateReasonForRelease(any()))
-                .thenReturn(new ReleaseReason(TEMPORARY_ABSENCE_RELEASE, "some details", CurrentLocation.OUTSIDE_PRISON, CurrentPrisonStatus.NOT_UNDER_PRISON_CARE));
+                .thenReturn(new ReleaseReason(TEMPORARY_ABSENCE_RELEASE, "some details", CurrentLocation.OUTSIDE_PRISON,
+                    CurrentPrisonStatus.NOT_UNDER_PRISON_CARE, "MDI"));
 
             emitter.convertAndSendWhenSignificant(OffenderEvent
                 .builder()
@@ -268,6 +275,12 @@ class HMPPSDomainEventsEmitterTest {
         @DisplayName("additionalInformation will contain offenderNumber as NOMS number")
         void additionalInformationWillContainOffenderNumberAsNOMSNumber() {
             assertThatJson(payload).node("additionalInformation.nomsNumber").isEqualTo("A1234GH");
+        }
+
+        @Test
+        @DisplayName("will describe the prisoners last (or current) location")
+        void additionalInformationWillContainPrisonId() {
+            assertThatJson(payload).node("additionalInformation.prisonId").isEqualTo("MDI");
         }
 
         @Test
