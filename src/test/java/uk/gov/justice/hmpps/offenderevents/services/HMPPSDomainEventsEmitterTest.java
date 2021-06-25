@@ -106,6 +106,7 @@ class HMPPSDomainEventsEmitterTest {
             .builder()
             .eventType(prisonEventType)
             .offenderIdDisplay("A1234GH")
+            .lastLocationId("MDI")
             .eventDatetime(LocalDateTime.now())
             .build());
 
@@ -136,6 +137,7 @@ class HMPPSDomainEventsEmitterTest {
                 .builder()
                 .eventType("OFFENDER_MOVEMENT-RECEPTION")
                 .offenderIdDisplay("A1234GH")
+                .lastLocationId("MDI")
                 .eventDatetime(LocalDateTime.parse("2020-12-04T10:42:43"))
                 .build());
             verify(amazonSns).publish(publishRequestCaptor.capture());
@@ -245,6 +247,7 @@ class HMPPSDomainEventsEmitterTest {
                 .builder()
                 .eventType("OFFENDER_MOVEMENT-DISCHARGE")
                 .offenderIdDisplay("A1234GH")
+                .lastLocationId("MDI")
                 .eventDatetime(LocalDateTime.parse("2020-12-04T10:42:43"))
                 .build());
             verify(amazonSns).publish(publishRequestCaptor.capture());
