@@ -141,14 +141,15 @@ class ReceivePrisonerReasonCalculatorTest {
         return prisonerDetails(legalStatus, recall, "ADM", "N");
     }
 
-    private PrisonerDetails prisonerDetails(String legalStatus, boolean recall, String lastMovementTypCode) {
-        return prisonerDetails(legalStatus, recall, lastMovementTypCode, "N");
+    private PrisonerDetails prisonerDetails(String legalStatus, boolean recall, String lastMovementTypeCode) {
+        return prisonerDetails(legalStatus, recall, lastMovementTypeCode, "N");
     }
 
-    private PrisonerDetails prisonerDetails(String legalStatus, boolean recall, String lastMovementTypCode, String lastMovementReasonCode) {
-        return new PrisonerDetails(LegalStatus.valueOf(LegalStatus.class, legalStatus), recall, lastMovementTypCode, lastMovementReasonCode, "ACTIVE IN", String
-            .format("%s-%s", lastMovementTypCode, lastMovementReasonCode));
+    private PrisonerDetails prisonerDetails(String legalStatus, boolean recall, String lastMovementTypeCode, String lastMovementReasonCode) {
+        return new PrisonerDetails(LegalStatus.valueOf(LegalStatus.class, legalStatus), recall, lastMovementTypeCode, lastMovementReasonCode, "ACTIVE IN", String
+            .format("%s-%s", lastMovementTypeCode, lastMovementReasonCode), "MDI");
     }
+
 
     @Nested
     @DisplayName("when delegating to probation")

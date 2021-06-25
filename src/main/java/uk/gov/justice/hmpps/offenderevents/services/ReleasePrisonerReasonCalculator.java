@@ -15,6 +15,7 @@ public class ReleasePrisonerReasonCalculator {
         final var prisonerDetails = prisonApiService.getPrisonerDetails(offenderNumber);
         final var currentLocation = prisonerDetails.currentLocation();
         final var currentPrisonStatus = prisonerDetails.currentPrisonStatus();
+        final var lastLocationId = prisonerDetails.lastLocationId();
 
         final var reasonWithDetails =
             switch (prisonerDetails.typeOfMovement()) {
@@ -31,7 +32,7 @@ public class ReleasePrisonerReasonCalculator {
                 default -> new ReasonWithDetails(Reason.UNKNOWN, String.format("Movement type code %s", prisonerDetails.lastMovementTypeCode()));
             };
 
-        return new ReleaseReason(reasonWithDetails.reason(), reasonWithDetails.details(), currentLocation, currentPrisonStatus);
+        return new ReleaseReason(reasonWithDetails.reason(), reasonWithDetails.details(), currentLocation, currentPrisonStatus, lastLocationId);
     }
 
     enum Reason {
@@ -49,9 +50,9 @@ public class ReleasePrisonerReasonCalculator {
         }
     }
 
-    record ReleaseReason(Reason reason, String details, CurrentLocation currentLocation, CurrentPrisonStatus currentPrisonStatus) {
-        public ReleaseReason(Reason reason, CurrentLocation currentLocation, CurrentPrisonStatus currentPrisonStatus) {
-            this(reason, null, currentLocation, currentPrisonStatus);
+    record ReleaseReason(Reason reason, String details, CurrentLocation currentLocation, CurrentPrisonStatus currentPrisonStatus, String lastLocationId) {
+        public ReleaseReason(Reason reason, CurrentLocation currentLocation, CurrentPrisonStatus currentPrisonStatus, String lastLocationId) {
+            this(reason, null, currentLocation, currentPrisonStatus, lastLocationId);
         }
     }
 }

@@ -104,7 +104,7 @@ public class HMPPSDomainEventsEmitter {
                 receivedReason.source().name(),
                 receivedReason.details(),
                 receivedReason.currentLocation(),
-                event.getLastLocationId(),
+                receivedReason.prisonId(),
                 receivedReason.currentPrisonStatus()
             ),
             event.getEventDatetime(),
@@ -120,7 +120,7 @@ public class HMPPSDomainEventsEmitter {
                 null,
                 releaseReason.details(),
                 releaseReason.currentLocation(),
-                event.getLastLocationId(),
+                releaseReason.lastLocationId(),
                 releaseReason.currentPrisonStatus()
             ),
             event.getEventDatetime(),

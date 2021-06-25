@@ -97,16 +97,15 @@ class HMPPSDomainEventsEmitterTest {
     @MockitoSettings(strictness = Strictness.LENIENT)
     void willSendToTopicForTheseEvents(String prisonEventType, String eventType) {
         when(receivePrisonerReasonCalculator.calculateMostLikelyReasonForPrisonerReceive(any()))
-            .thenReturn(new RecallReason(UNKNOWN, Source.PRISON, CurrentLocation.IN_PRISON, CurrentPrisonStatus.UNDER_PRISON_CARE));
+            .thenReturn(new RecallReason(UNKNOWN, Source.PRISON, CurrentLocation.IN_PRISON, CurrentPrisonStatus.UNDER_PRISON_CARE, "MDI"));
         when(releasePrisonerReasonCalculator.calculateReasonForRelease(any()))
-            .thenReturn(new ReleaseReason(TEMPORARY_ABSENCE_RELEASE, CurrentLocation.OUTSIDE_PRISON, CurrentPrisonStatus.NOT_UNDER_PRISON_CARE));
+            .thenReturn(new ReleaseReason(TEMPORARY_ABSENCE_RELEASE, CurrentLocation.OUTSIDE_PRISON, CurrentPrisonStatus.NOT_UNDER_PRISON_CARE, "MDI"));
 
 
         emitter.convertAndSendWhenSignificant(OffenderEvent
             .builder()
             .eventType(prisonEventType)
             .offenderIdDisplay("A1234GH")
-            .lastLocationId("MDI")
             .eventDatetime(LocalDateTime.now())
             .build());
 
@@ -131,13 +130,12 @@ class HMPPSDomainEventsEmitterTest {
         @BeforeEach
         void setUp() {
             when(receivePrisonerReasonCalculator.calculateMostLikelyReasonForPrisonerReceive(any()))
-                .thenReturn(new RecallReason(RECALL, Source.PRISON, "some details", CurrentLocation.IN_PRISON, CurrentPrisonStatus.UNDER_PRISON_CARE));
+                .thenReturn(new RecallReason(RECALL, Source.PRISON, "some details", CurrentLocation.IN_PRISON, CurrentPrisonStatus.UNDER_PRISON_CARE, "MDI"));
 
             emitter.convertAndSendWhenSignificant(OffenderEvent
                 .builder()
                 .eventType("OFFENDER_MOVEMENT-RECEPTION")
                 .offenderIdDisplay("A1234GH")
-                .lastLocationId("MDI")
                 .eventDatetime(LocalDateTime.parse("2020-12-04T10:42:43"))
                 .build());
             verify(amazonSns).publish(publishRequestCaptor.capture());
@@ -241,13 +239,13 @@ class HMPPSDomainEventsEmitterTest {
         @BeforeEach
         void setUp() {
             when(releasePrisonerReasonCalculator.calculateReasonForRelease(any()))
-                .thenReturn(new ReleaseReason(TEMPORARY_ABSENCE_RELEASE, "some details", CurrentLocation.OUTSIDE_PRISON, CurrentPrisonStatus.NOT_UNDER_PRISON_CARE));
+                .thenReturn(new ReleaseReason(TEMPORARY_ABSENCE_RELEASE, "some details", CurrentLocation.OUTSIDE_PRISON,
+                    CurrentPrisonStatus.NOT_UNDER_PRISON_CARE, "MDI"));
 
             emitter.convertAndSendWhenSignificant(OffenderEvent
                 .builder()
                 .eventType("OFFENDER_MOVEMENT-DISCHARGE")
                 .offenderIdDisplay("A1234GH")
-                .lastLocationId("MDI")
                 .eventDatetime(LocalDateTime.parse("2020-12-04T10:42:43"))
                 .build());
             verify(amazonSns).publish(publishRequestCaptor.capture());

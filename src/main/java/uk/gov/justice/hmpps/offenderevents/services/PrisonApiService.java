@@ -76,7 +76,9 @@ record PrisonerDetails(LegalStatus legalStatus,
                        String lastMovementTypeCode,
                        String lastMovementReasonCode,
                        String status,
-                       String statusReason) {
+                       String statusReason,
+                       String lastLocationId
+) {
     public MovementType typeOfMovement() {
         return switch (lastMovementTypeCode) {
             case "TAP" -> MovementType.TEMPORARY_ABSENCE;

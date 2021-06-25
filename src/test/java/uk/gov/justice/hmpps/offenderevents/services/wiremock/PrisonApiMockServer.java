@@ -15,14 +15,15 @@ public class PrisonApiMockServer extends WireMockServer {
     }
 
     public void stubPrisonerDetails(String offenderNumber, String legalStatus, boolean recall, String lastMovementTypeCode) {
-        stubPrisonerDetails(offenderNumber, legalStatus, recall, lastMovementTypeCode, "N", "INACTIVE OUT");
+        stubPrisonerDetails(offenderNumber, legalStatus, recall, lastMovementTypeCode, "N", "INACTIVE OUT", "MDI");
     }
-    public void stubPrisonerDetails(String offenderNumber, String legalStatus, boolean recall, String lastMovementTypeCode, String lastMovementReasonCode, String status) {
+    public void stubPrisonerDetails(String offenderNumber, String legalStatus, boolean recall, String lastMovementTypeCode,
+                                    String lastMovementReasonCode, String status, String lastLocationId) {
         stubFor(
             get(String.format("/api/offenders/%s", offenderNumber)).willReturn(
                 aResponse()
                     .withHeader("Content-Type", "application/json")
-                    .withBody(prisonerDetails(offenderNumber, legalStatus, recall, lastMovementTypeCode, lastMovementReasonCode, status))
+                    .withBody(prisonerDetails(offenderNumber, legalStatus, recall, lastMovementTypeCode, lastMovementReasonCode, status, lastLocationId))
                     .withStatus(200)
             )
         );
@@ -55,7 +56,8 @@ public class PrisonApiMockServer extends WireMockServer {
         );
     }
 
-    private String prisonerDetails(String offenderNumber, String legalStatus, boolean recall, String lastMovementTypeCode, String lastMovementReasonCode, String status) {
+    private String prisonerDetails(String offenderNumber, String legalStatus, boolean recall, String lastMovementTypeCode,
+                                   String lastMovementReasonCode, String status, String lastLocationId) {
         return String.format("""
             {
                 "offenderNo": "%s",
@@ -122,8 +124,8 @@ public class PrisonApiMockServer extends WireMockServer {
                 },
                 "receptionDate": "2021-06-01",
                 "locationDescription": "Moorland (HMP & YOI)",
-                "lastLocationId": "MDI"
+                "lastLocationId": "%s"
             }
-                        """, offenderNumber, status, lastMovementTypeCode, lastMovementReasonCode, legalStatus, recall);
+                        """, offenderNumber, status, lastMovementTypeCode, lastMovementReasonCode, legalStatus, recall, lastLocationId);
     }
 }

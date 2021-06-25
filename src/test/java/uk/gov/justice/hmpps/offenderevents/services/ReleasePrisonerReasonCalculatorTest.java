@@ -94,7 +94,7 @@ class ReleasePrisonerReasonCalculatorTest {
 
     private PrisonerDetails prisonerDetails(String lastMovementTypCode, String lastMovementReasonCode) {
         return new PrisonerDetails(LegalStatus.SENTENCED, false, lastMovementTypCode, lastMovementReasonCode, "ACTIVE OUT", String
-            .format("%s-%s", lastMovementTypCode, lastMovementReasonCode));
+            .format("%s-%s", lastMovementTypCode, lastMovementReasonCode), "MDI");
     }
 
     private PrisonerDetails prisonerDetails(String lastMovementTypCode) {
