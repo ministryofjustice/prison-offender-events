@@ -9,6 +9,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import uk.gov.justice.hmpps.offenderevents.services.ReleasePrisonerReasonCalculator.Reason;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -88,8 +89,40 @@ class ReleasePrisonerReasonCalculatorTest {
 
     }
 
+    @Test
+    @DisplayName("when status indicates still in prison then not really released")
+    void whenStatusIndicatesStillInPrisonThenNotReallyReleased() {
+        when(prisonApiService.getPrisonerDetails(any()))
+            .thenReturn(new PrisonerDetails(LegalStatus.valueOf(LegalStatus.class, "REMAND"),
+                false,
+                "TRN",
+                "P",
+                "INACTIVE OUT",
+                "TRN-P",
+                "MDI"));
+        assertThat(calculator.calculateReasonForRelease("A1234GH").hasPrisonerActuallyBeenRelease()).isTrue();
+
+        when(prisonApiService.getPrisonerDetails(any()))
+            .thenReturn(new PrisonerDetails(LegalStatus.valueOf(LegalStatus.class, "REMAND"),
+                false,
+                "REL",
+                "P",
+                "INACTIVE OUT",
+                "TRN-P",
+                "MDI"));
+        assertThat(calculator.calculateReasonForRelease("A1234GH").hasPrisonerActuallyBeenRelease()).isTrue();
 
 
+        when(prisonApiService.getPrisonerDetails(any()))
+            .thenReturn(new PrisonerDetails(LegalStatus.valueOf(LegalStatus.class, "REMAND"),
+                false,
+                "ADM",
+                "L",
+                "ACTIVE IN",
+                "ADM-L",
+                "MDI"));
+        assertThat(calculator.calculateReasonForRelease("A1234GH").hasPrisonerActuallyBeenRelease()).isFalse();
+    }
 
 
     private PrisonerDetails prisonerDetails(String lastMovementTypCode, String lastMovementReasonCode) {

@@ -20,8 +20,9 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
 import uk.gov.justice.hmpps.offenderevents.model.OffenderEvent;
-import uk.gov.justice.hmpps.offenderevents.services.ReceivePrisonerReasonCalculator.RecallReason;
+import uk.gov.justice.hmpps.offenderevents.services.ReceivePrisonerReasonCalculator.ReceiveReason;
 import uk.gov.justice.hmpps.offenderevents.services.ReceivePrisonerReasonCalculator.Source;
+import uk.gov.justice.hmpps.offenderevents.services.ReleasePrisonerReasonCalculator.Reason;
 import uk.gov.justice.hmpps.offenderevents.services.ReleasePrisonerReasonCalculator.ReleaseReason;
 
 import java.time.LocalDateTime;
@@ -97,7 +98,7 @@ class HMPPSDomainEventsEmitterTest {
     @MockitoSettings(strictness = Strictness.LENIENT)
     void willSendToTopicForTheseEvents(String prisonEventType, String eventType) {
         when(receivePrisonerReasonCalculator.calculateMostLikelyReasonForPrisonerReceive(any()))
-            .thenReturn(new RecallReason(UNKNOWN, Source.PRISON, CurrentLocation.IN_PRISON, CurrentPrisonStatus.UNDER_PRISON_CARE, "MDI"));
+            .thenReturn(new ReceiveReason(UNKNOWN, Source.PRISON, CurrentLocation.IN_PRISON, CurrentPrisonStatus.UNDER_PRISON_CARE, "MDI"));
         when(releasePrisonerReasonCalculator.calculateReasonForRelease(any()))
             .thenReturn(new ReleaseReason(TEMPORARY_ABSENCE_RELEASE, CurrentLocation.OUTSIDE_PRISON, CurrentPrisonStatus.NOT_UNDER_PRISON_CARE, "MDI"));
 
@@ -130,7 +131,7 @@ class HMPPSDomainEventsEmitterTest {
         @BeforeEach
         void setUp() {
             when(receivePrisonerReasonCalculator.calculateMostLikelyReasonForPrisonerReceive(any()))
-                .thenReturn(new RecallReason(RECALL, Source.PRISON, "some details", CurrentLocation.IN_PRISON, CurrentPrisonStatus.UNDER_PRISON_CARE, "MDI"));
+                .thenReturn(new ReceiveReason(RECALL, Source.PRISON, "some details", CurrentLocation.IN_PRISON, CurrentPrisonStatus.UNDER_PRISON_CARE, "MDI"));
 
             emitter.convertAndSendWhenSignificant(OffenderEvent
                 .builder()
@@ -229,6 +230,58 @@ class HMPPSDomainEventsEmitterTest {
             assertThat(telemetryAttributes).containsEntry("currentPrisonStatus", "UNDER_PRISON_CARE");
         }
 
+    }
+    @Nested
+    class PrisonerNotReallyReceived {
+        private Map<String, String> telemetryAttributes;
+
+        @BeforeEach
+        void setUp() {
+            when(receivePrisonerReasonCalculator.calculateMostLikelyReasonForPrisonerReceive(any()))
+                .thenReturn(new ReceiveReason(UNKNOWN, Source.PRISON, "some details", CurrentLocation.OUTSIDE_PRISON, CurrentPrisonStatus.NOT_UNDER_PRISON_CARE, "MDI"));
+
+            emitter.convertAndSendWhenSignificant(OffenderEvent
+                .builder()
+                .eventType("OFFENDER_MOVEMENT-RECEPTION")
+                .offenderIdDisplay("A1234GH")
+                .eventDatetime(LocalDateTime.parse("2020-12-04T10:42:43"))
+                .build());
+            verifyNoInteractions(amazonSns);
+            verify(telemetryClient).trackEvent(any(), telemetryAttributesCaptor.capture(), isNull());
+            telemetryAttributes = telemetryAttributesCaptor.getValue();
+        }
+
+
+        @Test
+        @DisplayName("will add noms number to telemetry event")
+        void willAddNomsNumberToTelemetryEvent() {
+            assertThat(telemetryAttributes).containsEntry("nomsNumber", "A1234GH");
+        }
+
+        @Test
+        @DisplayName("will add reason to telemetry event")
+        void willAddReasonToTelemetryEvent() {
+            assertThat(telemetryAttributes).containsEntry("reason", "UNKNOWN");
+        }
+
+        @Test
+        @DisplayName("will add occurredAt to telemetry event")
+        void willAddOccurredAtToTelemetryEvent() {
+            assertThat(telemetryAttributes).containsEntry("occurredAt", "2020-12-04T10:42:43");
+        }
+
+        @Test
+        @DisplayName("will add details to telemetry event when present")
+        void willAddDetailsToTelemetryEvent() {
+            assertThat(telemetryAttributes).containsEntry("details", "some details");
+        }
+
+        @Test
+        @DisplayName("will add the prisoners current location and status to telemetry")
+        void wilAddThePrisonersCurrentLocationAndStatusToTelemetry() {
+            assertThat(telemetryAttributes).containsEntry("currentLocation", "OUTSIDE_PRISON");
+            assertThat(telemetryAttributes).containsEntry("currentPrisonStatus", "NOT_UNDER_PRISON_CARE");
+        }
     }
 
     @Nested
@@ -343,5 +396,57 @@ class HMPPSDomainEventsEmitterTest {
             assertThat(telemetryAttributes).containsEntry("currentPrisonStatus", "NOT_UNDER_PRISON_CARE");
         }
 
+    }
+    @Nested
+    class PrisonerNotReallyReleased {
+        private Map<String, String> telemetryAttributes;
+
+        @BeforeEach
+        void setUp() {
+            when(releasePrisonerReasonCalculator.calculateReasonForRelease(any()))
+                .thenReturn(new ReleaseReason(Reason.UNKNOWN, "some details", CurrentLocation.IN_PRISON,
+                    CurrentPrisonStatus.UNDER_PRISON_CARE, "MDI"));
+
+            emitter.convertAndSendWhenSignificant(OffenderEvent
+                .builder()
+                .eventType("OFFENDER_MOVEMENT-DISCHARGE")
+                .offenderIdDisplay("A1234GH")
+                .eventDatetime(LocalDateTime.parse("2020-12-04T10:42:43"))
+                .build());
+            verifyNoInteractions(amazonSns);
+            verify(telemetryClient).trackEvent(any(), telemetryAttributesCaptor.capture(), isNull());
+            telemetryAttributes = telemetryAttributesCaptor.getValue();
+        }
+
+        @Test
+        @DisplayName("will add noms number to telemetry event")
+        void willAddNomsNumberToTelemetryEvent() {
+            assertThat(telemetryAttributes).containsEntry("nomsNumber", "A1234GH");
+        }
+
+        @Test
+        @DisplayName("will add reason to telemetry event")
+        void willAddReasonToTelemetryEvent() {
+            assertThat(telemetryAttributes).containsEntry("reason", "UNKNOWN");
+        }
+
+        @Test
+        @DisplayName("will add occurredAt to telemetry event")
+        void willAddOccurredAtToTelemetryEvent() {
+            assertThat(telemetryAttributes).containsEntry("occurredAt", "2020-12-04T10:42:43");
+        }
+
+        @Test
+        @DisplayName("will add details to telemetry event when present")
+        void willAddDetailsToTelemetryEvent() {
+            assertThat(telemetryAttributes).containsEntry("details", "some details");
+        }
+
+        @Test
+        @DisplayName("will add the prisoners current location and status to telemetry")
+        void wilAddThePrisonersCurrentLocationAndStatusToTelemetry() {
+            assertThat(telemetryAttributes).containsEntry("currentLocation", "IN_PRISON");
+            assertThat(telemetryAttributes).containsEntry("currentPrisonStatus", "UNDER_PRISON_CARE");
+        }
     }
 }
