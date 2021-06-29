@@ -155,6 +155,29 @@ class ReceivePrisonerReasonCalculatorTest {
         assertThat(calculator.calculateMostLikelyReasonForPrisonerReceive("A1234GH").reason()).isEqualTo(Reason.REMAND);
     }
 
+    @Test
+    @DisplayName("when current status indicates not in prison then not really received")
+    void whenCurrentStatusIndicatesNotInPrisonThenNotReallyReceived() {
+        when(prisonApiService.getPrisonerDetails(any())).thenReturn(new PrisonerDetails(LegalStatus.valueOf(LegalStatus.class, "REMAND"),
+            false,
+            "ADM",
+            "L",
+            "ACTIVE IN",
+            "ADM-L",
+            "MDI"));
+        assertThat(calculator.calculateMostLikelyReasonForPrisonerReceive("A1234GH").hasPrisonerActuallyBeenReceived()).isTrue();
+
+        when(prisonApiService.getPrisonerDetails(any())).thenReturn(new PrisonerDetails(LegalStatus.valueOf(LegalStatus.class, "REMAND"),
+            false,
+            "TRN",
+            "P",
+            "INACTIVE OUT",
+            "TRN-P",
+            "MDI"));
+        assertThat(calculator.calculateMostLikelyReasonForPrisonerReceive("A1234GH").hasPrisonerActuallyBeenReceived()).isFalse();
+    }
+
+
     @ParameterizedTest
     @MethodSource("legalStatusMap")
     @DisplayName("legal status is mapped to reason")

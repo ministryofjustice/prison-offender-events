@@ -50,9 +50,13 @@ public class ReleasePrisonerReasonCalculator {
         }
     }
 
-    record ReleaseReason(Reason reason, String details, CurrentLocation currentLocation, CurrentPrisonStatus currentPrisonStatus, String latestLocationId) {
-        public ReleaseReason(Reason reason, CurrentLocation currentLocation, CurrentPrisonStatus currentPrisonStatus, String latestLocationId) {
-            this(reason, null, currentLocation, currentPrisonStatus, latestLocationId);
+    record ReleaseReason(Reason reason, String details, CurrentLocation currentLocation, CurrentPrisonStatus currentPrisonStatus, String prisonId) implements PrisonerMovementReason {
+        public ReleaseReason(Reason reason, CurrentLocation currentLocation, CurrentPrisonStatus currentPrisonStatus, String prisonId) {
+            this(reason, null, currentLocation, currentPrisonStatus, prisonId);
+        }
+
+        public boolean hasPrisonerActuallyBeenRelease() {
+            return currentLocation != CurrentLocation.IN_PRISON;
         }
     }
 }

@@ -152,7 +152,7 @@ public class HMPPSDomainEventsTest {
         class WhenIsReportedAsSentenced {
             @BeforeEach
             void setUp() {
-                PrisonApiExtension.server.stubPrisonerDetails("A5194DY", "SENTENCED", false, "ADM");
+                PrisonApiExtension.server.stubPrisonerDetails("A5194DY", "SENTENCED", false, "ADM", "N", "ACTIVE IN", "MDI");
             }
 
             @Test

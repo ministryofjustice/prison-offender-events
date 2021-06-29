@@ -14,9 +14,6 @@ public class PrisonApiMockServer extends WireMockServer {
         super(8086);
     }
 
-    public void stubPrisonerDetails(String offenderNumber, String legalStatus, boolean recall, String lastMovementTypeCode) {
-        stubPrisonerDetails(offenderNumber, legalStatus, recall, lastMovementTypeCode, "N", "INACTIVE OUT", "MDI");
-    }
     public void stubPrisonerDetails(String offenderNumber, String legalStatus, boolean recall, String lastMovementTypeCode,
                                     String lastMovementReasonCode, String status, String latestLocationId) {
         stubFor(
