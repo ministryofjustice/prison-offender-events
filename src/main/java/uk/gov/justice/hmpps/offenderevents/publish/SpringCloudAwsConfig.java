@@ -9,29 +9,30 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
+import uk.gov.justice.hmpps.offenderevents.config.SqsConfigProperties;
 
 @Configuration
+@ConditionalOnProperty(name = "hmpps.sqs.provider", havingValue = "aws")
 public class SpringCloudAwsConfig {
 
     @Bean
-    @ConditionalOnProperty(name = "sns.provider", havingValue = "aws")
     @Primary
-    public AmazonSNSAsync awsPrisonEventsSnsClient(@Value("${sns.aws.access.key.id}") String accessKey, @Value("${sns.aws.secret.access.key}") String secretKey,
-                                       @Value("${cloud.aws.region.static}") String region) {
-        var creds = new BasicAWSCredentials(accessKey, secretKey);
+    public AmazonSNSAsync awsPrisonEventsSnsClient(SqsConfigProperties sqsConfigProperties) {
+        var creds = new BasicAWSCredentials(sqsConfigProperties.getQueues().get("prisonEventQueue").getTopicAccessKeyId(),
+            sqsConfigProperties.getQueues().get("prisonEventQueue").getTopicSecretAccessKey());
         return AmazonSNSAsyncClientBuilder.standard()
                 .withCredentials(new AWSStaticCredentialsProvider(creds))
-                .withRegion(region)
+                .withRegion(sqsConfigProperties.getRegion())
                 .build();
     }
+
     @Bean
-    @ConditionalOnProperty(name = "sns.provider", havingValue = "aws")
-    public AmazonSNSAsync awsHMPPSEventsSnsClient(@Value("${hmpps.sns.aws.access.key.id}") String accessKey, @Value("${hmpps.sns.aws.secret.access.key}") String secretKey,
-                                       @Value("${cloud.aws.region.static}") String region) {
-        var creds = new BasicAWSCredentials(accessKey, secretKey);
+    public AmazonSNSAsync awsHMPPSEventsSnsClient(SqsConfigProperties sqsConfigProperties) {
+        var creds = new BasicAWSCredentials(sqsConfigProperties.getQueues().get("hmppsDomainEventQueue").getTopicAccessKeyId(),
+            sqsConfigProperties.getQueues().get("hmppsDomainEventQueue").getTopicSecretAccessKey());
         return AmazonSNSAsyncClientBuilder.standard()
                 .withCredentials(new AWSStaticCredentialsProvider(creds))
-                .withRegion(region)
+                .withRegion(sqsConfigProperties.getRegion())
                 .build();
     }
 }

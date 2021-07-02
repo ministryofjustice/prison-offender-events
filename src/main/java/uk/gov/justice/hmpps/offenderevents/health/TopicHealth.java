@@ -2,25 +2,30 @@ package uk.gov.justice.hmpps.offenderevents.health;
 
 import com.amazonaws.services.sns.AmazonSNS;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.actuate.health.Health;
 import org.springframework.boot.actuate.health.HealthIndicator;
 import org.springframework.stereotype.Component;
+import uk.gov.justice.hmpps.offenderevents.config.SqsConfigProperties;
+
+import static uk.gov.justice.hmpps.offenderevents.config.SqsConfigPropertiesKt.prisonEventQueue;
 
 @Component
 @Slf4j
 public class TopicHealth implements HealthIndicator {
-    private final AmazonSNS awsSnsClient;
+    private final AmazonSNS awsPrisonEventsSnsClient;
     private final String arn;
+   // private final String hmppsArn;
 
-    public TopicHealth(AmazonSNS awsSnsClient, @Value("${sns.topic.arn}") String arn) {
-        this.awsSnsClient = awsSnsClient;
-        this.arn = arn;
+    public TopicHealth(@Qualifier("awsPrisonEventsSnsClient") AmazonSNS awsPrisonEventsSnsClient, SqsConfigProperties sqsConfigProperties) {
+        this.awsPrisonEventsSnsClient = awsPrisonEventsSnsClient;
+        this.arn = prisonEventQueue(sqsConfigProperties).getTopicArn();
+       // this.hmppsArn = sqsConfigProperties.getQueues().get("hmppsDomainEventQueue").getTopicArn();
     }
 
     public Health health() {
         try {
-            awsSnsClient.getTopicAttributes(arn);
+            awsPrisonEventsSnsClient.getTopicAttributes(arn);
             return new Health.Builder().up().withDetail("arn", arn).build();
         } catch (Exception ex) {
             log.error("Health failed for SNS Topic due to ", ex);

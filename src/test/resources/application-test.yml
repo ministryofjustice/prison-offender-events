@@ -1,14 +1,14 @@
 server:
   shutdown: immediate
 
+aws:
+  provider: localstack
 
 management.endpoint:
   health.cache.time-to-live: 0
   info.cache.time-to-live: 0
 
-oauth:
-  api.base.url: http://localhost:8090/auth
-
+oauth.api.base.url: http://localhost:8090/auth
 prison.api.base.url: http://localhost:8086
 community.api.base.url: http://localhost:8087
 
@@ -22,3 +22,30 @@ application:
     poll:
       frequency: 1000
       initialDelay: 0
+
+prisonTopicName: ${random.uuid}
+hmppsEventsTopicName: ${random.uuid}
+
+hmpps:
+  sns:
+    topic:
+      arn: arn:aws:sns:eu-west-2:000000000000:${hmppsEventsTopicName}
+
+sns:
+  topic:
+    arn: arn:aws:sns:eu-west-2:000000000000:o${prisonTopicName}
+
+hmpps.sqs:
+  provider: localstack
+  localstackUrl: http://localhost:4566
+  queues:
+    prisonEventQueue:
+      topicName: ${prisonTopicName}
+      queueName: ${random.uuid}
+      dlqName: ${random.uuid}
+    hmppsDomainEventQueue:
+      topicName: ${hmppsEventsTopicName}
+      queueName: ${random.uuid}
+      dlqName: ${random.uuid}
+
+

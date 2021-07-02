@@ -1,0 +1,30 @@
+{
+  "Type": "Notification",
+  "MessageId": "4f447a13-f5b9-58d1-a193-2cdd085e7136",
+  "TopicArn": "arn:aws:sns:eu-west-2:754256621582:cloud-platform-Digital-Prison-Services-f221e27fcfcf78f6ab4f4c3cc165eee7",
+  "Message": "{\"eventType\":\"BOOKING_NUMBER-CHANGED\",\"eventDatetime\":\"2020-02-25T10:48:26.606784\",\"offenderId\":2581805,\"bookingId\":1200835,\"nomisEventType\":\"BOOK_UPD_OASYS\", \"previousBookingNumber\": \"38430A\"}",
+  "Timestamp": "2020-02-25T10:49:11.244Z",
+  "SignatureVersion": "1",
+  "Signature": "TFYqQEayYRzbWafvdkIuS5uqgxRRiSwHUHiMRAJqb2ufuXh5H5EWRLGlNWXIO9Aa/LKTBfWy1DzqsO2R2WCbzFlhjMPf1iXKo2tPsv8LO/zO/acV+Oo7vhL3VnaHu5Hd5u/TUJp+QV5kZZsJT4hzJfpHO34XRvpEqVCTcO4UuNwiy9dPkEnEgq8jS99lue5vDH8uIPGMUYnUgAPDspHHblpiRByIa4c0olmHFCbXXFElnfVCw1ZByBIktspVGrsUPcZy5ukKBHmrJxgjWVu154CjXc3W3v0Y6NjxAg6vLovJYy+Se5EOgLGdI9hnRgjV2FF0+pltJWujtmec28uKbA==",
+  "SigningCertURL": "https://sns.eu-west-2.amazonaws.com/SimpleNotificationService-a86cb10b4e1f29c941702d737128f7b6.pem",
+  "UnsubscribeURL": "https://sns.eu-west-2.amazonaws.com/?Action=Unsubscribe&SubscriptionArn=arn:aws:sns:eu-west-2:754256621582:cloud-platform-Digital-Prison-Services-f221e27fcfcf78f6ab4f4c3cc165eee7:92545cfe-de5d-43e1-8339-c366bf0172aa",
+  "MessageAttributes": {
+    "eventType": {
+      "Type": "String",
+      "Value": "BOOKING_NUMBER-CHANGED"
+    },
+    "id": {
+      "Type": "String",
+      "Value": "adf365bb-4bcf-28d5-379d-cdfac6eef4d2"
+    },
+    "contentType": {
+      "Type": "String",
+      "Value": "text/plain;charset=UTF-8"
+    },
+    "timestamp": {
+      "Type": "Number.java.lang.Long",
+      "Value": "1582627751205"
+    }
+  }
+}
+

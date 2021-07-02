@@ -21,13 +21,17 @@ dependencies {
   implementation("org.springframework.boot:spring-boot-starter-cache")
   implementation("org.springframework.boot:spring-boot-starter-data-jpa")
 
-  implementation("org.springframework.boot:spring-boot-starter-webflux")
   implementation("org.springframework.boot:spring-boot-starter-security")
   implementation("org.springframework.boot:spring-boot-starter-oauth2-client")
+  implementation("org.springframework.boot:spring-boot-starter-oauth2-resource-server")
+  implementation("org.springframework.boot:spring-boot-starter-webflux")
 
   implementation("org.springframework.cloud:spring-cloud-starter-aws-messaging:2.2.6.RELEASE")
   implementation("org.springframework:spring-jms")
   implementation("com.amazonaws:amazon-sqs-java-messaging-lib:1.0.8")
+  implementation("com.amazonaws:aws-java-sdk-sns")
+
+  implementation("uk.gov.justice.service.hmpps:hmpps-spring-boot-sqs:0.4.0")
 
   implementation("net.javacrumbs.shedlock:shedlock-spring:4.24.0")
   implementation("net.javacrumbs.shedlock:shedlock-provider-jdbc-template:4.24.0")
@@ -64,6 +68,7 @@ dependencies {
   testImplementation("junit:junit:4.13.2")
   testImplementation("net.javacrumbs.json-unit:json-unit-assertj:2.27.0")
   testImplementation("org.awaitility:awaitility:4.1.0")
+  testImplementation("org.awaitility:awaitility-kotlin:4.1.0")
 }
 
 tasks {

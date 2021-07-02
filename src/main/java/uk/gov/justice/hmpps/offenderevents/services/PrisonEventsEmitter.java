@@ -7,10 +7,10 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.microsoft.applicationinsights.TelemetryClient;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cloud.aws.messaging.core.NotificationMessagingTemplate;
 import org.springframework.cloud.aws.messaging.core.TopicMessageChannel;
 import org.springframework.stereotype.Service;
+import uk.gov.justice.hmpps.offenderevents.config.SqsConfigProperties;
 import uk.gov.justice.hmpps.offenderevents.model.OffenderEvent;
 
 import java.util.Map;
@@ -18,25 +18,28 @@ import java.util.Map.Entry;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import static uk.gov.justice.hmpps.offenderevents.config.SqsConfigPropertiesKt.prisonEventQueue;
+
 @Service
 @Slf4j
 public class PrisonEventsEmitter {
 
     private final NotificationMessagingTemplate topicTemplate;
-    private final AmazonSNSAsync amazonSns;
+    private final AmazonSNSAsync awsPrisonEventsSnsClient;
     private final String topicArn;
     private final ObjectMapper objectMapper;
     private final TelemetryClient telemetryClient;
 
 
-    public PrisonEventsEmitter(@Qualifier("awsPrisonEventsSnsClient") final AmazonSNSAsync amazonSns,
-                               @Value("${sns.topic.arn}") final String topicArn,
+    public PrisonEventsEmitter(@Qualifier("awsPrisonEventsSnsClient") final AmazonSNSAsync awsPrisonEventsSnsClient,
+                               final SqsConfigProperties sqsConfigProperties,
                                final ObjectMapper objectMapper,
                                final TelemetryClient telemetryClient) {
 
-        this.topicTemplate = new NotificationMessagingTemplate(amazonSns);
-        this.topicArn = topicArn;
-        this.amazonSns = amazonSns;
+        this.topicTemplate = new NotificationMessagingTemplate(awsPrisonEventsSnsClient);
+        this.topicArn = prisonEventQueue(sqsConfigProperties).getTopicArn();
+        System.out.println("Prison Event Queue" + prisonEventQueue(sqsConfigProperties).getQueueName());
+        this.awsPrisonEventsSnsClient = awsPrisonEventsSnsClient;
         this.objectMapper = objectMapper;
         this.telemetryClient = telemetryClient;
     }
@@ -44,8 +47,11 @@ public class PrisonEventsEmitter {
     public void sendEvent(final OffenderEvent payload) {
         try {
             final var code = buildOptionalCode(payload);
+            System.out.println("*****PrisonEmitter - > Sending Event " + payload.getEventType() +
+                " topic:" + topicArn + " " + payload);
+            System.out.println(awsPrisonEventsSnsClient.getTopicAttributes(topicArn));
             topicTemplate.convertAndSend(
-                    new TopicMessageChannel(amazonSns, topicArn),
+                    new TopicMessageChannel(awsPrisonEventsSnsClient, topicArn),
                     objectMapper.writeValueAsString(payload),
                     code == null
                             ? Map.of("eventType", payload.getEventType())

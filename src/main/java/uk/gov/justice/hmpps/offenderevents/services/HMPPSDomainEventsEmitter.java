@@ -1,5 +1,6 @@
 package uk.gov.justice.hmpps.offenderevents.services;
 
+import com.amazonaws.services.sns.AmazonSNS;
 import com.amazonaws.services.sns.AmazonSNSAsync;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
@@ -12,6 +13,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cloud.aws.messaging.core.NotificationMessagingTemplate;
 import org.springframework.cloud.aws.messaging.core.TopicMessageChannel;
 import org.springframework.stereotype.Service;
+import uk.gov.justice.hmpps.offenderevents.config.SqsConfigProperties;
 import uk.gov.justice.hmpps.offenderevents.model.OffenderEvent;
 
 import java.time.LocalDateTime;
@@ -20,11 +22,14 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 
+import static uk.gov.justice.hmpps.offenderevents.config.SqsConfigPropertiesKt.hmppsDomainEventQueue;
+import static uk.gov.justice.hmpps.offenderevents.config.SqsConfigPropertiesKt.prisonEventQueue;
+
 @Service
 @Slf4j
 public class HMPPSDomainEventsEmitter {
     private final NotificationMessagingTemplate topicTemplate;
-    private final AmazonSNSAsync amazonSns;
+    private final AmazonSNSAsync awsHMPPSEventsSnsClient;
     private final String topicArn;
     private final ObjectMapper objectMapper;
     private final ReceivePrisonerReasonCalculator receivePrisonerReasonCalculator;
@@ -32,15 +37,15 @@ public class HMPPSDomainEventsEmitter {
     private final TelemetryClient telemetryClient;
 
 
-    HMPPSDomainEventsEmitter(@Qualifier("awsHMPPSEventsSnsClient") final AmazonSNSAsync amazonSns,
-                             @Value("${hmpps.sns.topic.arn}") final String topicArn,
+    HMPPSDomainEventsEmitter(@Qualifier("awsHMPPSEventsSnsClient") final AmazonSNSAsync awsHMPPSEventsSnsClient,
+                             SqsConfigProperties sqsConfigProperties,
                              final ObjectMapper objectMapper,
                              final ReceivePrisonerReasonCalculator receivePrisonerReasonCalculator,
                              final ReleasePrisonerReasonCalculator releasePrisonerReasonCalculator,
                              final TelemetryClient telemetryClient) {
-        this.topicTemplate = new NotificationMessagingTemplate(amazonSns);
-        this.topicArn = topicArn;
-        this.amazonSns = amazonSns;
+        this.topicTemplate = new NotificationMessagingTemplate(awsHMPPSEventsSnsClient);
+        this.topicArn = hmppsDomainEventQueue(sqsConfigProperties).getTopicArn();
+        this.awsHMPPSEventsSnsClient = awsHMPPSEventsSnsClient;
         this.objectMapper = objectMapper;
         this.receivePrisonerReasonCalculator = receivePrisonerReasonCalculator;
         this.releasePrisonerReasonCalculator = releasePrisonerReasonCalculator;
@@ -128,9 +133,10 @@ public class HMPPSDomainEventsEmitter {
     }
 
     public void sendEvent(final HMPPSDomainEvent payload) {
+        System.out.println("*****HMPPSDomainEventsEmitter - > to  " + awsHMPPSEventsSnsClient + " " + topicArn);
         try {
             topicTemplate.convertAndSend(
-                new TopicMessageChannel(amazonSns, topicArn),
+                new TopicMessageChannel(awsHMPPSEventsSnsClient, topicArn),
                 objectMapper.writeValueAsString(payload),
                 Map.of("eventType", payload.eventType())
             );
