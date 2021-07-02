@@ -23,28 +23,16 @@ application:
       frequency: 1000
       initialDelay: 0
 
-prisonTopicName: ${random.uuid}
-hmppsEventsTopicName: ${random.uuid}
-
-hmpps:
-  sns:
-    topic:
-      arn: arn:aws:sns:eu-west-2:000000000000:${hmppsEventsTopicName}
-
-sns:
-  topic:
-    arn: arn:aws:sns:eu-west-2:000000000000:o${prisonTopicName}
-
 hmpps.sqs:
   provider: localstack
   localstackUrl: http://localhost:4566
   queues:
     prisonEventQueue:
-      topicName: ${prisonTopicName}
+      topicName: ${random.uuid}
       queueName: ${random.uuid}
       dlqName: ${random.uuid}
     hmppsDomainEventQueue:
-      topicName: ${hmppsEventsTopicName}
+      topicName: ${random.uuid}
       queueName: ${random.uuid}
       dlqName: ${random.uuid}
 
