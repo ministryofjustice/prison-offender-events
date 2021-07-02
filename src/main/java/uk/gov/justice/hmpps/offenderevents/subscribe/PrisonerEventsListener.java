@@ -19,9 +19,11 @@ public class PrisonerEventsListener {
         this.eventsEmitter = eventsEmitter;
     }
 
-    @JmsListener(destination = "${sqs.queue.name}")
-    public void onPrisonerEvent(String message) throws JsonProcessingException {
+  @JmsListener(destination = "#{@'hmpps.sqs-uk.gov.justice.hmpps.offenderevents.config.SqsConfigProperties'.queues['prisonEventQueue'].queueName}",
+      containerFactory = "jmsListenerContainerFactory")
+  public void onPrisonerEvent(String message) throws JsonProcessingException {
         final var sqsMessage = objectMapper.readValue(message, SQSMessage.class);
+        System.out.println("****PrisonerEventsListener Received message " + sqsMessage.MessageId() +  " " + sqsMessage.Message());
         log.debug("Received message {}", sqsMessage.MessageId());
         final var event = objectMapper.readValue(sqsMessage.Message(), OffenderEvent.class);
         eventsEmitter.convertAndSendWhenSignificant(event);
