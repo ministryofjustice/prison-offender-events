@@ -7,7 +7,6 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.tomakehurst.wiremock.client.WireMock;
 import junit.framework.AssertionFailedError;
-
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -15,7 +14,6 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.context.ActiveProfiles;
 import uk.gov.justice.hmpps.offenderevents.resource.QueueListenerIntegrationTest;
 import uk.gov.justice.hmpps.offenderevents.services.wiremock.CommunityApiExtension;
 import uk.gov.justice.hmpps.offenderevents.services.wiremock.HMPPSAuthExtension;
