@@ -1,9 +1,8 @@
 spring:
   profiles:
     group:
-      integration-test:
+      test:
         - "stdout"
-        - "test"
   application:
     name: prison-offender-events
 
