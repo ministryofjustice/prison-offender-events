@@ -26,7 +26,7 @@ import org.mockito.junit.jupiter.MockitoSettings
 import org.mockito.quality.Strictness
 import uk.gov.justice.hmpps.offenderevents.config.SqsConfigProperties
 import uk.gov.justice.hmpps.offenderevents.model.OffenderEvent
-import uk.gov.justice.hmpps.offenderevents.services.ReceivePrisonerReasonCalculator.RecallReason
+import uk.gov.justice.hmpps.offenderevents.services.ReceivePrisonerReasonCalculator.ReceiveReason
 import uk.gov.justice.hmpps.offenderevents.services.ReleasePrisonerReasonCalculator.ReleaseReason
 import java.time.LocalDateTime
 import java.time.temporal.ChronoUnit
@@ -85,7 +85,7 @@ internal class HMPPSDomainEventsEmitterTest {
   fun willSendToTopicForTheseEvents(prisonEventType: String?, eventType: String?) {
     Mockito.`when`(receivePrisonerReasonCalculator!!.calculateMostLikelyReasonForPrisonerReceive(ArgumentMatchers.any()))
       .thenReturn(
-        RecallReason(
+        ReceiveReason(
           ReceivePrisonerReasonCalculator.Reason.UNKNOWN,
           ReceivePrisonerReasonCalculator.Source.PRISON,
           CurrentLocation.IN_PRISON,
@@ -135,7 +135,7 @@ internal class HMPPSDomainEventsEmitterTest {
         )
       )
         .thenReturn(
-          RecallReason(
+          ReceiveReason(
             ReceivePrisonerReasonCalculator.Reason.RECALL,
             ReceivePrisonerReasonCalculator.Source.PRISON,
             "some details",
@@ -245,6 +245,69 @@ internal class HMPPSDomainEventsEmitterTest {
     fun wilAddThePrisonersCurrentLocationAndStatusToTelemetry() {
       Assertions.assertThat(telemetryAttributes).containsEntry("currentLocation", "IN_PRISON")
       Assertions.assertThat(telemetryAttributes).containsEntry("currentPrisonStatus", "UNDER_PRISON_CARE")
+    }
+  }
+
+  @Nested
+  internal inner class PrisonerNotReallyReceived {
+    private var telemetryAttributes: Map<String, String>? = null
+
+    @BeforeEach
+    fun setUp() {
+      Mockito.`when`(receivePrisonerReasonCalculator!!.calculateMostLikelyReasonForPrisonerReceive(ArgumentMatchers.any()))
+        .thenReturn(
+          ReceiveReason(
+            ReceivePrisonerReasonCalculator.Reason.UNKNOWN,
+            ReceivePrisonerReasonCalculator.Source.PRISON,
+            "some details",
+            CurrentLocation.OUTSIDE_PRISON,
+            CurrentPrisonStatus.NOT_UNDER_PRISON_CARE,
+            "MDI"
+          )
+        )
+      emitter!!.convertAndSendWhenSignificant(
+        OffenderEvent
+          .builder()
+          .eventType("OFFENDER_MOVEMENT-RECEPTION")
+          .offenderIdDisplay("A1234GH")
+          .eventDatetime(LocalDateTime.parse("2020-12-04T10:42:43"))
+          .build()
+      )
+      Mockito.verifyNoInteractions(awsHMPPSEventsSnsClient)
+      Mockito.verify(telemetryClient)!!
+        .trackEvent(ArgumentMatchers.any(), telemetryAttributesCaptor!!.capture(), ArgumentMatchers.isNull())
+      telemetryAttributes = telemetryAttributesCaptor.value
+    }
+
+    @Test
+    @DisplayName("will add noms number to telemetry event")
+    fun willAddNomsNumberToTelemetryEvent() {
+      Assertions.assertThat(telemetryAttributes).containsEntry("nomsNumber", "A1234GH")
+    }
+
+    @Test
+    @DisplayName("will add reason to telemetry event")
+    fun willAddReasonToTelemetryEvent() {
+      Assertions.assertThat(telemetryAttributes).containsEntry("reason", "UNKNOWN")
+    }
+
+    @Test
+    @DisplayName("will add occurredAt to telemetry event")
+    fun willAddOccurredAtToTelemetryEvent() {
+      Assertions.assertThat(telemetryAttributes).containsEntry("occurredAt", "2020-12-04T10:42:43")
+    }
+
+    @Test
+    @DisplayName("will add details to telemetry event when present")
+    fun willAddDetailsToTelemetryEvent() {
+      Assertions.assertThat(telemetryAttributes).containsEntry("details", "some details")
+    }
+
+    @Test
+    @DisplayName("will add the prisoners current location and status to telemetry")
+    fun wilAddThePrisonersCurrentLocationAndStatusToTelemetry() {
+      Assertions.assertThat(telemetryAttributes).containsEntry("currentLocation", "OUTSIDE_PRISON")
+      Assertions.assertThat(telemetryAttributes).containsEntry("currentPrisonStatus", "NOT_UNDER_PRISON_CARE")
     }
   }
 
@@ -372,10 +435,71 @@ internal class HMPPSDomainEventsEmitterTest {
     }
   }
 
-  private fun eventMap(): Stream<Arguments> {
-    return Stream.of(
-      Arguments.of("OFFENDER_MOVEMENT-DISCHARGE", "prison-offender-events.prisoner.released"),
-      Arguments.of("OFFENDER_MOVEMENT-RECEPTION", "prison-offender-events.prisoner.received")
-    )
+  @Nested
+  internal inner class PrisonerNotReallyReleased {
+    private var telemetryAttributes: Map<String, String>? = null
+
+    @BeforeEach
+    fun setUp() {
+      Mockito.`when`(releasePrisonerReasonCalculator!!.calculateReasonForRelease(ArgumentMatchers.any()))
+        .thenReturn(
+          ReleaseReason(
+            ReleasePrisonerReasonCalculator.Reason.UNKNOWN, "some details", CurrentLocation.IN_PRISON,
+            CurrentPrisonStatus.UNDER_PRISON_CARE, "MDI"
+          )
+        )
+      emitter!!.convertAndSendWhenSignificant(
+        OffenderEvent
+          .builder()
+          .eventType("OFFENDER_MOVEMENT-DISCHARGE")
+          .offenderIdDisplay("A1234GH")
+          .eventDatetime(LocalDateTime.parse("2020-12-04T10:42:43"))
+          .build()
+      )
+      Mockito.verifyNoInteractions(awsHMPPSEventsSnsClient)
+      Mockito.verify(telemetryClient)
+        ?.trackEvent(ArgumentMatchers.any(), telemetryAttributesCaptor!!.capture(), ArgumentMatchers.isNull())
+      telemetryAttributes = telemetryAttributesCaptor!!.value
+    }
+
+    @Test
+    @DisplayName("will add noms number to telemetry event")
+    fun willAddNomsNumberToTelemetryEvent() {
+      Assertions.assertThat(telemetryAttributes).containsEntry("nomsNumber", "A1234GH")
+    }
+
+    @Test
+    @DisplayName("will add reason to telemetry event")
+    fun willAddReasonToTelemetryEvent() {
+      Assertions.assertThat(telemetryAttributes).containsEntry("reason", "UNKNOWN")
+    }
+
+    @Test
+    @DisplayName("will add occurredAt to telemetry event")
+    fun willAddOccurredAtToTelemetryEvent() {
+      Assertions.assertThat(telemetryAttributes).containsEntry("occurredAt", "2020-12-04T10:42:43")
+    }
+
+    @Test
+    @DisplayName("will add details to telemetry event when present")
+    fun willAddDetailsToTelemetryEvent() {
+      Assertions.assertThat(telemetryAttributes).containsEntry("details", "some details")
+    }
+
+    @Test
+    @DisplayName("will add the prisoners current location and status to telemetry")
+    fun wilAddThePrisonersCurrentLocationAndStatusToTelemetry() {
+      Assertions.assertThat(telemetryAttributes).containsEntry("currentLocation", "IN_PRISON")
+      Assertions.assertThat(telemetryAttributes).containsEntry("currentPrisonStatus", "UNDER_PRISON_CARE")
+    }
+  }
+
+  companion object {
+    private fun eventMap(): Stream<Arguments> {
+      return Stream.of(
+        Arguments.of("OFFENDER_MOVEMENT-DISCHARGE", "prison-offender-events.prisoner.released"),
+        Arguments.of("OFFENDER_MOVEMENT-RECEPTION", "prison-offender-events.prisoner.received")
+      )
+    }
   }
 }
