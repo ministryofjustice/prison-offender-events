@@ -1,10 +1,8 @@
 spring:
   profiles:
     group:
-      integration-test:
+      test:
         - "stdout"
-        - "localstack"
-        - "test"
   application:
     name: prison-offender-events
 
@@ -45,6 +43,10 @@ spring:
 
   security:
     oauth2:
+      resourceserver:
+        jwt:
+          jwk-set-uri: ${oauth.api.base.url}/.well-known/jwks.json
+
       client:
         registration:
           prison-api:
@@ -61,7 +63,6 @@ spring:
         provider:
           hmpps-auth:
             token-uri: ${oauth.api.base.url}/oauth/token
-
 
 server:
   port: 8080
@@ -100,6 +101,31 @@ cloud:
       auto: false
     region:
       static: eu-west-2
+aws:
+  provider: aws
+  region: eu-west-2
+hmpps.sqs:
+  provider: ${aws.provider}
+  region: ${aws.region}
+  queueAdminRole: ROLE_QUEUE_ADMIN
+  queues:
+    prisonEventQueue:
+      queueName: ${sqs.queue.name}
+      queueAccessKeyId: ${sqs.aws.access.key.id}
+      queueSecretAccessKey: ${sqs.aws.secret.access.key}
+      dlqName: ${sqs.dlq.name}
+      dlqAccessKeyId: ${sqs.aws.dlq.access.key.id}
+      dlqSecretAccessKey: ${sqs.aws.dlq.secret.access.key}
+  topics:
+    prisonEventTopic:
+      topicAccessKeyId: ${sns.aws.access.key.id}
+      topicSecretAccessKey: ${sns.aws.secret.access.key}
+      topicArn: ${sns.topic.arn}
+    hmppsEventTopic:
+      topicAccessKeyId: ${hmpps.sns.aws.access.key.id}
+      topicSecretAccessKey: ${hmpps.sns.aws.secret.access.key}
+      topicArn: ${hmpps.sns.topic.arn}
+
 
 application:
   events:
@@ -109,4 +135,3 @@ application:
     poll:
       frequency: 60000
       initialDelay: 2000
-

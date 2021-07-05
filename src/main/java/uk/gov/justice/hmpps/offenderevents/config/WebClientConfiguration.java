@@ -43,7 +43,7 @@ public class WebClientConfiguration {
             .apply(oauth2Client.oauth2Configuration())
             .exchangeStrategies(ExchangeStrategies.builder()
                 .codecs(configurer -> configurer.defaultCodecs()
-                    .maxInMemorySize(1024 * 1024 ))
+                    .maxInMemorySize(1024 * 1024))
                 .build())
             .build();
     }
