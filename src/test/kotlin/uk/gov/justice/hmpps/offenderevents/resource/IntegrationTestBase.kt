@@ -20,7 +20,7 @@ abstract class IntegrationTestBase {
   lateinit var webTestClient: WebTestClient
 
   internal fun setAuthorisation(
-    user: String = "hmpps-audit-client",
+    user: String = "hmpps-offender-events-client",
     roles: List<String> = listOf()
   ): (HttpHeaders) -> Unit = jwtAuthHelper.setAuthorisation(user, roles)
 }
