@@ -18,7 +18,6 @@ import java.util.Map.Entry;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import static uk.gov.justice.hmpps.offenderevents.config.SqsConfigPropertiesKt.prisonEventQueue;
 import static uk.gov.justice.hmpps.offenderevents.config.SqsConfigPropertiesKt.prisonEventTopic;
 
 @Service
