@@ -36,8 +36,5 @@ fun SqsConfigProperties.prisonEventQueue() = queues["prisonEventQueue"] ?: throw
 fun SqsConfigProperties.prisonEventTopic() = topics["prisonEventTopic"] ?: throw MissingTopicException("prisonEventTopic has not been loaded from configuration properties")
 fun SqsConfigProperties.hmppsEventTopic() = topics["hmppsEventTopic"] ?: throw MissingTopicException("hmppsEventTopic has not been loaded from configuration properties")
 
-fun SqsConfigProperties.prisonEventTestQueue() = queues["prisonEventTestQueue"] ?: throw MissingQueueException("prisonEventTestQueue has not been loaded from configuration properties")
-fun SqsConfigProperties.hmppsEventTestQueue() = queues["hmppsEventTestQueue"] ?: throw MissingQueueException("hmppsEventTestQueue has not been loaded from configuration properties")
-
 class MissingQueueException(message: String) : RuntimeException(message)
 class MissingTopicException(message: String) : RuntimeException(message)

@@ -5,9 +5,9 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.boot.test.mock.mockito.SpyBean
 import uk.gov.justice.hmpps.offenderevents.config.SqsConfigProperties
-import uk.gov.justice.hmpps.offenderevents.config.hmppsEventTestQueue
 import uk.gov.justice.hmpps.offenderevents.config.prisonEventQueue
-import uk.gov.justice.hmpps.offenderevents.config.prisonEventTestQueue
+import uk.gov.justice.hmpps.offenderevents.subscribe.hmppsEventTestQueue
+import uk.gov.justice.hmpps.offenderevents.subscribe.prisonEventTestQueue
 
 abstract class QueueListenerIntegrationTest : IntegrationTestBase() {
 

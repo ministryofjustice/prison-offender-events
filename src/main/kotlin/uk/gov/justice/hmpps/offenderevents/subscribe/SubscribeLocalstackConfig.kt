@@ -18,11 +18,10 @@ import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.context.annotation.Primary
 import org.springframework.context.annotation.Profile
+import uk.gov.justice.hmpps.offenderevents.config.MissingQueueException
 import uk.gov.justice.hmpps.offenderevents.config.SqsConfigProperties
-import uk.gov.justice.hmpps.offenderevents.config.hmppsEventTestQueue
 import uk.gov.justice.hmpps.offenderevents.config.hmppsEventTopic
 import uk.gov.justice.hmpps.offenderevents.config.prisonEventQueue
-import uk.gov.justice.hmpps.offenderevents.config.prisonEventTestQueue
 import uk.gov.justice.hmpps.offenderevents.config.prisonEventTopic
 import uk.gov.justice.hmpps.sqs.HmppsQueueService
 
@@ -184,3 +183,6 @@ class SubscribeLocalstackConfig(private val hmppsQueueService: HmppsQueueService
         )
       }
 }
+
+fun SqsConfigProperties.prisonEventTestQueue() = queues["prisonEventTestQueue"] ?: throw MissingQueueException("prisonEventTestQueue has not been loaded from configuration properties")
+fun SqsConfigProperties.hmppsEventTestQueue() = queues["hmppsEventTestQueue"] ?: throw MissingQueueException("hmppsEventTestQueue has not been loaded from configuration properties")
