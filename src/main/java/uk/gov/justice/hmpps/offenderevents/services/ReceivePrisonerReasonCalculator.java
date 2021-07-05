@@ -32,6 +32,7 @@ public class ReceivePrisonerReasonCalculator {
                     case ADMISSION -> switch (prisonerDetails.movementReason()) {
                         case TRANSFER -> Reason.TRANSFERRED;
                         case RECALL -> Reason.RECALL;
+                        case REMAND -> Reason.REMAND;
                         default -> null;
                     };
                     default -> null;
