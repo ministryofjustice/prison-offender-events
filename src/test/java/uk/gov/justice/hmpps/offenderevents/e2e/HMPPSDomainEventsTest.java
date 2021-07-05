@@ -77,7 +77,6 @@ public class HMPPSDomainEventsTest extends QueueListenerIntegrationTest {
     }
 
     private void purgeQueues() {
-        System.out.println("Purging queues");
         awsSqsClient.purgeQueue(new PurgeQueueRequest(getQueueUrl()));
         await().until(() -> getNumberOfMessagesCurrentlyOnQueue() == 0);
         testSqsClient.purgeQueue(new PurgeQueueRequest(getTestQueueUrl()));

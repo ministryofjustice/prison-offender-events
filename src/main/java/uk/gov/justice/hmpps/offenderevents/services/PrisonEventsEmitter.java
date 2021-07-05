@@ -39,7 +39,6 @@ public class PrisonEventsEmitter {
 
         this.topicTemplate = new NotificationMessagingTemplate(awsPrisonEventsSnsClient);
         this.topicArn = prisonEventTopic(sqsConfigProperties).getTopicArn();
-        System.out.println("Prison Event Queue" + prisonEventQueue(sqsConfigProperties).getQueueName());
         this.awsPrisonEventsSnsClient = awsPrisonEventsSnsClient;
         this.objectMapper = objectMapper;
         this.telemetryClient = telemetryClient;
@@ -48,9 +47,6 @@ public class PrisonEventsEmitter {
     public void sendEvent(final OffenderEvent payload) {
         try {
             final var code = buildOptionalCode(payload);
-            System.out.println("*****PrisonEmitter - > Sending Event " + payload.getEventType() +
-                " topic:" + topicArn + " " + payload);
-            System.out.println(awsPrisonEventsSnsClient.getTopicAttributes(topicArn));
             topicTemplate.convertAndSend(
                     new TopicMessageChannel(awsPrisonEventsSnsClient, topicArn),
                     objectMapper.writeValueAsString(payload),

@@ -166,7 +166,6 @@ public class HMPPSDomainEventsEmitter {
     }
 
     public void sendEvent(final HMPPSDomainEvent payload) {
-        System.out.println("*****HMPPSDomainEventsEmitter - > to  " + awsHMPPSEventsSnsClient + " " + topicArn);
         try {
             topicTemplate.convertAndSend(
                 new TopicMessageChannel(awsHMPPSEventsSnsClient, topicArn),

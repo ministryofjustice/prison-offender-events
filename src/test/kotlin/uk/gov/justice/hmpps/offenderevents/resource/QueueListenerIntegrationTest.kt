@@ -39,36 +39,25 @@ abstract class QueueListenerIntegrationTest : IntegrationTestBase() {
   protected lateinit var sqsConfigProperties: SqsConfigProperties
 
   // The SQS clients for the production prisonEventsQueue
-  fun getNumberOfMessagesCurrentlyOnQueue(): Int = awsSqsClient.numMessages("prisonEventsQueueUrl", queueUrl)
+  fun getNumberOfMessagesCurrentlyOnQueue(): Int = awsSqsClient.numMessages(queueUrl)
   val queueName: String by lazy { sqsConfigProperties.prisonEventQueue().queueName }
   val queueUrl: String by lazy { awsSqsClient.getQueueUrl(queueName).queueUrl }
-  fun getNumberOfMessagesCurrentlyOnDlq(): Int = awsSqsDlqClient.numMessages("prisonEventsDlqUrl", dlqUrl)
+  fun getNumberOfMessagesCurrentlyOnDlq(): Int = awsSqsDlqClient.numMessages(dlqUrl)
   val dlqName: String by lazy { sqsConfigProperties.prisonEventQueue().dlqName }
   val dlqUrl: String by lazy { awsSqsDlqClient.getQueueUrl(dlqName).queueUrl }
 
   // The SQS clients for the test prisonEventTestQueue
-  fun getNumberOfMessagesCurrentlyOnTestQueue(): Int = testSqsClient.numMessages("prisonEventTestQueueUrl", testQueueUrl)
+  fun getNumberOfMessagesCurrentlyOnTestQueue(): Int = testSqsClient.numMessages(testQueueUrl)
   val testQueueName: String by lazy { sqsConfigProperties.prisonEventTestQueue().queueName }
   val testQueueUrl: String by lazy { testSqsClient.getQueueUrl(testQueueName).queueUrl }
-  fun getNumberOfMessagesCurrentlyOnTestDlq(): Int = testSqsDlqClient.numMessages("prisonEventTestDlqUrl", testDlqUrl)
-  val testDlqName: String by lazy { sqsConfigProperties.prisonEventTestQueue().dlqName }
-  val testDlqUrl: String by lazy { testSqsDlqClient.getQueueUrl(testDlqName).queueUrl }
 
   // The SQS clients for the test hmppsEventTestQueue
-  fun getNumberOfMessagesCurrentlyOnHMPPSTestQueue(): Int = testHmppsSqsClient.numMessages("hmppsTestQueueUrl", testHmppsQueueUrl)
+  fun getNumberOfMessagesCurrentlyOnHMPPSTestQueue(): Int = testHmppsSqsClient.numMessages(testHmppsQueueUrl)
   val testHmppsQueueName: String by lazy { sqsConfigProperties.hmppsEventTestQueue().queueName }
   val testHmppsQueueUrl: String by lazy { testHmppsSqsClient.getQueueUrl(testHmppsQueueName).queueUrl }
-  fun getNumberOfMessagesCurrentlyOnHMPPSTestDlq(): Int = testHmppsSqsDlqClient.numMessages("hmppsTestDlqlUrl", testHmppsDlqlUrl)
-  val testHmppsDlqName: String by lazy { sqsConfigProperties.hmppsEventTestQueue().dlqName }
-  val testHmppsDlqlUrl: String by lazy { testHmppsSqsDlqClient.getQueueUrl(testHmppsDlqName).queueUrl }
 }
 
-fun AmazonSQS.numMessages(readableName: String, url: String): Int {
+fun AmazonSQS.numMessages(url: String): Int {
   val queueAttributes = getQueueAttributes(url, listOf("ApproximateNumberOfMessages"))
-
-  // TODO REMOVE
-  val numMessages = queueAttributes.attributes["ApproximateNumberOfMessages"]!!.toInt()
-  println("Messages on $readableName $url  $numMessages")
-
   return queueAttributes.attributes["ApproximateNumberOfMessages"]!!.toInt()
 }
