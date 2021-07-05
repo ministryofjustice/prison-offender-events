@@ -17,9 +17,13 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.context.annotation.Primary
+import org.springframework.context.annotation.Profile
 import uk.gov.justice.hmpps.offenderevents.config.SqsConfigProperties
-import uk.gov.justice.hmpps.offenderevents.config.hmppsDomainEventQueue
+import uk.gov.justice.hmpps.offenderevents.config.hmppsDomainEventTestQueue
+import uk.gov.justice.hmpps.offenderevents.config.hmppsDomainTopic
 import uk.gov.justice.hmpps.offenderevents.config.prisonEventQueue
+import uk.gov.justice.hmpps.offenderevents.config.prisonEventTestQueue
+import uk.gov.justice.hmpps.offenderevents.config.prisonEventTopic
 import uk.gov.justice.hmpps.sqs.HmppsQueueService
 
 @Configuration
@@ -41,11 +45,11 @@ class SubscribeLocalstackConfig(private val hmppsQueueService: HmppsQueueService
         .also { log.info("Created localstack sqs client for queue ${prisonEventQueue().queueName}") }
         .also {
           subscribeToTopic(
-            awsPrisonEventsSnsClient, localstackUrl, region, prisonEventQueue().topicName, prisonEventQueue().queueName,
+            awsPrisonEventsSnsClient, localstackUrl, region, prisonEventTopic().topicName, prisonEventQueue().queueName,
             mapOf("FilterPolicy" to """{"eventType":[ "OFFENDER_MOVEMENT-RECEPTION", "OFFENDER_MOVEMENT-DISCHARGE"] }""")
           )
         }
-        .also { log.info("Queue ${prisonEventQueue().queueName} has subscribed to dps topic ${prisonEventQueue().topicName}") }
+        .also { log.info("Queue ${prisonEventQueue().queueName} has subscribed to dps topic ${prisonEventTopic().topicName}") }
         .also { hmppsQueueService.registerHmppsQueue("prisonEventQueue", it, prisonEventQueue().queueName, awsSqsDlqClient, prisonEventQueue().dlqName) }
     }
 
@@ -58,31 +62,61 @@ class SubscribeLocalstackConfig(private val hmppsQueueService: HmppsQueueService
     }
 
   @Bean
-  fun awsHmppsSqsClient(
+  @Profile("test")
+  fun testSqsClient(
     sqsConfigProperties: SqsConfigProperties,
-    awsHmppsSqsDlqClient: AmazonSQS,
+    testSqsDlqClient: AmazonSQS,
+    @Qualifier("awsPrisonEventsSnsClient") awsPrisonEventsSnsClient: AmazonSNS
+  ): AmazonSQS =
+    with(sqsConfigProperties) {
+      localstackAmazonSQS(localstackUrl, region)
+        .also { sqsClient -> createQueue(sqsClient, testSqsDlqClient, prisonEventTestQueue().queueName, prisonEventTestQueue().dlqName) }
+        .also { log.info("Created TEST localstack sqs client for queue ${prisonEventTestQueue().queueName}") }
+        .also {
+          subscribeToTopic(
+            awsPrisonEventsSnsClient, localstackUrl, region, prisonEventTopic().topicName, prisonEventTestQueue().queueName,
+            mapOf("FilterPolicy" to """{"eventType":[ "OFFENDER_MOVEMENT-RECEPTION", "OFFENDER_MOVEMENT-DISCHARGE"] }""")
+          )
+        }
+        .also { log.info("TEST Queue ${prisonEventTestQueue().queueName} has subscribed to dps topic ${prisonEventTopic().topicName}") }
+    }
+
+  @Bean
+  @Profile("test")
+  fun testSqsDlqClient(sqsConfigProperties: SqsConfigProperties): AmazonSQS =
+    with(sqsConfigProperties) {
+      localstackAmazonSQS(localstackUrl, region)
+        .also { dlqSqsClient -> dlqSqsClient.createQueue(prisonEventTestQueue().dlqName) }
+        .also { log.info("Created TEST localstack dlq sqs client for dlq ${prisonEventTestQueue().dlqName}") }
+    }
+
+  @Bean
+  @Profile("test")
+  fun testHmppsSqsClient(
+    sqsConfigProperties: SqsConfigProperties,
+    testHmppsSqsDlqClient: AmazonSQS,
     @Qualifier("awsHMPPSEventsSnsClient") awsHMPPSEventsSnsClient: AmazonSNS,
   ): AmazonSQS =
     with(sqsConfigProperties) {
       localstackAmazonSQS(localstackUrl, region)
-        .also { sqsClient -> createQueue(sqsClient, awsHmppsSqsDlqClient, hmppsDomainEventQueue().queueName, hmppsDomainEventQueue().dlqName) }
-        .also { log.info("Created localstack sqs client for queue ${hmppsDomainEventQueue().queueName}") }
+        .also { sqsClient -> createQueue(sqsClient, testHmppsSqsDlqClient, hmppsDomainEventTestQueue().queueName, hmppsDomainEventTestQueue().dlqName) }
+        .also { log.info("Created TEST localstack sqs client for queue ${hmppsDomainEventTestQueue().queueName}") }
         .also {
           subscribeToTopic(
-            awsHMPPSEventsSnsClient, localstackUrl, region, hmppsDomainEventQueue().topicName, hmppsDomainEventQueue().queueName,
+            awsHMPPSEventsSnsClient, localstackUrl, region, hmppsDomainTopic().topicName, hmppsDomainEventTestQueue().queueName,
             mapOf()
           )
         }
-        .also { log.info("Queue ${hmppsDomainEventQueue().queueName} has subscribed to hmpps topic ${hmppsDomainEventQueue().topicName}") }
-        .also { hmppsQueueService.registerHmppsQueue("hmppsDomainEventQueue", it, hmppsDomainEventQueue().queueName, awsHmppsSqsDlqClient, hmppsDomainEventQueue().dlqName) }
+        .also { log.info("TEST Queue ${hmppsDomainEventTestQueue().queueName} has subscribed to hmpps topic ${hmppsDomainTopic().topicName}") }
     }
 
   @Bean
-  fun awsHmppsSqsDlqClient(sqsConfigProperties: SqsConfigProperties): AmazonSQS =
+  @Profile("test")
+  fun testHmppsSqsDlqClient(sqsConfigProperties: SqsConfigProperties): AmazonSQS =
     with(sqsConfigProperties) {
       localstackAmazonSQS(localstackUrl, region)
-        .also { dlqSqsClient -> dlqSqsClient.createQueue(hmppsDomainEventQueue().dlqName) }
-        .also { log.info("Created localstack dlq sqs client for dlq ${hmppsDomainEventQueue().dlqName}") }
+        .also { dlqSqsClient -> dlqSqsClient.createQueue(hmppsDomainEventTestQueue().dlqName) }
+        .also { log.info("Created TEST localstack dlq sqs client for dlq ${hmppsDomainEventTestQueue().dlqName}") }
     }
 
   private fun subscribeToTopic(
@@ -106,16 +140,16 @@ class SubscribeLocalstackConfig(private val hmppsQueueService: HmppsQueueService
   fun awsPrisonEventsSnsClient(sqsConfigProperties: SqsConfigProperties): AmazonSNSAsync =
     with(sqsConfigProperties) {
       localstackAmazonSNS(localstackUrl, region)
-        .also { snsClient -> snsClient.createTopic(prisonEventQueue().topicName) }
-        .also { log.info("Created localstack sns topic with name ${prisonEventQueue().topicName}") }
+        .also { snsClient -> snsClient.createTopic(prisonEventTopic().topicName) }
+        .also { log.info("Created localstack sns topic with name ${prisonEventTopic().topicName}") }
     }
 
   @Bean
   fun awsHMPPSEventsSnsClient(sqsConfigProperties: SqsConfigProperties): AmazonSNSAsync =
     with(sqsConfigProperties) {
       localstackAmazonSNS(sqsConfigProperties.localstackUrl, sqsConfigProperties.region)
-        .also { snsClient -> snsClient.createTopic(hmppsDomainEventQueue().topicName) }
-        .also { log.info("Created localstack sns topic with name ${hmppsDomainEventQueue().topicName}") }
+        .also { snsClient -> snsClient.createTopic(hmppsDomainTopic().topicName) }
+        .also { log.info("Created localstack sns topic with name ${hmppsDomainTopic().topicName}") }
     }
 
   private fun localstackTopicArn(region: String, topicName: String) = "arn:aws:sns:$region:000000000000:$topicName"

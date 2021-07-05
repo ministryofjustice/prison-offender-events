@@ -34,7 +34,8 @@ class PrisonEventsEmitterTest {
     service = PrisonEventsEmitter(
       awsPrisonEventsSnsClient,
       SqsConfigProperties(
-        "", "", queues = mapOf("prisonEventQueue" to SqsConfigProperties.QueueConfig(topicArn = "topicARN"))
+        "", "", topics = mapOf("prisonEventTopic" to SqsConfigProperties.TopicConfig(topicArn = "topicARN")),
+        queues = mapOf("prisonEventQueue" to SqsConfigProperties.QueueConfig(queueName = "queueName"))
       ),
       objectMapper, telemetryClient
     )
