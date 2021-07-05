@@ -156,7 +156,7 @@ public class HMPPSDomainEventsTest extends QueueListenerIntegrationTest {
         class WhenIsReportedAsSentenced {
             @BeforeEach
             void setUp() {
-                PrisonApiExtension.server.stubPrisonerDetails("A5194DY", "SENTENCED", false, "ADM");
+                PrisonApiExtension.server.stubPrisonerDetails("A5194DY", "SENTENCED", false, "ADM", "K", "ACTIVE IN", "MDI");
             }
 
             @Test

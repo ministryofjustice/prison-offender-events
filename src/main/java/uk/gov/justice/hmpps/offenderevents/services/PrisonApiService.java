@@ -35,6 +35,7 @@ enum MovementReason {
     HOSPITALISATION,
     TRANSFER,
     RECALL,
+    REMAND,
     OTHER
 }
 
@@ -80,11 +81,16 @@ record PrisonerDetails(LegalStatus legalStatus,
                        String latestLocationId
 ) {
 
+    public static final String UNCONVICTED_REMAND = "N";
     public static final String LICENCE_REVOKED = "L";
     public static final String RECALL_FROM_HDC = "B";
     public static final String TRANSFER_IN = "INT";
     public static final String TRANSFER_IN_VIA_COURT = "TRNCRT";
     public static final String TRANSFER_IN_VIA_TAP = "TRNTAP";
+
+    public LegalStatus legalStatus() {
+        return legalStatus == null ? LegalStatus.UNKNOWN : legalStatus;
+    }
 
     public MovementType typeOfMovement() {
         return switch (lastMovementTypeCode) {
@@ -102,6 +108,7 @@ record PrisonerDetails(LegalStatus legalStatus,
             case "HP" -> MovementReason.HOSPITALISATION;
             case TRANSFER_IN, TRANSFER_IN_VIA_COURT, TRANSFER_IN_VIA_TAP -> MovementReason.TRANSFER;
             case LICENCE_REVOKED, RECALL_FROM_HDC -> MovementReason.RECALL;
+            case UNCONVICTED_REMAND -> MovementReason.REMAND;
             default -> MovementReason.OTHER;
         };
     }

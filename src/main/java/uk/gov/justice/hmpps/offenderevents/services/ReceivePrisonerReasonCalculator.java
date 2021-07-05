@@ -17,7 +17,7 @@ public class ReceivePrisonerReasonCalculator {
         this.communityApiService = communityApiService;
     }
 
-    public RecallReason calculateMostLikelyReasonForPrisonerReceive(String offenderNumber) {
+    public ReceiveReason calculateMostLikelyReasonForPrisonerReceive(String offenderNumber) {
         final var prisonerDetails = prisonApiService.getPrisonerDetails(offenderNumber);
         final var details = String.format("%s:%s", prisonerDetails.status(), prisonerDetails.statusReason());
         final var currentLocation = prisonerDetails.currentLocation();
@@ -32,6 +32,7 @@ public class ReceivePrisonerReasonCalculator {
                     case ADMISSION -> switch (prisonerDetails.movementReason()) {
                         case TRANSFER -> Reason.TRANSFERRED;
                         case RECALL -> Reason.RECALL;
+                        case REMAND -> Reason.REMAND;
                         default -> null;
                     };
                     default -> null;
@@ -55,7 +56,7 @@ public class ReceivePrisonerReasonCalculator {
                 return new ReasonWithDetailsAndSource(reason, Source.PRISON, details);
             });
 
-        return new RecallReason(reasonWithSourceAndDetails.reason(),
+        return new ReceiveReason(reasonWithSourceAndDetails.reason(),
             reasonWithSourceAndDetails.source(),
             reasonWithSourceAndDetails.details(),
             currentLocation,
@@ -116,10 +117,14 @@ public class ReceivePrisonerReasonCalculator {
 
     }
 
-    record RecallReason(Reason reason, Source source, String details, CurrentLocation currentLocation,
-                        CurrentPrisonStatus currentPrisonStatus, String prisonId) {
-        public RecallReason(Reason reason, Source source, CurrentLocation currentLocation, CurrentPrisonStatus currentPrisonStatus, String prisonId) {
+    record ReceiveReason(Reason reason, Source source, String details, CurrentLocation currentLocation,
+                         CurrentPrisonStatus currentPrisonStatus, String prisonId) implements PrisonerMovementReason {
+        public ReceiveReason(Reason reason, Source source, CurrentLocation currentLocation, CurrentPrisonStatus currentPrisonStatus, String prisonId) {
             this(reason, source, null, currentLocation, currentPrisonStatus, prisonId);
+        }
+
+        public boolean hasPrisonerActuallyBeenReceived() {
+            return currentLocation == CurrentLocation.IN_PRISON;
         }
     }
 }

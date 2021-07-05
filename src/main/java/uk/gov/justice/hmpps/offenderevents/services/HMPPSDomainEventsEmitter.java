@@ -51,8 +51,8 @@ public class HMPPSDomainEventsEmitter {
 
     public void convertAndSendWhenSignificant(OffenderEvent event) {
         final Optional<HMPPSDomainEvent> hmppsEvent = switch (event.getEventType()) {
-            case "OFFENDER_MOVEMENT-RECEPTION" -> Optional.of(toPrisonerReceived(event));
-            case "OFFENDER_MOVEMENT-DISCHARGE" -> Optional.of(toPrisonerReleased(event));
+            case "OFFENDER_MOVEMENT-RECEPTION" -> toPrisonerReceived(event);
+            case "OFFENDER_MOVEMENT-DISCHARGE" -> toPrisonerReleased(event);
             default -> Optional.empty();
         };
 
@@ -82,25 +82,53 @@ public class HMPPSDomainEventsEmitter {
 
         Optional
             .ofNullable(hmppsDomainEvent.additionalInformation().currentLocation())
-            .ifPresent(source -> elements.put("currentLocation", hmppsDomainEvent
-                .additionalInformation()
-                .currentLocation()
-                .name()));
+            .ifPresent(currentLocation -> elements.put("currentLocation", currentLocation.name()));
 
         Optional
             .ofNullable(hmppsDomainEvent.additionalInformation().currentPrisonStatus())
-            .ifPresent(source -> elements.put("currentPrisonStatus", hmppsDomainEvent
-                .additionalInformation()
-                .currentPrisonStatus()
-                .name()));
+            .ifPresent(currentPrisonStatus -> elements.put("currentPrisonStatus", currentPrisonStatus.name()));
 
         return elements;
     }
 
-    private HMPPSDomainEvent toPrisonerReceived(OffenderEvent event) {
+    private Map<String, String> asTelemetryMap(OffenderEvent event, PrisonerMovementReason reason, String reasonDescription) {
+        var elements = new HashMap<>(Map.of(
+            "occurredAt",
+            event.getEventDatetime().format(DateTimeFormatter.ISO_DATE_TIME),
+            "nomsNumber",
+            event.getOffenderIdDisplay(),
+            "reason",
+            reasonDescription,
+            "prisonId",
+            reason.prisonId()
+        ));
+
+        Optional
+            .ofNullable(reason.details())
+            .ifPresent(details -> elements.put("details", details));
+
+        Optional
+            .ofNullable(reason.currentLocation())
+            .ifPresent(currentLocation -> elements.put("currentLocation", currentLocation.name()));
+
+        Optional
+            .ofNullable(reason.currentPrisonStatus())
+            .ifPresent(currentPrisonStatus -> elements.put("currentPrisonStatus", currentPrisonStatus.name()));
+
+        return elements;
+    }
+
+    private Optional<HMPPSDomainEvent> toPrisonerReceived(OffenderEvent event) {
         final var offenderNumber = event.getOffenderIdDisplay();
         final var receivedReason = receivePrisonerReasonCalculator.calculateMostLikelyReasonForPrisonerReceive(offenderNumber);
-        return new HMPPSDomainEvent("prison-offender-events.prisoner.received",
+
+        if (!receivedReason.hasPrisonerActuallyBeenReceived()) {
+            telemetryClient.trackEvent("prison-offender-events.prisoner.not-received", asTelemetryMap(event, receivedReason, receivedReason
+                .reason()
+                .name()), null);
+            return Optional.empty();
+        }
+        return Optional.of(new HMPPSDomainEvent("prison-offender-events.prisoner.received",
             new AdditionalInformation(offenderNumber,
                 receivedReason.reason().name(),
                 receivedReason.source().name(),
@@ -110,23 +138,31 @@ public class HMPPSDomainEventsEmitter {
                 receivedReason.currentPrisonStatus()
             ),
             event.getEventDatetime(),
-            "A prisoner has been received into prison");
+            "A prisoner has been received into prison"));
     }
 
-    private HMPPSDomainEvent toPrisonerReleased(OffenderEvent event) {
+    private Optional<HMPPSDomainEvent> toPrisonerReleased(OffenderEvent event) {
         final var offenderNumber = event.getOffenderIdDisplay();
         final var releaseReason = releasePrisonerReasonCalculator.calculateReasonForRelease(offenderNumber);
-        return new HMPPSDomainEvent("prison-offender-events.prisoner.released",
+
+        if (!releaseReason.hasPrisonerActuallyBeenRelease()) {
+            telemetryClient.trackEvent("prison-offender-events.prisoner.not-released", asTelemetryMap(event, releaseReason, releaseReason
+                .reason()
+                .name()), null);
+            return Optional.empty();
+        }
+
+        return Optional.of(new HMPPSDomainEvent("prison-offender-events.prisoner.released",
             new AdditionalInformation(offenderNumber,
                 releaseReason.reason().name(),
                 null,
                 releaseReason.details(),
                 releaseReason.currentLocation(),
-                releaseReason.latestLocationId(),
+                releaseReason.prisonId(),
                 releaseReason.currentPrisonStatus()
             ),
             event.getEventDatetime(),
-            "A prisoner has been released from prison");
+            "A prisoner has been released from prison"));
     }
 
     public void sendEvent(final HMPPSDomainEvent payload) {
