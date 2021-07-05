@@ -127,6 +127,7 @@ internal class HMPPSDomainEventsEmitterTest {
   internal inner class PrisonerReceived {
     private var payload: String? = null
     private var telemetryAttributes: Map<String, String>? = null
+
     @BeforeEach
     fun setUp() {
       Mockito.`when`(
@@ -315,6 +316,7 @@ internal class HMPPSDomainEventsEmitterTest {
   internal inner class PrisonerReleased {
     private var payload: String? = null
     private var telemetryAttributes: Map<String, String>? = null
+
     @BeforeEach
     fun setUp() {
       Mockito.`when`(releasePrisonerReasonCalculator!!.calculateReasonForRelease(ArgumentMatchers.any()))
@@ -494,12 +496,10 @@ internal class HMPPSDomainEventsEmitterTest {
     }
   }
 
-  companion object {
-    private fun eventMap(): Stream<Arguments> {
-      return Stream.of(
-        Arguments.of("OFFENDER_MOVEMENT-DISCHARGE", "prison-offender-events.prisoner.released"),
-        Arguments.of("OFFENDER_MOVEMENT-RECEPTION", "prison-offender-events.prisoner.received")
-      )
-    }
+  private fun eventMap(): Stream<Arguments> {
+    return Stream.of(
+      Arguments.of("OFFENDER_MOVEMENT-DISCHARGE", "prison-offender-events.prisoner.released"),
+      Arguments.of("OFFENDER_MOVEMENT-RECEPTION", "prison-offender-events.prisoner.received")
+    )
   }
 }
