@@ -20,7 +20,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 
-import static uk.gov.justice.hmpps.offenderevents.config.SqsConfigPropertiesKt.hmppsDomainTopic;
+import static uk.gov.justice.hmpps.offenderevents.config.SqsConfigPropertiesKt.hmppsEventTopic;
 
 @Service
 @Slf4j
@@ -41,7 +41,7 @@ public class HMPPSDomainEventsEmitter {
                              final ReleasePrisonerReasonCalculator releasePrisonerReasonCalculator,
                              final TelemetryClient telemetryClient) {
         this.topicTemplate = new NotificationMessagingTemplate(awsHMPPSEventsSnsClient);
-        this.topicArn = hmppsDomainTopic(sqsConfigProperties).getTopicArn();
+        this.topicArn = hmppsEventTopic(sqsConfigProperties).getTopicArn();
         this.awsHMPPSEventsSnsClient = awsHMPPSEventsSnsClient;
         this.objectMapper = objectMapper;
         this.receivePrisonerReasonCalculator = receivePrisonerReasonCalculator;

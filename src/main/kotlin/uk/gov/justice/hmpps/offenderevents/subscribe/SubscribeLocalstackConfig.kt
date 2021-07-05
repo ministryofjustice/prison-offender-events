@@ -19,8 +19,8 @@ import org.springframework.context.annotation.Configuration
 import org.springframework.context.annotation.Primary
 import org.springframework.context.annotation.Profile
 import uk.gov.justice.hmpps.offenderevents.config.SqsConfigProperties
-import uk.gov.justice.hmpps.offenderevents.config.hmppsDomainEventTestQueue
-import uk.gov.justice.hmpps.offenderevents.config.hmppsDomainTopic
+import uk.gov.justice.hmpps.offenderevents.config.hmppsEventTestQueue
+import uk.gov.justice.hmpps.offenderevents.config.hmppsEventTopic
 import uk.gov.justice.hmpps.offenderevents.config.prisonEventQueue
 import uk.gov.justice.hmpps.offenderevents.config.prisonEventTestQueue
 import uk.gov.justice.hmpps.offenderevents.config.prisonEventTopic
@@ -99,15 +99,15 @@ class SubscribeLocalstackConfig(private val hmppsQueueService: HmppsQueueService
   ): AmazonSQS =
     with(sqsConfigProperties) {
       localstackAmazonSQS(localstackUrl, region)
-        .also { sqsClient -> createQueue(sqsClient, testHmppsSqsDlqClient, hmppsDomainEventTestQueue().queueName, hmppsDomainEventTestQueue().dlqName) }
-        .also { log.info("Created TEST localstack sqs client for queue ${hmppsDomainEventTestQueue().queueName}") }
+        .also { sqsClient -> createQueue(sqsClient, testHmppsSqsDlqClient, hmppsEventTestQueue().queueName, hmppsEventTestQueue().dlqName) }
+        .also { log.info("Created TEST localstack sqs client for queue ${hmppsEventTestQueue().queueName}") }
         .also {
           subscribeToTopic(
-            awsHMPPSEventsSnsClient, localstackUrl, region, hmppsDomainTopic().topicName, hmppsDomainEventTestQueue().queueName,
+            awsHMPPSEventsSnsClient, localstackUrl, region, hmppsEventTopic().topicName, hmppsEventTestQueue().queueName,
             mapOf()
           )
         }
-        .also { log.info("TEST Queue ${hmppsDomainEventTestQueue().queueName} has subscribed to hmpps topic ${hmppsDomainTopic().topicName}") }
+        .also { log.info("TEST Queue ${hmppsEventTestQueue().queueName} has subscribed to hmpps topic ${hmppsEventTopic().topicName}") }
     }
 
   @Bean
@@ -115,8 +115,8 @@ class SubscribeLocalstackConfig(private val hmppsQueueService: HmppsQueueService
   fun testHmppsSqsDlqClient(sqsConfigProperties: SqsConfigProperties): AmazonSQS =
     with(sqsConfigProperties) {
       localstackAmazonSQS(localstackUrl, region)
-        .also { dlqSqsClient -> dlqSqsClient.createQueue(hmppsDomainEventTestQueue().dlqName) }
-        .also { log.info("Created TEST localstack dlq sqs client for dlq ${hmppsDomainEventTestQueue().dlqName}") }
+        .also { dlqSqsClient -> dlqSqsClient.createQueue(hmppsEventTestQueue().dlqName) }
+        .also { log.info("Created TEST localstack dlq sqs client for dlq ${hmppsEventTestQueue().dlqName}") }
     }
 
   private fun subscribeToTopic(
@@ -148,8 +148,8 @@ class SubscribeLocalstackConfig(private val hmppsQueueService: HmppsQueueService
   fun awsHMPPSEventsSnsClient(sqsConfigProperties: SqsConfigProperties): AmazonSNSAsync =
     with(sqsConfigProperties) {
       localstackAmazonSNS(sqsConfigProperties.localstackUrl, sqsConfigProperties.region)
-        .also { snsClient -> snsClient.createTopic(hmppsDomainTopic().topicName) }
-        .also { log.info("Created localstack sns topic with name ${hmppsDomainTopic().topicName}") }
+        .also { snsClient -> snsClient.createTopic(hmppsEventTopic().topicName) }
+        .also { log.info("Created localstack sns topic with name ${hmppsEventTopic().topicName}") }
     }
 
   private fun localstackTopicArn(region: String, topicName: String) = "arn:aws:sns:$region:000000000000:$topicName"

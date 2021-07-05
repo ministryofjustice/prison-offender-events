@@ -20,7 +20,7 @@ public class TopicHealth implements HealthIndicator {
     public TopicHealth(@Qualifier("awsPrisonEventsSnsClient") AmazonSNS awsPrisonEventsSnsClient, SqsConfigProperties sqsConfigProperties) {
         this.awsPrisonEventsSnsClient = awsPrisonEventsSnsClient;
         this.arn = prisonEventTopic(sqsConfigProperties).getTopicArn();
-       // this.hmppsArn = sqsConfigProperties.getQueues().get("hmppsDomainEventQueue").getTopicArn();
+       // this.hmppsArn = hmppsEventTopic(sqsConfigProperties).getTopicArn();
     }
 
     public Health health() {

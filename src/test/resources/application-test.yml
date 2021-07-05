@@ -33,13 +33,13 @@ hmpps.sqs:
     prisonEventTestQueue:
       queueName: ${random.uuid}
       dlqName: ${random.uuid}
-    hmppsDomainEventTestQueue:
+    hmppsEventTestQueue:
       queueName: ${random.uuid}
       dlqName: ${random.uuid}
   topics:
     prisonEventTopic:
       topicArn: arn:aws:sns:eu-west-2:000000000000:${random.uuid}
-    hmppsDomainTopic:
+    hmppsEventTopic:
       topicArn: arn:aws:sns:eu-west-2:000000000000:${random.uuid}
 
 

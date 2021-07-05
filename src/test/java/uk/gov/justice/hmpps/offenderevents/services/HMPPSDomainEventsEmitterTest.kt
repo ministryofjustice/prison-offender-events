@@ -61,7 +61,7 @@ internal class HMPPSDomainEventsEmitterTest {
       awsHMPPSEventsSnsClient,
       SqsConfigProperties(
         "", "",
-        topics = mapOf("hmppsDomainTopic" to SqsConfigProperties.TopicConfig(topicArn = "sometopicarn")),
+        topics = mapOf("hmppsEventTopic" to SqsConfigProperties.TopicConfig(topicArn = "sometopicarn")),
         queues = mapOf()
       ),
       ObjectMapper(),

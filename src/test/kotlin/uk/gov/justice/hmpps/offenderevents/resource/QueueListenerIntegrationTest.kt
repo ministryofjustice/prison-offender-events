@@ -5,7 +5,7 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.boot.test.mock.mockito.SpyBean
 import uk.gov.justice.hmpps.offenderevents.config.SqsConfigProperties
-import uk.gov.justice.hmpps.offenderevents.config.hmppsDomainEventTestQueue
+import uk.gov.justice.hmpps.offenderevents.config.hmppsEventTestQueue
 import uk.gov.justice.hmpps.offenderevents.config.prisonEventQueue
 import uk.gov.justice.hmpps.offenderevents.config.prisonEventTestQueue
 
@@ -46,20 +46,20 @@ abstract class QueueListenerIntegrationTest : IntegrationTestBase() {
   val dlqName: String by lazy { sqsConfigProperties.prisonEventQueue().dlqName }
   val dlqUrl: String by lazy { awsSqsDlqClient.getQueueUrl(dlqName).queueUrl }
 
-  // The SQS clients for the test prisonEventsTestQueue
-  fun getNumberOfMessagesCurrentlyOnTestQueue(): Int = testSqsClient.numMessages("prisonEventsTestQueueUrl", testQueueUrl)
+  // The SQS clients for the test prisonEventTestQueue
+  fun getNumberOfMessagesCurrentlyOnTestQueue(): Int = testSqsClient.numMessages("prisonEventTestQueueUrl", testQueueUrl)
   val testQueueName: String by lazy { sqsConfigProperties.prisonEventTestQueue().queueName }
   val testQueueUrl: String by lazy { testSqsClient.getQueueUrl(testQueueName).queueUrl }
-  fun getNumberOfMessagesCurrentlyOnTestDlq(): Int = testSqsDlqClient.numMessages("prisonEventsTestDlqUrl", testDlqUrl)
+  fun getNumberOfMessagesCurrentlyOnTestDlq(): Int = testSqsDlqClient.numMessages("prisonEventTestDlqUrl", testDlqUrl)
   val testDlqName: String by lazy { sqsConfigProperties.prisonEventTestQueue().dlqName }
   val testDlqUrl: String by lazy { testSqsDlqClient.getQueueUrl(testDlqName).queueUrl }
 
-  // The SQS clients for the test hmppsDomainEventTestQueue
+  // The SQS clients for the test hmppsEventTestQueue
   fun getNumberOfMessagesCurrentlyOnHMPPSTestQueue(): Int = testHmppsSqsClient.numMessages("hmppsTestQueueUrl", testHmppsQueueUrl)
-  val testHmppsQueueName: String by lazy { sqsConfigProperties.hmppsDomainEventTestQueue().queueName }
+  val testHmppsQueueName: String by lazy { sqsConfigProperties.hmppsEventTestQueue().queueName }
   val testHmppsQueueUrl: String by lazy { testHmppsSqsClient.getQueueUrl(testHmppsQueueName).queueUrl }
   fun getNumberOfMessagesCurrentlyOnHMPPSTestDlq(): Int = testHmppsSqsDlqClient.numMessages("hmppsTestDlqlUrl", testHmppsDlqlUrl)
-  val testHmppsDlqName: String by lazy { sqsConfigProperties.hmppsDomainEventTestQueue().dlqName }
+  val testHmppsDlqName: String by lazy { sqsConfigProperties.hmppsEventTestQueue().dlqName }
   val testHmppsDlqlUrl: String by lazy { testHmppsSqsDlqClient.getQueueUrl(testHmppsDlqName).queueUrl }
 }
 
