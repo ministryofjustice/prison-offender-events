@@ -19,6 +19,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import static uk.gov.justice.hmpps.offenderevents.config.SqsConfigPropertiesKt.prisonEventQueue;
+import static uk.gov.justice.hmpps.offenderevents.config.SqsConfigPropertiesKt.prisonEventTopic;
 
 @Service
 @Slf4j
@@ -37,7 +38,7 @@ public class PrisonEventsEmitter {
                                final TelemetryClient telemetryClient) {
 
         this.topicTemplate = new NotificationMessagingTemplate(awsPrisonEventsSnsClient);
-        this.topicArn = prisonEventQueue(sqsConfigProperties).getTopicArn();
+        this.topicArn = prisonEventTopic(sqsConfigProperties).getTopicArn();
         System.out.println("Prison Event Queue" + prisonEventQueue(sqsConfigProperties).getQueueName());
         this.awsPrisonEventsSnsClient = awsPrisonEventsSnsClient;
         this.objectMapper = objectMapper;

@@ -15,7 +15,8 @@ internal class TopicHealthTest {
   private val topicHealth = TopicHealth(
     awsPrisonEventsSnsClient,
     SqsConfigProperties(
-      "", "", queues = mapOf("prisonEventQueue" to SqsConfigProperties.QueueConfig(topicArn = "SOME_ARN"))
+      "", "", topics = mapOf("prisonEventTopic" to SqsConfigProperties.TopicConfig(topicArn = "SOME_ARN")),
+      queues = mapOf()
     )
   )
 

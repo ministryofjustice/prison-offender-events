@@ -28,12 +28,18 @@ hmpps.sqs:
   localstackUrl: http://localhost:4566
   queues:
     prisonEventQueue:
-      topicArn: arn:aws:sns:eu-west-2:000000000000:${random.uuid}
       queueName: ${random.uuid}
       dlqName: ${random.uuid}
-    hmppsDomainEventQueue:
-      topicArn: arn:aws:sns:eu-west-2:000000000000:${random.uuid}
+    prisonEventTestQueue:
       queueName: ${random.uuid}
       dlqName: ${random.uuid}
+    hmppsDomainEventTestQueue:
+      queueName: ${random.uuid}
+      dlqName: ${random.uuid}
+  topics:
+    prisonEventTopic:
+      topicArn: arn:aws:sns:eu-west-2:000000000000:${random.uuid}
+    hmppsDomainTopic:
+      topicArn: arn:aws:sns:eu-west-2:000000000000:${random.uuid}
 
 

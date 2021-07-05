@@ -116,12 +116,12 @@ hmpps.sqs:
       dlqName: ${sqs.dlq.name}
       dlqAccessKeyId: ${sqs.aws.dlq.access.key.id}
       dlqSecretAccessKey: ${sqs.aws.dlq.secret.access.key}
-
+  topics:
+    prisonEventTopic:
       topicAccessKeyId: ${sns.aws.access.key.id}
       topicSecretAccessKey: ${sns.aws.secret.access.key}
       topicArn: ${sns.topic.arn}
-
-    hmppsDomainEventQueue:
+    hmppsDomainTopic:
       topicAccessKeyId: ${hmpps.sns.aws.access.key.id}
       topicSecretAccessKey: ${hmpps.sns.aws.secret.access.key}
       topicArn: ${hmpps.sns.topic.arn}

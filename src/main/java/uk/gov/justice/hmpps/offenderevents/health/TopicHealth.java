@@ -8,7 +8,7 @@ import org.springframework.boot.actuate.health.HealthIndicator;
 import org.springframework.stereotype.Component;
 import uk.gov.justice.hmpps.offenderevents.config.SqsConfigProperties;
 
-import static uk.gov.justice.hmpps.offenderevents.config.SqsConfigPropertiesKt.prisonEventQueue;
+import static uk.gov.justice.hmpps.offenderevents.config.SqsConfigPropertiesKt.prisonEventTopic;
 
 @Component
 @Slf4j
@@ -19,7 +19,7 @@ public class TopicHealth implements HealthIndicator {
 
     public TopicHealth(@Qualifier("awsPrisonEventsSnsClient") AmazonSNS awsPrisonEventsSnsClient, SqsConfigProperties sqsConfigProperties) {
         this.awsPrisonEventsSnsClient = awsPrisonEventsSnsClient;
-        this.arn = prisonEventQueue(sqsConfigProperties).getTopicArn();
+        this.arn = prisonEventTopic(sqsConfigProperties).getTopicArn();
        // this.hmppsArn = sqsConfigProperties.getQueues().get("hmppsDomainEventQueue").getTopicArn();
     }
 
