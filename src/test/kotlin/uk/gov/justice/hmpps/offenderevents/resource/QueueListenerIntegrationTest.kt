@@ -24,16 +24,8 @@ abstract class QueueListenerIntegrationTest : IntegrationTestBase() {
   protected lateinit var testSqsClient: AmazonSQS
 
   @SpyBean
-  @Qualifier("testSqsDlqClient")
-  protected lateinit var testSqsDlqClient: AmazonSQS
-
-  @SpyBean
   @Qualifier("testHmppsSqsClient")
   protected lateinit var testHmppsSqsClient: AmazonSQS
-
-  @SpyBean
-  @Qualifier("testHmppsSqsDlqClient")
-  protected lateinit var testHmppsSqsDlqClient: AmazonSQS
 
   @Autowired
   protected lateinit var sqsConfigProperties: SqsConfigProperties
