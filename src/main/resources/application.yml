@@ -121,7 +121,7 @@ hmpps.sqs:
       topicAccessKeyId: ${sns.aws.access.key.id}
       topicSecretAccessKey: ${sns.aws.secret.access.key}
       topicArn: ${sns.topic.arn}
-    hmppsDomainTopic:
+    hmppsEventTopic:
       topicAccessKeyId: ${hmpps.sns.aws.access.key.id}
       topicSecretAccessKey: ${hmpps.sns.aws.secret.access.key}
       topicArn: ${hmpps.sns.topic.arn}

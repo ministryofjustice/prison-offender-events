@@ -3,13 +3,13 @@ hmpps.sqs:
   localstackUrl: http://localhost:4566
   queues:
     prisonEventQueue:
-      topicArn: arn:aws:sns:eu-west-2:000000000000:dps-topic
-      queueName: dps-queue
-      dlqName: dps-dlq
-    hmppsDomainEventQueue:
-      topicArn: arn:aws:sns:eu-west-2:000000000000:hmpps-topic
-      queueName: hmpps-queue
-      dlqName: hmpps-dlq
+      queueName: prison-event-topic
+      dlqName: hmpps-event-topic
+  topics:
+    prisonEventTopic:
+      topicArn: arn:aws:sns:eu-west-2:000000000000:prison-event-topic
+    hmppsEventTopic:
+      topicArn: arn:aws:sns:eu-west-2:000000000000:hmpps-event-topic
 
 aws:
   provider: localstack
