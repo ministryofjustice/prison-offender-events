@@ -12,6 +12,7 @@ import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
+import org.junit.jupiter.api.TestInstance.Lifecycle.PER_CLASS
 import org.junit.jupiter.api.extension.ExtendWith
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.Arguments
@@ -23,16 +24,26 @@ import org.mockito.Mock
 import org.mockito.Mockito
 import org.mockito.junit.jupiter.MockitoExtension
 import org.mockito.junit.jupiter.MockitoSettings
-import org.mockito.quality.Strictness
+import org.mockito.quality.Strictness.LENIENT
 import uk.gov.justice.hmpps.offenderevents.config.SqsConfigProperties
+import uk.gov.justice.hmpps.offenderevents.config.SqsConfigProperties.TopicConfig
 import uk.gov.justice.hmpps.offenderevents.model.OffenderEvent
+import uk.gov.justice.hmpps.offenderevents.services.CurrentLocation.IN_PRISON
+import uk.gov.justice.hmpps.offenderevents.services.CurrentLocation.OUTSIDE_PRISON
+import uk.gov.justice.hmpps.offenderevents.services.CurrentPrisonStatus.NOT_UNDER_PRISON_CARE
+import uk.gov.justice.hmpps.offenderevents.services.CurrentPrisonStatus.UNDER_PRISON_CARE
+import uk.gov.justice.hmpps.offenderevents.services.ReceivePrisonerReasonCalculator.Reason.RECALL
+import uk.gov.justice.hmpps.offenderevents.services.ReceivePrisonerReasonCalculator.Reason.UNKNOWN
 import uk.gov.justice.hmpps.offenderevents.services.ReceivePrisonerReasonCalculator.ReceiveReason
+import uk.gov.justice.hmpps.offenderevents.services.ReceivePrisonerReasonCalculator.Source.PRISON
+import uk.gov.justice.hmpps.offenderevents.services.ReleasePrisonerReasonCalculator.Reason
+import uk.gov.justice.hmpps.offenderevents.services.ReleasePrisonerReasonCalculator.Reason.TEMPORARY_ABSENCE_RELEASE
 import uk.gov.justice.hmpps.offenderevents.services.ReleasePrisonerReasonCalculator.ReleaseReason
 import java.time.LocalDateTime
-import java.time.temporal.ChronoUnit
+import java.time.temporal.ChronoUnit.SECONDS
 import java.util.stream.Stream
 
-@TestInstance(TestInstance.Lifecycle.PER_CLASS)
+@TestInstance(PER_CLASS)
 @ExtendWith(MockitoExtension::class)
 internal class HMPPSDomainEventsEmitterTest {
   private var emitter: HMPPSDomainEventsEmitter? = null
@@ -61,7 +72,7 @@ internal class HMPPSDomainEventsEmitterTest {
       awsHMPPSEventsSnsClient,
       SqsConfigProperties(
         "", "",
-        topics = mapOf("hmppsEventTopic" to SqsConfigProperties.TopicConfig(topicArn = "sometopicarn")),
+        topics = mapOf("hmppsEventTopic" to TopicConfig(topicArn = "sometopicarn")),
         queues = mapOf()
       ),
       ObjectMapper(),
@@ -81,30 +92,29 @@ internal class HMPPSDomainEventsEmitterTest {
   @ParameterizedTest
   @MethodSource("eventMap")
   @DisplayName("Will send to topic for these events")
-  @MockitoSettings(strictness = Strictness.LENIENT)
+  @MockitoSettings(strictness = LENIENT)
   fun willSendToTopicForTheseEvents(prisonEventType: String?, eventType: String?) {
     Mockito.`when`(receivePrisonerReasonCalculator!!.calculateMostLikelyReasonForPrisonerReceive(ArgumentMatchers.any()))
       .thenReturn(
         ReceiveReason(
-          ReceivePrisonerReasonCalculator.Reason.UNKNOWN,
-          ReceivePrisonerReasonCalculator.Source.PRISON,
-          CurrentLocation.IN_PRISON,
-          CurrentPrisonStatus.UNDER_PRISON_CARE,
+          UNKNOWN,
+          PRISON,
+          IN_PRISON,
+          UNDER_PRISON_CARE,
           "MDI"
         )
       )
     Mockito.`when`(releasePrisonerReasonCalculator!!.calculateReasonForRelease(ArgumentMatchers.any()))
       .thenReturn(
         ReleaseReason(
-          ReleasePrisonerReasonCalculator.Reason.TEMPORARY_ABSENCE_RELEASE,
-          CurrentLocation.OUTSIDE_PRISON,
-          CurrentPrisonStatus.NOT_UNDER_PRISON_CARE,
+          TEMPORARY_ABSENCE_RELEASE,
+          OUTSIDE_PRISON,
+          NOT_UNDER_PRISON_CARE,
           "MDI"
         )
       )
     emitter!!.convertAndSendWhenSignificant(
-      OffenderEvent
-        .builder()
+      OffenderEvent.builder()
         .eventType(prisonEventType)
         .offenderIdDisplay("A1234GH")
         .eventDatetime(LocalDateTime.now())
@@ -137,17 +147,16 @@ internal class HMPPSDomainEventsEmitterTest {
       )
         .thenReturn(
           ReceiveReason(
-            ReceivePrisonerReasonCalculator.Reason.RECALL,
-            ReceivePrisonerReasonCalculator.Source.PRISON,
+            RECALL,
+            PRISON,
             "some details",
-            CurrentLocation.IN_PRISON,
-            CurrentPrisonStatus.UNDER_PRISON_CARE,
+            IN_PRISON,
+            UNDER_PRISON_CARE,
             "MDI"
           )
         )
       emitter!!.convertAndSendWhenSignificant(
-        OffenderEvent
-          .builder()
+        OffenderEvent.builder()
           .eventType("OFFENDER_MOVEMENT-RECEPTION")
           .offenderIdDisplay("A1234GH")
           .eventDatetime(LocalDateTime.parse("2020-12-04T10:42:43"))
@@ -174,7 +183,7 @@ internal class HMPPSDomainEventsEmitterTest {
         .asString()
         .satisfies { publishedAt: String? ->
           Assertions.assertThat(LocalDateTime.parse(publishedAt))
-            .isCloseTo(LocalDateTime.now(), Assertions.within(10, ChronoUnit.SECONDS))
+            .isCloseTo(LocalDateTime.now(), Assertions.within(10, SECONDS))
         }
     }
 
@@ -258,17 +267,16 @@ internal class HMPPSDomainEventsEmitterTest {
       Mockito.`when`(receivePrisonerReasonCalculator!!.calculateMostLikelyReasonForPrisonerReceive(ArgumentMatchers.any()))
         .thenReturn(
           ReceiveReason(
-            ReceivePrisonerReasonCalculator.Reason.UNKNOWN,
-            ReceivePrisonerReasonCalculator.Source.PRISON,
+            UNKNOWN,
+            PRISON,
             "some details",
-            CurrentLocation.OUTSIDE_PRISON,
-            CurrentPrisonStatus.NOT_UNDER_PRISON_CARE,
+            OUTSIDE_PRISON,
+            NOT_UNDER_PRISON_CARE,
             "MDI"
           )
         )
       emitter!!.convertAndSendWhenSignificant(
-        OffenderEvent
-          .builder()
+        OffenderEvent.builder()
           .eventType("OFFENDER_MOVEMENT-RECEPTION")
           .offenderIdDisplay("A1234GH")
           .eventDatetime(LocalDateTime.parse("2020-12-04T10:42:43"))
@@ -322,16 +330,15 @@ internal class HMPPSDomainEventsEmitterTest {
       Mockito.`when`(releasePrisonerReasonCalculator!!.calculateReasonForRelease(ArgumentMatchers.any()))
         .thenReturn(
           ReleaseReason(
-            ReleasePrisonerReasonCalculator.Reason.TEMPORARY_ABSENCE_RELEASE,
+            TEMPORARY_ABSENCE_RELEASE,
             "some details",
-            CurrentLocation.OUTSIDE_PRISON,
-            CurrentPrisonStatus.NOT_UNDER_PRISON_CARE,
+            OUTSIDE_PRISON,
+            NOT_UNDER_PRISON_CARE,
             "MDI"
           )
         )
       emitter!!.convertAndSendWhenSignificant(
-        OffenderEvent
-          .builder()
+        OffenderEvent.builder()
           .eventType("OFFENDER_MOVEMENT-DISCHARGE")
           .offenderIdDisplay("A1234GH")
           .eventDatetime(LocalDateTime.parse("2020-12-04T10:42:43"))
@@ -358,7 +365,7 @@ internal class HMPPSDomainEventsEmitterTest {
         .asString()
         .satisfies { publishedAt: String? ->
           Assertions.assertThat(LocalDateTime.parse(publishedAt))
-            .isCloseTo(LocalDateTime.now(), Assertions.within(10, ChronoUnit.SECONDS))
+            .isCloseTo(LocalDateTime.now(), Assertions.within(10, SECONDS))
         }
     }
 
@@ -446,13 +453,12 @@ internal class HMPPSDomainEventsEmitterTest {
       Mockito.`when`(releasePrisonerReasonCalculator!!.calculateReasonForRelease(ArgumentMatchers.any()))
         .thenReturn(
           ReleaseReason(
-            ReleasePrisonerReasonCalculator.Reason.UNKNOWN, "some details", CurrentLocation.IN_PRISON,
-            CurrentPrisonStatus.UNDER_PRISON_CARE, "MDI"
+            Reason.UNKNOWN, "some details", IN_PRISON,
+            UNDER_PRISON_CARE, "MDI"
           )
         )
       emitter!!.convertAndSendWhenSignificant(
-        OffenderEvent
-          .builder()
+        OffenderEvent.builder()
           .eventType("OFFENDER_MOVEMENT-DISCHARGE")
           .offenderIdDisplay("A1234GH")
           .eventDatetime(LocalDateTime.parse("2020-12-04T10:42:43"))
@@ -496,6 +502,7 @@ internal class HMPPSDomainEventsEmitterTest {
     }
   }
 
+  @Suppress("unused")
   private fun eventMap(): Stream<Arguments> {
     return Stream.of(
       Arguments.of("OFFENDER_MOVEMENT-DISCHARGE", "prison-offender-events.prisoner.released"),
