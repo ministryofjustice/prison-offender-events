@@ -15,12 +15,10 @@ import static uk.gov.justice.hmpps.offenderevents.config.SqsConfigPropertiesKt.p
 public class TopicHealth implements HealthIndicator {
     private final AmazonSNS awsPrisonEventsSnsClient;
     private final String arn;
-   // private final String hmppsArn;
 
     public TopicHealth(@Qualifier("awsPrisonEventsSnsClient") AmazonSNS awsPrisonEventsSnsClient, SqsConfigProperties sqsConfigProperties) {
         this.awsPrisonEventsSnsClient = awsPrisonEventsSnsClient;
         this.arn = prisonEventTopic(sqsConfigProperties).getTopicArn();
-       // this.hmppsArn = hmppsEventTopic(sqsConfigProperties).getTopicArn();
     }
 
     public Health health() {

@@ -3,8 +3,8 @@ hmpps.sqs:
   localstackUrl: http://localhost:4566
   queues:
     prisonEventQueue:
-      queueName: prison-event-topic
-      dlqName: hmpps-event-topic
+      queueName: prison-event-queue
+      dlqName: prison-event-dlq
   topics:
     prisonEventTopic:
       topicArn: arn:aws:sns:eu-west-2:000000000000:prison-event-topic
