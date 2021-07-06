@@ -13,8 +13,12 @@ import org.springframework.stereotype.Service;
 import uk.gov.justice.hmpps.offenderevents.config.SqsConfigProperties;
 import uk.gov.justice.hmpps.offenderevents.model.OffenderEvent;
 
+import java.time.OffsetDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -45,18 +49,23 @@ public class PrisonEventsEmitter {
 
     public void sendEvent(final OffenderEvent payload) {
         try {
-            final var code = buildOptionalCode(payload);
             topicTemplate.convertAndSend(
-                    new TopicMessageChannel(awsPrisonEventsSnsClient, topicArn),
-                    objectMapper.writeValueAsString(payload),
-                    code == null
-                            ? Map.of("eventType", payload.getEventType())
-                            : Map.of("eventType", payload.getEventType(), "code", code)
+                new TopicMessageChannel(awsPrisonEventsSnsClient, topicArn),
+                objectMapper.writeValueAsString(payload),
+                metaData(payload)
             );
             telemetryClient.trackEvent(payload.getEventType(), asTelemetryMap(payload), null);
         } catch (JsonProcessingException e) {
             log.error("Failed to convert payload {} to json", payload);
         }
+    }
+
+    private Map<String, Object> metaData(final OffenderEvent payload) {
+        final var metaData = new HashMap<String, Object>(Map.of(
+            "eventType", payload.getEventType(),
+            "publishedAt", OffsetDateTime.now().format(DateTimeFormatter.ISO_OFFSET_DATE_TIME)));
+        Optional.ofNullable(buildOptionalCode(payload)).ifPresent(code -> metaData.put("code", code));
+        return metaData;
     }
 
     private Map<String, String> asTelemetryMap(OffenderEvent event) {

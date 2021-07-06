@@ -11,6 +11,14 @@
 </p>
 <h4>Prison specific events - <b>offender-events</b> topic</h4>
 <div>
+    <p>
+      Meta data about the event included as a SQS Message Attribute is as follows:
+      <ul>
+        <li><b>eventType</b> see below for all event types - this is also included in the message</li>
+        <li><b>code</b> optional code that represents either the Alert Code for alerts of the movement Type with direction for events that contain movements</li>
+        <li><b>publishedAt</b> the zoned timestamp when this events was published e.g 2020-12-04T10:42:43+01:00, 2020-12-04T10:42:43Z</li>
+      </ul>
+    </p>
     The specific events currently being raised are
     <ul>
       <li><b>ACHIEVEMENTS-CARATS</b></li>
