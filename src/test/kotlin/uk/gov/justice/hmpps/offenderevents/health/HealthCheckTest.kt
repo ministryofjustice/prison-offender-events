@@ -4,7 +4,6 @@ import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
-import org.springframework.test.context.junit.jupiter.SpringExtension
 import uk.gov.justice.hmpps.offenderevents.config.prisonEventQueue
 import uk.gov.justice.hmpps.offenderevents.resource.QueueListenerIntegrationTest
 import uk.gov.justice.hmpps.offenderevents.services.wiremock.CommunityApiExtension
@@ -14,7 +13,7 @@ import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 import java.util.function.Consumer
 
-@ExtendWith(PrisonApiExtension::class, HMPPSAuthExtension::class, CommunityApiExtension::class, SpringExtension::class)
+@ExtendWith(PrisonApiExtension::class, HMPPSAuthExtension::class, CommunityApiExtension::class)
 class HealthCheckTest : QueueListenerIntegrationTest() {
 
   @BeforeEach
@@ -104,6 +103,28 @@ class HealthCheckTest : QueueListenerIntegrationTest() {
   fun `Health ping page is accessible`() {
     webTestClient.get()
       .uri("/health/ping")
+      .exchange()
+      .expectStatus()
+      .isOk
+      .expectBody()
+      .jsonPath("status").isEqualTo("UP")
+  }
+
+  @Test
+  fun `readiness reports ok`() {
+    webTestClient.get()
+      .uri("/health/readiness")
+      .exchange()
+      .expectStatus()
+      .isOk
+      .expectBody()
+      .jsonPath("status").isEqualTo("UP")
+  }
+
+  @Test
+  fun `liveness reports ok`() {
+    webTestClient.get()
+      .uri("/health/liveness")
       .exchange()
       .expectStatus()
       .isOk
