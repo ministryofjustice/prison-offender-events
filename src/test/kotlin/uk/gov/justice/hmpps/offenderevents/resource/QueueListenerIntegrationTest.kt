@@ -1,6 +1,8 @@
 package uk.gov.justice.hmpps.offenderevents.resource
 
 import com.amazonaws.services.sqs.AmazonSQS
+import com.amazonaws.services.sqs.model.PurgeQueueRequest
+import org.awaitility.Awaitility
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.boot.test.mock.mockito.SpyBean
@@ -45,6 +47,17 @@ abstract class QueueListenerIntegrationTest : IntegrationTestBase() {
 
   // The SQS clients for the test hmppsEventTestQueue
   fun getNumberOfMessagesCurrentlyOnHMPPSTestQueue(): Int = testHmppsSqsClient.numMessages(testHmppsQueueUrl)
+  fun purgeQueues() {
+    awsSqsClient.purgeQueue(PurgeQueueRequest(queueUrl))
+    Awaitility.await().until { getNumberOfMessagesCurrentlyOnQueue() == 0 }
+    awsSqsDlqClient.purgeQueue(PurgeQueueRequest(dlqUrl))
+    Awaitility.await().until { getNumberOfMessagesCurrentlyOnDlq() == 0 }
+    testSqsClient.purgeQueue(PurgeQueueRequest(testQueueUrl))
+    Awaitility.await().until { getNumberOfMessagesCurrentlyOnTestQueue() == 0 }
+    testHmppsSqsClient.purgeQueue(PurgeQueueRequest(testHmppsQueueUrl))
+    Awaitility.await().until { getNumberOfMessagesCurrentlyOnHMPPSTestQueue() == 0 }
+  }
+
   val testHmppsQueueName: String by lazy { sqsConfigProperties.hmppsEventTestQueue().queueName }
   val testHmppsQueueUrl: String by lazy { testHmppsSqsClient.getQueueUrl(testHmppsQueueName).queueUrl }
 }

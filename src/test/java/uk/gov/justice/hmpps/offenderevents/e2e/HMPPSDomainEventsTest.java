@@ -2,7 +2,6 @@ package uk.gov.justice.hmpps.offenderevents.e2e;
 
 
 import com.amazonaws.services.sqs.model.Message;
-import com.amazonaws.services.sqs.model.PurgeQueueRequest;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.tomakehurst.wiremock.client.WireMock;
@@ -76,15 +75,6 @@ public class HMPPSDomainEventsTest extends QueueListenerIntegrationTest {
         }
     }
 
-    private void purgeQueues() {
-        awsSqsClient.purgeQueue(new PurgeQueueRequest(getQueueUrl()));
-        await().until(() -> getNumberOfMessagesCurrentlyOnQueue() == 0);
-        testSqsClient.purgeQueue(new PurgeQueueRequest(getTestQueueUrl()));
-        await().until(() -> getNumberOfMessagesCurrentlyOnTestQueue() == 0);
-        testHmppsSqsClient.purgeQueue(new PurgeQueueRequest(getTestHmppsQueueUrl()));
-        await().until(() -> getNumberOfMessagesCurrentlyOnHMPPSTestQueue() == 0);
-    }
-
     record SQSMessage(String Message) {
     }
 
@@ -144,7 +134,9 @@ public class HMPPSDomainEventsTest extends QueueListenerIntegrationTest {
                     assertThatJson(event).node("additionalInformation.prisonId").isEqualTo("MDI");
                     assertThatJson(event).node("additionalInformation.source").isEqualTo("PRISON");
                     assertThatJson(event).node("additionalInformation.currentLocation").isEqualTo("IN_PRISON");
-                    assertThatJson(event).node("additionalInformation.currentPrisonStatus").isEqualTo("UNDER_PRISON_CARE");
+                    assertThatJson(event)
+                        .node("additionalInformation.currentPrisonStatus")
+                        .isEqualTo("UNDER_PRISON_CARE");
                 });
 
                 CommunityApiExtension.server.verify(0, getRequestedFor(anyUrl()));
@@ -172,6 +164,7 @@ public class HMPPSDomainEventsTest extends QueueListenerIntegrationTest {
 
                 CommunityApiExtension.server.verify(getRequestedFor(WireMock.urlEqualTo("/secure/offenders/nomsNumber/A5194DY/convictions/active/nsis/recall")));
             }
+
             @Test
             @DisplayName("will publish a recalled  prison-offender-events.prisoner.received HMPPS domain event when community-api indicates a recall")
             void willPublishRecallHMPPSDomainEvent() {
@@ -190,6 +183,7 @@ public class HMPPSDomainEventsTest extends QueueListenerIntegrationTest {
             }
         }
     }
+
     @Nested
     class ReleasePrisoner {
         @BeforeEach
@@ -245,7 +239,9 @@ public class HMPPSDomainEventsTest extends QueueListenerIntegrationTest {
                     assertThatJson(event).node("additionalInformation.reason").isEqualTo("TRANSFERRED");
                     assertThatJson(event).node("additionalInformation.prisonId").isEqualTo("WWA");
                     assertThatJson(event).node("additionalInformation.currentLocation").isEqualTo("BEING_TRANSFERRED");
-                    assertThatJson(event).node("additionalInformation.currentPrisonStatus").isEqualTo("NOT_UNDER_PRISON_CARE");
+                    assertThatJson(event)
+                        .node("additionalInformation.currentPrisonStatus")
+                        .isEqualTo("NOT_UNDER_PRISON_CARE");
                 });
 
                 CommunityApiExtension.server.verify(0, getRequestedFor(anyUrl()));
@@ -269,7 +265,9 @@ public class HMPPSDomainEventsTest extends QueueListenerIntegrationTest {
                     assertThatJson(event).node("additionalInformation.reason").isEqualTo("RELEASED");
                     assertThatJson(event).node("additionalInformation.prisonId").isEqualTo("MDI");
                     assertThatJson(event).node("additionalInformation.currentLocation").isEqualTo("OUTSIDE_PRISON");
-                    assertThatJson(event).node("additionalInformation.currentPrisonStatus").isEqualTo("NOT_UNDER_PRISON_CARE");
+                    assertThatJson(event)
+                        .node("additionalInformation.currentPrisonStatus")
+                        .isEqualTo("NOT_UNDER_PRISON_CARE");
                 });
             }
         }
