@@ -1,6 +1,7 @@
 package uk.gov.justice.hmpps.offenderevents.services.wiremock;
 
 import com.github.tomakehurst.wiremock.WireMockServer;
+import com.github.tomakehurst.wiremock.client.WireMock;
 import org.intellij.lang.annotations.Language;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
@@ -237,5 +238,14 @@ public class CommunityApiMockServer extends WireMockServer {
             )
         );
 
+    }
+
+    public void stubHealthPing(Integer status) {
+        stubFor(
+            WireMock.get("/health/ping").willReturn(
+                WireMock.aResponse()
+                    .withHeader("Content-Type", "application/json")
+                    .withBody((status == 200) ? "pong" : "some error")
+                    .withStatus(status)));
     }
 }
