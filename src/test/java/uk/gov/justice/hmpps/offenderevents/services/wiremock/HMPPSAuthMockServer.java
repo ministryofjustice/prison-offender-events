@@ -29,4 +29,12 @@ public class HMPPSAuthMockServer extends WireMockServer {
         ;
     }
 
+    public void stubHealthPing(Integer status) {
+        stubFor(
+            WireMock.get("/auth/health/ping").willReturn(
+                WireMock.aResponse()
+                    .withHeader("Content-Type", "application/json")
+                    .withBody((status == 200) ? "pong" : "some error")
+                    .withStatus(status)));
+    }
 }
