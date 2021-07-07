@@ -6,6 +6,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.tomakehurst.wiremock.client.WireMock;
 import junit.framework.AssertionFailedError;
+import org.awaitility.Awaitility;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -13,11 +14,13 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import scala.concurrent.Await;
 import uk.gov.justice.hmpps.offenderevents.resource.QueueListenerIntegrationTest;
 import uk.gov.justice.hmpps.offenderevents.services.wiremock.CommunityApiExtension;
 import uk.gov.justice.hmpps.offenderevents.services.wiremock.HMPPSAuthExtension;
 import uk.gov.justice.hmpps.offenderevents.services.wiremock.PrisonApiExtension;
 
+import java.time.Duration;
 import java.util.List;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.anyUrl;
@@ -41,6 +44,8 @@ public class HMPPSDomainEventsTest extends QueueListenerIntegrationTest {
             """);
 
         purgeQueues();
+        // overcome slowness in Circle
+        Awaitility.setDefaultTimeout(Duration.ofSeconds(20));
     }
 
 
