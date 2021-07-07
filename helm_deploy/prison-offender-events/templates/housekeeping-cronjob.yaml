@@ -16,7 +16,7 @@ spec:
         spec:
           containers:
             - name: housekeeping
-              image: quay.io/hmpps/dps-tools
+              image: ghcr.io/ministryofjustice/hmpps-devops-tools
               args:
                 - /bin/sh
                 - -c
