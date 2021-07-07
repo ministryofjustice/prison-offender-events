@@ -125,4 +125,13 @@ public class PrisonApiMockServer extends WireMockServer {
             }
                         """, offenderNumber, status, lastMovementTypeCode, lastMovementReasonCode, legalStatus, recall, latestLocationId);
     }
+
+    public void stubHealthPing(Integer status) {
+        stubFor(
+            WireMock.get("/health/ping").willReturn(
+                WireMock.aResponse()
+                    .withHeader("Content-Type", "application/json")
+                    .withBody((status == 200) ? "pong" : "some error")
+                    .withStatus(status)));
+    }
 }
