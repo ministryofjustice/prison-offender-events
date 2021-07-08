@@ -25,6 +25,7 @@ class HealthCheckTest : QueueListenerIntegrationTest() {
      []
     """
     )
+    purgeQueues()
   }
 
   @Test

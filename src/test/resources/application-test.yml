@@ -18,6 +18,9 @@ offender.events:
     secret: clientsecret
 
 application:
+  listener:
+    totalDelayDuration: PT0S
+    delayDuration: PT0S
   events:
     poll:
       frequency: 1000

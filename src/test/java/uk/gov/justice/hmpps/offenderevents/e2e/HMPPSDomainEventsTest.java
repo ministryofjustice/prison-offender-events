@@ -2,11 +2,11 @@ package uk.gov.justice.hmpps.offenderevents.e2e;
 
 
 import com.amazonaws.services.sqs.model.Message;
-import com.amazonaws.services.sqs.model.PurgeQueueRequest;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.tomakehurst.wiremock.client.WireMock;
 import junit.framework.AssertionFailedError;
+import org.awaitility.Awaitility;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -14,11 +14,13 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import scala.concurrent.Await;
 import uk.gov.justice.hmpps.offenderevents.resource.QueueListenerIntegrationTest;
 import uk.gov.justice.hmpps.offenderevents.services.wiremock.CommunityApiExtension;
 import uk.gov.justice.hmpps.offenderevents.services.wiremock.HMPPSAuthExtension;
 import uk.gov.justice.hmpps.offenderevents.services.wiremock.PrisonApiExtension;
 
+import java.time.Duration;
 import java.util.List;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.anyUrl;
@@ -42,6 +44,8 @@ public class HMPPSDomainEventsTest extends QueueListenerIntegrationTest {
             """);
 
         purgeQueues();
+        // overcome slowness in Circle
+        Awaitility.setDefaultTimeout(Duration.ofSeconds(20));
     }
 
 
@@ -74,15 +78,6 @@ public class HMPPSDomainEventsTest extends QueueListenerIntegrationTest {
         } catch (JsonProcessingException e) {
             throw new AssertionFailedError(String.format("Message %s is not parseable", message));
         }
-    }
-
-    private void purgeQueues() {
-        awsSqsClient.purgeQueue(new PurgeQueueRequest(getQueueUrl()));
-        await().until(() -> getNumberOfMessagesCurrentlyOnQueue() == 0);
-        testSqsClient.purgeQueue(new PurgeQueueRequest(getTestQueueUrl()));
-        await().until(() -> getNumberOfMessagesCurrentlyOnTestQueue() == 0);
-        testHmppsSqsClient.purgeQueue(new PurgeQueueRequest(getTestHmppsQueueUrl()));
-        await().until(() -> getNumberOfMessagesCurrentlyOnHMPPSTestQueue() == 0);
     }
 
     record SQSMessage(String Message) {
@@ -144,7 +139,9 @@ public class HMPPSDomainEventsTest extends QueueListenerIntegrationTest {
                     assertThatJson(event).node("additionalInformation.prisonId").isEqualTo("MDI");
                     assertThatJson(event).node("additionalInformation.source").isEqualTo("PRISON");
                     assertThatJson(event).node("additionalInformation.currentLocation").isEqualTo("IN_PRISON");
-                    assertThatJson(event).node("additionalInformation.currentPrisonStatus").isEqualTo("UNDER_PRISON_CARE");
+                    assertThatJson(event)
+                        .node("additionalInformation.currentPrisonStatus")
+                        .isEqualTo("UNDER_PRISON_CARE");
                 });
 
                 CommunityApiExtension.server.verify(0, getRequestedFor(anyUrl()));
@@ -172,6 +169,7 @@ public class HMPPSDomainEventsTest extends QueueListenerIntegrationTest {
 
                 CommunityApiExtension.server.verify(getRequestedFor(WireMock.urlEqualTo("/secure/offenders/nomsNumber/A5194DY/convictions/active/nsis/recall")));
             }
+
             @Test
             @DisplayName("will publish a recalled  prison-offender-events.prisoner.received HMPPS domain event when community-api indicates a recall")
             void willPublishRecallHMPPSDomainEvent() {
@@ -190,6 +188,7 @@ public class HMPPSDomainEventsTest extends QueueListenerIntegrationTest {
             }
         }
     }
+
     @Nested
     class ReleasePrisoner {
         @BeforeEach
@@ -245,7 +244,9 @@ public class HMPPSDomainEventsTest extends QueueListenerIntegrationTest {
                     assertThatJson(event).node("additionalInformation.reason").isEqualTo("TRANSFERRED");
                     assertThatJson(event).node("additionalInformation.prisonId").isEqualTo("WWA");
                     assertThatJson(event).node("additionalInformation.currentLocation").isEqualTo("BEING_TRANSFERRED");
-                    assertThatJson(event).node("additionalInformation.currentPrisonStatus").isEqualTo("NOT_UNDER_PRISON_CARE");
+                    assertThatJson(event)
+                        .node("additionalInformation.currentPrisonStatus")
+                        .isEqualTo("NOT_UNDER_PRISON_CARE");
                 });
 
                 CommunityApiExtension.server.verify(0, getRequestedFor(anyUrl()));
@@ -269,7 +270,9 @@ public class HMPPSDomainEventsTest extends QueueListenerIntegrationTest {
                     assertThatJson(event).node("additionalInformation.reason").isEqualTo("RELEASED");
                     assertThatJson(event).node("additionalInformation.prisonId").isEqualTo("MDI");
                     assertThatJson(event).node("additionalInformation.currentLocation").isEqualTo("OUTSIDE_PRISON");
-                    assertThatJson(event).node("additionalInformation.currentPrisonStatus").isEqualTo("NOT_UNDER_PRISON_CARE");
+                    assertThatJson(event)
+                        .node("additionalInformation.currentPrisonStatus")
+                        .isEqualTo("NOT_UNDER_PRISON_CARE");
                 });
             }
         }

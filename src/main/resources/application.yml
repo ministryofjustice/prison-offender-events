@@ -130,6 +130,10 @@ hmpps.sqs:
 
 
 application:
+  listener:
+    totalDelayDuration: PT10M
+    delayDuration: PT2M
+
   events:
     max:
       range:
