@@ -25,6 +25,12 @@ env:
   - name: WIND_BACK_SECONDS
     value: "{{ .Values.env.WIND_BACK_SECONDS }}"
 
+  - name: APPLICATION_LISTENER_TOTALDELAYDURATION
+    value: "{{ .Values.env.APPLICATION_LISTENER_TOTALDELAYDURATION }}"
+
+  - name: APPLICATION_LISTENER_DELAYDURATION
+    value: "{{ .Values.env.APPLICATION_LISTENER_DELAYDURATION }}"
+
   - name: APPINSIGHTS_INSTRUMENTATIONKEY
     valueFrom:
       secretKeyRef:
