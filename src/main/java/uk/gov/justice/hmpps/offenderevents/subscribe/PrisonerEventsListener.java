@@ -42,12 +42,11 @@ public class PrisonerEventsListener {
     public void onPrisonerEvent(String message, SQSTextMessage rawMessage) throws JsonProcessingException {
         final var sqsMessage = objectMapper.readValue(message, SQSMessage.class);
         final var publishedAt = OffsetDateTime.parse(sqsMessage.MessageAttributes().publishedAt().Value());
-        log.debug("Received message {} published at {}", sqsMessage.MessageId(), publishedAt);
         if (publishedAt.isBefore(OffsetDateTime.now().minus(totalDelay))) {
+            log.debug("Received message {} published at {}", sqsMessage.MessageId(), publishedAt);
             final var event = objectMapper.readValue(sqsMessage.Message(), OffenderEvent.class);
             eventsEmitter.convertAndSendWhenSignificant(event);
         } else {
-            log.debug("Message published at {} is not old enough yet, will try again in {} seconds", publishedAt, (int)delay.toSeconds());
             client.sendMessage(new SendMessageRequest()
                 .withQueueUrl(rawMessage.getQueueUrl())
                 .withMessageBody(message)
