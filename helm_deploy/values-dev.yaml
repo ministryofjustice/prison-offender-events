@@ -24,8 +24,8 @@ env:
   OAUTH_API_BASE_URL: "https://sign-in-dev.hmpps.service.justice.gov.uk/auth"
   WIND_BACK_SECONDS: "10"
   APPLICATIONINSIGHTS_CONFIGURATION_FILE: applicationinsights.dev.json
-  APPLICATION_LISTENER_TOTALDELAYDURATION: "PT45M"
-  APPLICATION_LISTENER_DELAYDURATION: "PT10M"
+  APPLICATION_LISTENER_TOTALDELAYDURATION: "PT1M"
+  APPLICATION_LISTENER_DELAYDURATION: "PT30S"
 
 # CloudPlatform AlertManager receiver to route promethues alerts to slack
 generic-prometheus-alerts:
