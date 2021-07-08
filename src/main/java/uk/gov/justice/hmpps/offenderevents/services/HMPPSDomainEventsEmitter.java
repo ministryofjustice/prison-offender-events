@@ -16,6 +16,7 @@ import uk.gov.justice.hmpps.offenderevents.model.OffenderEvent;
 
 import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
+import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
 import java.util.Map;
@@ -189,7 +190,7 @@ record HMPPSDomainEvent(String eventType, AdditionalInformation additionalInform
         this(eventType,
             additionalInformation,
             1,
-            occurredAt.atZone(systemDefault()).toOffsetDateTime()
+            occurredAt.atZone(ZoneId.of("Europe/London")).toOffsetDateTime()
                 .format(DateTimeFormatter.ISO_OFFSET_DATE_TIME),
             OffsetDateTime
                 .now()
