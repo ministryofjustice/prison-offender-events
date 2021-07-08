@@ -15,11 +15,13 @@ import uk.gov.justice.hmpps.offenderevents.config.SqsConfigProperties;
 import uk.gov.justice.hmpps.offenderevents.model.OffenderEvent;
 
 import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 
+import static java.time.ZoneId.systemDefault;
 import static uk.gov.justice.hmpps.offenderevents.config.SqsConfigPropertiesKt.hmppsEventTopic;
 
 @Service
@@ -187,10 +189,11 @@ record HMPPSDomainEvent(String eventType, AdditionalInformation additionalInform
         this(eventType,
             additionalInformation,
             1,
-            occurredAt.format(DateTimeFormatter.ISO_DATE_TIME),
-            LocalDateTime
+            occurredAt.atZone(systemDefault()).toOffsetDateTime()
+                .format(DateTimeFormatter.ISO_OFFSET_DATE_TIME),
+            OffsetDateTime
                 .now()
-                .format(DateTimeFormatter.ISO_DATE_TIME),
+                .format(DateTimeFormatter.ISO_OFFSET_DATE_TIME),
             description);
     }
 }
