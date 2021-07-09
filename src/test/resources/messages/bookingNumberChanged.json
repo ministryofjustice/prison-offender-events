@@ -13,6 +13,10 @@
       "Type": "String",
       "Value": "BOOKING_NUMBER-CHANGED"
     },
+    "publishedAt" : {
+      "Type":"String",
+      "Value":"2021-06-08T14:41:11.526762Z"
+    },
     "id": {
       "Type": "String",
       "Value": "adf365bb-4bcf-28d5-379d-cdfac6eef4d2"

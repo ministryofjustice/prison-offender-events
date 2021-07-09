@@ -44,8 +44,6 @@ public class HMPPSDomainEventsTest extends QueueListenerIntegrationTest {
             """);
 
         purgeQueues();
-        // overcome slowness in Circle
-        Awaitility.setDefaultTimeout(Duration.ofSeconds(20));
     }
 
 
