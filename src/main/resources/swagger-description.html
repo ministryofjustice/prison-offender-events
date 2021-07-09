@@ -266,11 +266,11 @@
     The specific events currently being raised are
     <ul>
         <li>
-          <b>prison-offender-events.prisoner.released</b> is raised when a prisoner is released from prison (as opposed to be transferred to another prison or a temporary absence)
+          <b>prison-offender-events.prisoner.released</b> is raised when a prisoner is released from prison, this includes temporary releases such as court appearances and transfers. We would recommend consumers to ensure there service is idempotent, there are scenarios where multiple events maybe raised for same release.
           <ul>
             <li><b>eventType</b> string</li>
-            <li><b>occurredAt</b> ISO local date time - when the release was recorded</li>
-            <li><b>publishedAt</b> ISO local date time - when this event was first published</li>
+            <li><b>occurredAt</b> ISO offset date time - when the release was recorded e.g 2021-02-08T14:41:11.526762Z</li>
+            <li><b>publishedAt</b> ISO offset date time - when this event was first published e.g 2021-06-08T14:41:11.526762+01:00</li>
             <li><b>version</b> number - version of this event message. Currently <b>1</b></li>
             <li><b>description</b> string - human readable description of event</li>
             <li><b>additionalInformation</b> object - additional information
@@ -304,17 +304,18 @@
           </ul>
         </li>
         <li>
-          <b>prison-offender-events.prisoner.received</b> is raised when a prisoner is received to prison, this may be due to remand, a conviction or a recall from a broken licence
+          <b>prison-offender-events.prisoner.received</b> is raised when a prisoner is received to prison, this may be due to remand, a conviction or a recall from a broken licence. Also included are returns from temporary absences and transfers.
+          We would recommend consumers to ensure their service is idempotent, there are scenarios where multiple events maybe raised for same receive.
           <ul>
             <li><b>eventType</b> string</li>
-            <li><b>occurredAt</b> ISO local date time - when the receive booking was recorded</li>
-            <li><b>publishedAt</b> ISO local date time - when this event was first published</li>
+            <li><b>occurredAt</b> ISO offset date time - when the receive booking was recorded e.g 2021-02-08T14:41:11.526762Z</li>
+            <li><b>publishedAt</b> ISO offset date time - when this event was first published e.g 2021-06-08T14:41:11.526762+01:00</li>
             <li><b>version</b> number - version of this event message. Currently <b>1</b></li>
             <li><b>description</b> string - human readable description of event</li>
             <li><b>additionalInformation</b> object - additional information
               <ul>
                 <li><b>nomsNumber</b> string - NOMIS offender number</li>
-                <li><b>reason</b> enum - reason for the receive. Will be one of these values
+                <li><b>reason</b> enum - reason for the receive. Will be one of these values below. It has been observed that administration mistakes in NOMIS can cause the reason for RECALL and CONVICTED to be not always be accurate.
                   <ul>
                     <li><b>RECALL</b> prisoner is subject to a recall on their licence</li>
                     <li><b>REMAND</b> remanded in custody waiting court case result</li>

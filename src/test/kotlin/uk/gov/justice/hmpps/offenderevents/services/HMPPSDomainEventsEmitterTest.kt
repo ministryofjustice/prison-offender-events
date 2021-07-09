@@ -40,6 +40,7 @@ import uk.gov.justice.hmpps.offenderevents.services.ReleasePrisonerReasonCalcula
 import uk.gov.justice.hmpps.offenderevents.services.ReleasePrisonerReasonCalculator.Reason.TEMPORARY_ABSENCE_RELEASE
 import uk.gov.justice.hmpps.offenderevents.services.ReleasePrisonerReasonCalculator.ReleaseReason
 import java.time.LocalDateTime
+import java.time.OffsetDateTime
 import java.time.temporal.ChronoUnit.SECONDS
 import java.util.stream.Stream
 
@@ -172,7 +173,7 @@ internal class HMPPSDomainEventsEmitterTest {
     @Test
     @DisplayName("will use event datetime for occurred at time")
     fun willUseEventDatetimeForOccurredAtTime() {
-      JsonAssertions.assertThatJson(payload).node("occurredAt").isEqualTo("2020-12-04T10:42:43")
+      JsonAssertions.assertThatJson(payload).node("occurredAt").isEqualTo("2020-12-04T10:42:43Z")
     }
 
     @Test
@@ -182,8 +183,8 @@ internal class HMPPSDomainEventsEmitterTest {
         .node("publishedAt")
         .asString()
         .satisfies { publishedAt: String? ->
-          Assertions.assertThat(LocalDateTime.parse(publishedAt))
-            .isCloseTo(LocalDateTime.now(), Assertions.within(10, SECONDS))
+          Assertions.assertThat(OffsetDateTime.parse(publishedAt))
+            .isCloseTo(OffsetDateTime.now(), Assertions.within(10, SECONDS))
         }
     }
 
@@ -235,7 +236,7 @@ internal class HMPPSDomainEventsEmitterTest {
     @Test
     @DisplayName("will add occurredAt to telemetry event")
     fun willAddOccurredAtToTelemetryEvent() {
-      Assertions.assertThat(telemetryAttributes).containsEntry("occurredAt", "2020-12-04T10:42:43")
+      Assertions.assertThat(telemetryAttributes).containsEntry("occurredAt", "2020-12-04T10:42:43Z")
     }
 
     @Test
@@ -341,7 +342,7 @@ internal class HMPPSDomainEventsEmitterTest {
         OffenderEvent.builder()
           .eventType("OFFENDER_MOVEMENT-DISCHARGE")
           .offenderIdDisplay("A1234GH")
-          .eventDatetime(LocalDateTime.parse("2020-12-04T10:42:43"))
+          .eventDatetime(LocalDateTime.parse("2020-07-04T10:42:43"))
           .build()
       )
       Mockito.verify(awsHMPPSEventsSnsClient)!!.publish(publishRequestCaptor!!.capture())
@@ -354,7 +355,7 @@ internal class HMPPSDomainEventsEmitterTest {
     @Test
     @DisplayName("will use event datetime for occurred at time")
     fun willUseEventDatetimeForOccurredAtTime() {
-      JsonAssertions.assertThatJson(payload).node("occurredAt").isEqualTo("2020-12-04T10:42:43")
+      JsonAssertions.assertThatJson(payload).node("occurredAt").isEqualTo("2020-07-04T10:42:43+01:00")
     }
 
     @Test
@@ -364,8 +365,8 @@ internal class HMPPSDomainEventsEmitterTest {
         .node("publishedAt")
         .asString()
         .satisfies { publishedAt: String? ->
-          Assertions.assertThat(LocalDateTime.parse(publishedAt))
-            .isCloseTo(LocalDateTime.now(), Assertions.within(10, SECONDS))
+          Assertions.assertThat(OffsetDateTime.parse(publishedAt))
+            .isCloseTo(OffsetDateTime.now(), Assertions.within(10, SECONDS))
         }
     }
 
@@ -420,7 +421,7 @@ internal class HMPPSDomainEventsEmitterTest {
     @Test
     @DisplayName("will add occurredAt to telemetry event")
     fun willAddOccurredAtToTelemetryEvent() {
-      Assertions.assertThat(telemetryAttributes).containsEntry("occurredAt", "2020-12-04T10:42:43")
+      Assertions.assertThat(telemetryAttributes).containsEntry("occurredAt", "2020-07-04T10:42:43+01:00")
     }
 
     @Test
