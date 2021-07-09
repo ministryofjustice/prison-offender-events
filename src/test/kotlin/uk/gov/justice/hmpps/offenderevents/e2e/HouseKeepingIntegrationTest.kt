@@ -20,6 +20,8 @@ class HouseKeepingIntegrationTest : QueueListenerIntegrationTest() {
 
     awsSqsClient.sendMessage(dlqUrl, message)
 
+    await untilCallTo { getNumberOfMessagesCurrentlyOnDlq() } matches { it == 1 }
+
     webTestClient.put()
       .uri("/queue-admin/retry-all-dlqs")
       .accept(MediaType.APPLICATION_JSON)

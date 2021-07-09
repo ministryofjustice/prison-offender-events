@@ -25,6 +25,7 @@ application:
     poll:
       frequency: 1000
       initialDelay: 0
+      lockAtLeastFor: PT1S
 
 hmpps.sqs:
   provider: localstack
