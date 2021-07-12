@@ -3,10 +3,16 @@ package uk.gov.justice.hmpps.offenderevents.services.wiremock;
 import com.github.tomakehurst.wiremock.WireMockServer;
 import com.github.tomakehurst.wiremock.client.WireMock;
 
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.List;
 import java.util.UUID;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 import static com.github.tomakehurst.wiremock.client.WireMock.get;
+import static com.github.tomakehurst.wiremock.client.WireMock.post;
 import static com.github.tomakehurst.wiremock.stubbing.Scenario.STARTED;
 
 public class PrisonApiMockServer extends WireMockServer {
@@ -21,6 +27,53 @@ public class PrisonApiMockServer extends WireMockServer {
                 aResponse()
                     .withHeader("Content-Type", "application/json")
                     .withBody(prisonerDetails(offenderNumber, legalStatus, recall, lastMovementTypeCode, lastMovementReasonCode, status, latestLocationId))
+                    .withStatus(200)
+            )
+        );
+    }
+
+    public void stubMovements(String offenderNumber, List<MovementFragment> movements) {
+        Function<MovementFragment, String> asJson = (movementFragment) -> {
+            final var createDateTime = movementFragment.movementDateTime().format(DateTimeFormatter.ISO_DATE_TIME);
+            final var movementDate = movementFragment
+                .movementDateTime()
+                .toLocalDate()
+                .format(DateTimeFormatter.ISO_DATE);
+            final var movementTime = movementFragment
+                .movementDateTime()
+                .toLocalTime()
+                .format(DateTimeFormatter.ISO_LOCAL_TIME);
+            final var directionCode = movementFragment.directionCode();
+            return String.format("""
+                    {
+                        "offenderNo": "%s",
+                        "createDateTime": "%s",
+                        "fromAgency": "WWI",
+                        "fromAgencyDescription": "Wandsworth (HMP)",
+                        "toAgency": "FBI",
+                        "toAgencyDescription": "Forest Bank (HMP & YOI)",
+                        "fromCity": "",
+                        "toCity": "",
+                        "movementType": "%s",
+                        "movementTypeDescription": "some description",
+                        "directionCode": "%s",
+                        "movementDate": "%s",
+                        "movementTime": "%s",
+                        "movementReason": "some reason"
+                    }
+                """, offenderNumber, createDateTime, directionCode.equals("IN") ? "ADM" : "REL", directionCode, movementDate, movementTime);
+        };
+
+
+        stubFor(
+            post("/api/movements/offenders?latestOnly=false&allBookings=true").willReturn(
+                aResponse()
+                    .withHeader("Content-Type", "application/json")
+                    .withBody(String.format("""
+                        [
+                            %s
+                        ]
+                        """, movements.stream().map(asJson).collect(Collectors.joining(","))))
                     .withStatus(200)
             )
         );
@@ -127,11 +180,17 @@ public class PrisonApiMockServer extends WireMockServer {
     }
 
     public void stubHealthPing(Integer status) {
+        final var up = """
+            {"status": "up"}""";
+        final var down = """
+            {"status": "down"}""";
         stubFor(
             WireMock.get("/health/ping").willReturn(
                 WireMock.aResponse()
                     .withHeader("Content-Type", "application/json")
-                    .withBody((status == 200) ? "pong" : "some error")
+                    .withBody((status == 200) ? up : down)
                     .withStatus(status)));
+    }
+    public record MovementFragment(String directionCode, LocalDateTime movementDateTime) {
     }
 }

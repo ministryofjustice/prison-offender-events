@@ -2,10 +2,13 @@ package uk.gov.justice.hmpps.offenderevents.services;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
 
 import java.time.Duration;
+import java.time.LocalDate;
+import java.util.List;
 import java.util.Optional;
 
 enum LegalStatus {
@@ -67,6 +70,16 @@ public class PrisonApiService {
             .uri(String.format("/api/offenders/%s", offenderNumber))
             .retrieve()
             .bodyToMono(PrisonerDetails.class)
+            .block(timeout);
+    }
+
+    public List<Movement> getMovements(final String offenderNumber) {
+        return webClient.post()
+            .uri("/api/movements/offenders?latestOnly=false&allBookings=true")
+            .bodyValue(List.of(offenderNumber))
+            .retrieve()
+            .bodyToMono(new ParameterizedTypeReference<List<Movement>>() {
+            })
             .block(timeout);
     }
 
@@ -145,4 +158,7 @@ record PrisonerDetails(LegalStatus legalStatus,
         }
         return null;
     }
+}
+
+record Movement(String directionCode, LocalDate movementDate) {
 }

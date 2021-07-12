@@ -15,8 +15,14 @@ import uk.gov.justice.hmpps.offenderevents.config.OffenderEventsProperties;
 import uk.gov.justice.hmpps.offenderevents.config.WebClientConfiguration;
 import uk.gov.justice.hmpps.offenderevents.services.wiremock.HMPPSAuthExtension;
 import uk.gov.justice.hmpps.offenderevents.services.wiremock.PrisonApiExtension;
+import uk.gov.justice.hmpps.offenderevents.services.wiremock.PrisonApiMockServer.MovementFragment;
 
-import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.util.List;
+
+import static org.assertj.core.api.Assertions.assertThat;
+
 
 @ExtendWith({PrisonApiExtension.class, HMPPSAuthExtension.class})
 @ActiveProfiles(profiles = "test")
@@ -155,6 +161,40 @@ class PrisonApiServiceTest {
                 "BACON",
                 "MDI");
             assertThat(service.getPrisonerDetails("A7841DY").currentPrisonStatus()).isNull();
+        }
+    }
+
+    @Nested
+    class GetMovements {
+        @BeforeEach
+        void setUp() {
+            PrisonApiExtension.server.stubMovements("A7841DY", List.of(
+                new MovementFragment("IN", LocalDateTime.parse("2020-07-19T10:00:40")),
+                new MovementFragment("OUT", LocalDateTime.parse("2020-07-20T11:00:40"))));
+        }
+
+        @Test
+        @DisplayName("can retrieve all movements")
+        void canRetrieveAllMovements() {
+          final var movements = service.getMovements("A7841DY");
+
+          assertThat(movements).hasSize(2);
+        }
+        @Test
+        @DisplayName("can parse the direction code")
+        void canParseTheDirectionCode() {
+            final var movements = service.getMovements("A7841DY");
+
+            assertThat(movements.get(0).directionCode()).isEqualTo("IN");
+            assertThat(movements.get(1).directionCode()).isEqualTo("OUT");
+        }
+
+        @Test
+        @DisplayName("can parse movement date")
+        void canParseMovementDate() {
+            final var movements = service.getMovements("A7841DY");
+            assertThat(movements.get(0).movementDate()).isEqualTo(LocalDate.parse("2020-07-19"));
+            assertThat(movements.get(1).movementDate()).isEqualTo(LocalDate.parse("2020-07-20"));
         }
     }
 }
