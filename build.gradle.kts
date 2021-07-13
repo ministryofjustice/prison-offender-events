@@ -1,10 +1,15 @@
 plugins {
   id("uk.gov.justice.hmpps.gradle-spring-boot") version "3.3.4"
   kotlin("plugin.spring") version "1.5.20"
+  id("org.unbroken-dome.test-sets") version "4.0.0"
 }
 
 configurations {
   implementation { exclude(mapOf("module" to "tomcat-jdbc")) }
+}
+
+testSets {
+  "testSmoke"()
 }
 
 dependencies {
@@ -69,6 +74,7 @@ dependencies {
   testImplementation("net.javacrumbs.json-unit:json-unit-assertj:2.27.0")
   testImplementation("org.awaitility:awaitility:4.1.0")
   testImplementation("org.awaitility:awaitility-kotlin:4.1.0")
+  testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-reactive:1.5.0")
 }
 
 tasks {

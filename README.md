@@ -70,3 +70,12 @@ The integration tests depend on localstack to be running to access the topics an
 ```bash
 docker-compose -f docker-compose-test.yml up
 ```
+
+#### Smoke Tests
+
+The source set `testSmoke` contains the smoke tests.
+
+These tests are not intended to be run locally, but instead are run against a deployed application (as happens in the Circle build).
+
+For more information on the smoke tests see the project `dps-smoketest`.
+
