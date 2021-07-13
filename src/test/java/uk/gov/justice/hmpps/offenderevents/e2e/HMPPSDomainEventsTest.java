@@ -18,8 +18,10 @@ import uk.gov.justice.hmpps.offenderevents.resource.QueueListenerIntegrationTest
 import uk.gov.justice.hmpps.offenderevents.services.wiremock.CommunityApiExtension;
 import uk.gov.justice.hmpps.offenderevents.services.wiremock.HMPPSAuthExtension;
 import uk.gov.justice.hmpps.offenderevents.services.wiremock.PrisonApiExtension;
+import uk.gov.justice.hmpps.offenderevents.services.wiremock.PrisonApiMockServer.MovementFragment;
 
 import java.time.Duration;
+import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
@@ -163,6 +165,8 @@ public class HMPPSDomainEventsTest extends QueueListenerIntegrationTest {
             @Test
             @DisplayName("will publish prison-offender-events.prisoner.received HMPPS domain event by asking community-api")
             void willPublishHMPPSDomainEvent() {
+                CommunityApiExtension.server.stubForNoRecall("A5194DY");
+
                 await().until(() -> getNumberOfMessagesCurrentlyOnHMPPSTestQueue() == 1);
                 final var hmppsEventMessages = geMessagesCurrentlyOnHMPPSTestQueue();
                 assertThat(hmppsEventMessages).singleElement().satisfies(event -> {
@@ -179,6 +183,7 @@ public class HMPPSDomainEventsTest extends QueueListenerIntegrationTest {
             @DisplayName("will publish a recalled  prison-offender-events.prisoner.received HMPPS domain event when community-api indicates a recall")
             void willPublishRecallHMPPSDomainEvent() {
                 CommunityApiExtension.server.stubForRecall("A5194DY");
+                PrisonApiExtension.server.stubMovements("A5194DY", List.of(new MovementFragment("IN", LocalDateTime.now())));
 
                 await().until(() -> getNumberOfMessagesCurrentlyOnHMPPSTestQueue() == 1);
                 final var hmppsEventMessages = geMessagesCurrentlyOnHMPPSTestQueue();
