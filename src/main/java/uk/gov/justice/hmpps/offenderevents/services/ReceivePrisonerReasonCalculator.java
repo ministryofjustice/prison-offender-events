@@ -1,13 +1,18 @@
 package uk.gov.justice.hmpps.offenderevents.services;
 
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.function.Predicate;
+
+import static java.util.function.Predicate.not;
 
 @Component
+@Slf4j
 public class ReceivePrisonerReasonCalculator {
     private final PrisonApiService prisonApiService;
     private final CommunityApiService communityApiService;
@@ -67,23 +72,36 @@ public class ReceivePrisonerReasonCalculator {
 
     private Optional<ReasonWithDetailsAndSource> calculateReasonForPrisonerFromProbationOrEmpty(String offenderNumber,
                                                                                                 String details) {
-        final var maybeRecallList = communityApiService.getRecalls(offenderNumber);
-        return maybeRecallList
-            .filter(recalls -> recalls.stream().anyMatch(this::hasActiveOrCompletedRecall))
-            .map(recalls -> new ReasonWithDetailsAndSource(Reason.RECALL,
-                Source.PROBATION,
-                String.format("%s Recall referral date %s", details, latestRecallReferralDate(maybeRecallList.get()))));
-    }
+        // be lenient with current movement in case the event has been delayed for few days due to a system issue
+        final Predicate<Movement> excludingCurrentMovement = movement -> movement
+            .movementDate()
+            .isBefore(LocalDate.now().minusDays(4));
+        final Predicate<LocalDate> hasBeenInPrisonSince = (referralDate) -> {
+            final var movements = prisonApiService.getMovements(offenderNumber);
+            final var lastPrisonEntryDate = movements
+                .stream()
+                .filter(movement -> "IN".equals(movement.directionCode()))
+                .filter(excludingCurrentMovement)
+                .filter(movement -> movement.movementDate().isAfter(referralDate) || movement
+                    .movementDate()
+                    .equals(referralDate))
+                .findAny();
 
-    private String latestRecallReferralDate(List<Recall> recalls) {
+            lastPrisonEntryDate.ifPresent((date) -> log.debug("Last time in prison was {}", date));
+
+            return lastPrisonEntryDate.isPresent();
+        };
+
+        final var recalls = communityApiService.getRecalls(offenderNumber).orElse(List.of());
         return recalls
             .stream()
             .filter(this::hasActiveOrCompletedRecall)
             .map(Recall::referralDate)
             .filter(Objects::nonNull)
             .max(LocalDate::compareTo)
-            .map(LocalDate::toString)
-            .orElse("unknown");
+            .filter(not(hasBeenInPrisonSince))
+            .map(referralDate -> new ReasonWithDetailsAndSource(Reason.RECALL, Source.PROBATION, String.format("%s Recall referral date %s", details, referralDate)));
+
     }
 
     private boolean hasActiveOrCompletedRecall(Recall recall) {

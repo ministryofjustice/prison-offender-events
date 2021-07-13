@@ -23,6 +23,17 @@ public class CommunityApiMockServer extends WireMockServer {
         );
     }
 
+    public void stubForNoRecall(String nomsNumber) {
+        stubFor(
+            get(String.format("/secure/offenders/nomsNumber/%s/convictions/active/nsis/recall", nomsNumber)).willReturn(
+                aResponse()
+                    .withHeader("Content-Type", "application/json")
+                    .withBody(noRecalls())
+                    .withStatus(200)
+            )
+        );
+    }
+
     @Language("JSON")
     private String recall() {
         return """
@@ -220,6 +231,15 @@ public class CommunityApiMockServer extends WireMockServer {
                         "recallRejectedOrWithdrawn": false
                     }
                 ]
+            }
+                        """;
+    }
+
+    @Language("JSON")
+    private String noRecalls() {
+        return """
+            {
+                "nsis": [ ]
             }
                         """;
     }
