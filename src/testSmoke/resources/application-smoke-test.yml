@@ -1,0 +1,30 @@
+spring:
+  security:
+    oauth2:
+      client:
+        registration:
+          smoketest-service:
+            provider: hmpps-smoketest-auth
+            client-id: ${smoketest.client.client-id}
+            client-secret: ${smoketest.client.client-secret}
+            authorization-grant-type: client_credentials
+            scope: read
+        provider:
+          hmpps-smoketest-auth:
+            token-uri: ${smoketest.oauth.endpoint.url}/oauth/token
+
+graceful:
+  shutdown.enabled: false
+
+smoketest:
+  enabled: true
+  oauth:
+    endpoint:
+      url: http://localhost:8090
+  endpoint:
+    url: http://localhost:8092
+  client:
+    client-id: credentials
+    client-secret: secret
+
+
