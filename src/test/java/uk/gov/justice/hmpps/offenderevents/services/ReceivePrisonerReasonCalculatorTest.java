@@ -136,6 +136,17 @@ class ReceivePrisonerReasonCalculatorTest {
     }
 
     @Test
+    @DisplayName("movement reason of Y (Recall from Detention Training Order) means reason is a RECALL")
+    void movementReasonOfYMeansReasonIsARECALL() {
+        when(prisonApiService.getPrisonerDetails(any())).thenReturn(prisonerDetails("SENTENCED", false, "ADM", "V"));
+        assertThat(calculator.calculateMostLikelyReasonForPrisonerReceive("A1234GH").reason())
+            .isEqualTo(Reason.CONVICTED);
+
+        when(prisonApiService.getPrisonerDetails(any())).thenReturn(prisonerDetails("SENTENCED", false, "ADM", "Y"));
+        assertThat(calculator.calculateMostLikelyReasonForPrisonerReceive("A1234GH").reason()).isEqualTo(Reason.RECALL);
+    }
+
+    @Test
     @DisplayName("movement reason of B (HDC Recall) means reason is a RECALL")
     void movementReasonOfBMeansReasonIsARECALL() {
         when(prisonApiService.getPrisonerDetails(any())).thenReturn(prisonerDetails("SENTENCED", false, "ADM", "V"));
