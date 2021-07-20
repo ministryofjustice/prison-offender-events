@@ -96,6 +96,7 @@ record PrisonerDetails(LegalStatus legalStatus,
 
     public static final String UNCONVICTED_REMAND = "N";
     public static final String LICENCE_REVOKED = "L";
+    public static final String RECALL_FROM_DETENTION_TRAINING_ORDER = "Y";
     public static final String RECALL_FROM_HDC = "B";
     public static final String TRANSFER_IN = "INT";
     public static final String TRANSFER_IN_VIA_COURT = "TRNCRT";
@@ -120,7 +121,7 @@ record PrisonerDetails(LegalStatus legalStatus,
         return switch (lastMovementReasonCode) {
             case "HP" -> MovementReason.HOSPITALISATION;
             case TRANSFER_IN, TRANSFER_IN_VIA_COURT, TRANSFER_IN_VIA_TAP -> MovementReason.TRANSFER;
-            case LICENCE_REVOKED, RECALL_FROM_HDC -> MovementReason.RECALL;
+            case LICENCE_REVOKED, RECALL_FROM_HDC, RECALL_FROM_DETENTION_TRAINING_ORDER -> MovementReason.RECALL;
             case UNCONVICTED_REMAND -> MovementReason.REMAND;
             default -> MovementReason.OTHER;
         };
