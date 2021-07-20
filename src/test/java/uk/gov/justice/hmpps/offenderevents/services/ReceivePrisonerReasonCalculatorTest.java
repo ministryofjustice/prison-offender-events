@@ -159,16 +159,36 @@ class ReceivePrisonerReasonCalculatorTest {
 
 
     @Test
-    @DisplayName("movement reason of N (Unconvicted Remand) means reason is a REMAND")
+    @DisplayName("movement reason of N (Unconvicted Remand) means reason is a REMAND when no recall NSI")
     void movementReasonOfNMeansReasonIsREMAND() {
         when(prisonApiService.getPrisonerDetails(any())).thenReturn(prisonerDetails("SENTENCED", false, "ADM", "V"));
-        assertThat(calculator.calculateMostLikelyReasonForPrisonerReceive("A1234GH").reason())
-            .isEqualTo(Reason.CONVICTED);
+        assertThat(calculator.calculateMostLikelyReasonForPrisonerReceive("A1234GH").reason()).isEqualTo(Reason.CONVICTED);
+
+        when(communityApiService.getRecalls(any()))
+            .thenReturn(Optional.of(List.of()));
 
         when(prisonApiService.getPrisonerDetails(any())).thenReturn(prisonerDetails("SENTENCED", false, "ADM", "N"));
         assertThat(calculator.calculateMostLikelyReasonForPrisonerReceive("A1234GH").reason()).isEqualTo(Reason.REMAND);
     }
 
+    @Test
+    @DisplayName("movement reason of N (Unconvicted Remand) means reason is a RECALL when there is a recall NSI")
+    void movementReasonOfNMeansReasonIsRECALLWithRecallNSI() {
+        when(prisonApiService.getPrisonerDetails(any())).thenReturn(prisonerDetails("SENTENCED", false, "ADM", "V"));
+        assertThat(calculator.calculateMostLikelyReasonForPrisonerReceive("A1234GH").reason())
+            .isEqualTo(Reason.CONVICTED);
+
+        when(communityApiService.getRecalls(any()))
+            .thenReturn(Optional.of(List.of(new Recall(LocalDate.now(), false, null))));
+        when(prisonApiService.getMovements(any())).thenReturn(List.of(
+            new Movement("IN", LocalDate.now()),
+            new Movement("OUT", LocalDate.parse("2021-06-13")),
+            new Movement("IN", LocalDate.parse("2021-05-13"))
+        ));
+        when(prisonApiService.getPrisonerDetails(any())).thenReturn(prisonerDetails("SENTENCED", false, "ADM", "N"));
+
+        assertThat(calculator.calculateMostLikelyReasonForPrisonerReceive("A1234GH").reason()).isEqualTo(Reason.RECALL);
+    }
 
     @Test
     @DisplayName("reason in UNKNOWN when legal status is UNKNOWN and recall is false")
