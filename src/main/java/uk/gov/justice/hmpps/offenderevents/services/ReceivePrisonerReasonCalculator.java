@@ -7,6 +7,7 @@ import java.time.LocalDate;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.function.Function;
 import java.util.function.Predicate;
 
 import static java.util.function.Predicate.not;
@@ -28,22 +29,25 @@ public class ReceivePrisonerReasonCalculator {
         final var currentLocation = prisonerDetails.currentLocation();
         final var currentPrisonStatus = prisonerDetails.currentPrisonStatus();
         final var prisonId = prisonerDetails.latestLocationId();
+        final Function<Reason, ReasonWithDetailsAndSource> withDetailsAndSource = (reason) -> new ReasonWithDetailsAndSource(reason, Source.PRISON, details);
 
         final var reasonWithSourceAndDetails = Optional
             .ofNullable(
                 switch (prisonerDetails.typeOfMovement()) {
-                    case TEMPORARY_ABSENCE -> Reason.TEMPORARY_ABSENCE_RETURN;
-                    case COURT -> Reason.RETURN_FROM_COURT;
+                    case TEMPORARY_ABSENCE -> withDetailsAndSource.apply(Reason.TEMPORARY_ABSENCE_RETURN);
+                    case COURT -> withDetailsAndSource.apply(Reason.RETURN_FROM_COURT);
                     case ADMISSION -> switch (prisonerDetails.movementReason()) {
-                        case TRANSFER -> Reason.TRANSFERRED;
-                        case RECALL -> Reason.RECALL;
-                        case REMAND -> Reason.REMAND;
+                        case TRANSFER -> withDetailsAndSource.apply(Reason.TRANSFERRED);
+                        case RECALL -> withDetailsAndSource.apply(Reason.RECALL);
+                        case REMAND -> calculateReasonForPrisonerFromProbationOrEmpty(offenderNumber, details)
+                            .orElse(withDetailsAndSource.apply(Reason.REMAND));
                         default -> null;
                     };
                     default -> null;
                 })
-            .or(() -> Optional.of(Reason.RECALL).filter(notUsed -> prisonerDetails.recall()))
-            .map(reason -> new ReasonWithDetailsAndSource(reason, Source.PRISON, details))
+            .or(() -> Optional
+                .of(withDetailsAndSource.apply(Reason.RECALL))
+                .filter(notUsed -> prisonerDetails.recall()))
             .or(() ->
                 switch (prisonerDetails.legalStatus()) {
                     case OTHER, UNKNOWN, CONVICTED_UNSENTENCED, SENTENCED, INDETERMINATE_SENTENCE -> calculateReasonForPrisonerFromProbationOrEmpty(offenderNumber, details);
