@@ -13,6 +13,7 @@ import org.springframework.cloud.aws.messaging.core.TopicMessageChannel;
 import org.springframework.stereotype.Service;
 import uk.gov.justice.hmpps.offenderevents.config.SqsConfigProperties;
 import uk.gov.justice.hmpps.offenderevents.model.OffenderEvent;
+import uk.gov.justice.hmpps.offenderevents.services.ReceivePrisonerReasonCalculator.ProbableCause;
 
 import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
@@ -22,7 +23,6 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 
-import static java.time.ZoneId.systemDefault;
 import static uk.gov.justice.hmpps.offenderevents.config.SqsConfigPropertiesKt.hmppsEventTopic;
 
 @Service
@@ -77,8 +77,13 @@ public class HMPPSDomainEventsEmitter {
         ));
 
         Optional
+            .ofNullable(hmppsDomainEvent.additionalInformation().probableCause())
+            .ifPresent(probableCause -> elements.put("probableCause", probableCause));
+
+        Optional
             .ofNullable(hmppsDomainEvent.additionalInformation().source())
             .ifPresent(source -> elements.put("source", source));
+
         Optional
             .ofNullable(hmppsDomainEvent.additionalInformation().details())
             .ifPresent(details -> elements.put("details", details));
@@ -134,6 +139,7 @@ public class HMPPSDomainEventsEmitter {
         return Optional.of(new HMPPSDomainEvent("prison-offender-events.prisoner.received",
             new AdditionalInformation(offenderNumber,
                 receivedReason.reason().name(),
+                Optional.ofNullable(receivedReason.probableCause()).map(ProbableCause::name).orElse(null),
                 receivedReason.source().name(),
                 receivedReason.details(),
                 receivedReason.currentLocation(),
@@ -158,6 +164,7 @@ public class HMPPSDomainEventsEmitter {
         return Optional.of(new HMPPSDomainEvent("prison-offender-events.prisoner.released",
             new AdditionalInformation(offenderNumber,
                 releaseReason.reason().name(),
+                null,
                 null,
                 releaseReason.details(),
                 releaseReason.currentLocation(),
@@ -202,6 +209,7 @@ record HMPPSDomainEvent(String eventType, AdditionalInformation additionalInform
 @JsonInclude(Include.NON_NULL)
 record AdditionalInformation(String nomsNumber,
                              String reason,
+                             String probableCause,
                              String source,
                              String details,
                              CurrentLocation currentLocation,
