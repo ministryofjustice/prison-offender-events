@@ -1,6 +1,6 @@
 plugins {
-  id("uk.gov.justice.hmpps.gradle-spring-boot") version "3.3.4"
-  kotlin("plugin.spring") version "1.5.20"
+  id("uk.gov.justice.hmpps.gradle-spring-boot") version "3.3.5"
+  kotlin("plugin.spring") version "1.5.21"
   id("org.unbroken-dome.test-sets") version "4.0.0"
 }
 
@@ -45,15 +45,15 @@ dependencies {
 
   implementation("net.sf.ehcache:ehcache")
   implementation("org.apache.commons:commons-text:1.9")
-  implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.12.3")
+  implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.12.4")
   implementation("com.pauldijou:jwt-core_2.11:5.0.0")
   implementation("com.google.code.gson:gson:2.8.7")
   implementation("com.google.guava:guava:30.1.1-jre")
 
   // needed for record serialisation
-  implementation("com.fasterxml.jackson.core:jackson-core:2.12.3")
-  implementation("com.fasterxml.jackson.core:jackson-databind:2.12.3")
-  implementation("com.fasterxml.jackson.core:jackson-annotations:2.12.3")
+  implementation("com.fasterxml.jackson.core:jackson-core:2.12.4")
+  implementation("com.fasterxml.jackson.core:jackson-databind:2.12.4")
+  implementation("com.fasterxml.jackson.core:jackson-annotations:2.12.4")
 
   implementation("org.springdoc:springdoc-openapi-ui:1.5.9")
   implementation("org.springdoc:springdoc-openapi-data-rest:1.5.9")

@@ -7,7 +7,7 @@ import java.time.LocalDate;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.function.Function;
+import java.util.function.BiFunction;
 import java.util.function.Predicate;
 
 import static java.util.function.Predicate.not;
@@ -29,24 +29,24 @@ public class ReceivePrisonerReasonCalculator {
         final var currentLocation = prisonerDetails.currentLocation();
         final var currentPrisonStatus = prisonerDetails.currentPrisonStatus();
         final var prisonId = prisonerDetails.latestLocationId();
-        final Function<Reason, ReasonWithDetailsAndSource> withDetailsAndSource = (reason) -> new ReasonWithDetailsAndSource(reason, Source.PRISON, details);
+        final BiFunction<Reason, ProbableCause, ReasonWithDetailsAndSource> withDetailsAndSource = (reason, probableCause) -> new ReasonWithDetailsAndSource(reason, probableCause, Source.PRISON, details);
 
         final var reasonWithSourceAndDetails = Optional
             .ofNullable(
                 switch (prisonerDetails.typeOfMovement()) {
-                    case TEMPORARY_ABSENCE -> withDetailsAndSource.apply(Reason.TEMPORARY_ABSENCE_RETURN);
-                    case COURT -> withDetailsAndSource.apply(Reason.RETURN_FROM_COURT);
+                    case TEMPORARY_ABSENCE -> withDetailsAndSource.apply(Reason.TEMPORARY_ABSENCE_RETURN, null);
+                    case COURT -> withDetailsAndSource.apply(Reason.RETURN_FROM_COURT, null);
                     case ADMISSION -> switch (prisonerDetails.movementReason()) {
-                        case TRANSFER -> withDetailsAndSource.apply(Reason.TRANSFERRED);
-                        case RECALL -> withDetailsAndSource.apply(Reason.RECALL);
+                        case TRANSFER -> withDetailsAndSource.apply(Reason.TRANSFERRED, null);
+                        case RECALL -> withDetailsAndSource.apply(Reason.ADMISSION, ProbableCause.RECALL);
                         case REMAND -> calculateReasonForPrisonerFromProbationOrEmpty(offenderNumber, details)
-                            .orElse(withDetailsAndSource.apply(Reason.REMAND));
+                            .orElse(withDetailsAndSource.apply(Reason.ADMISSION, ProbableCause.REMAND));
                         default -> null;
                     };
                     default -> null;
                 })
             .or(() -> Optional
-                .of(withDetailsAndSource.apply(Reason.RECALL))
+                .of(withDetailsAndSource.apply(Reason.ADMISSION, ProbableCause.RECALL))
                 .filter(notUsed -> prisonerDetails.recall()))
             .or(() ->
                 switch (prisonerDetails.legalStatus()) {
@@ -54,18 +54,19 @@ public class ReceivePrisonerReasonCalculator {
                     default -> Optional.empty();
                 })
             .orElseGet(() -> {
-                final var reason =
+                final var probableCause =
                     switch (prisonerDetails.legalStatus()) {
-                        case RECALL -> Reason.RECALL;
-                        case CIVIL_PRISONER, CONVICTED_UNSENTENCED, SENTENCED, INDETERMINATE_SENTENCE -> Reason.CONVICTED;
-                        case IMMIGRATION_DETAINEE -> Reason.IMMIGRATION_DETAINEE;
-                        case REMAND -> Reason.REMAND;
-                        case DEAD, OTHER, UNKNOWN -> Reason.UNKNOWN;
+                        case RECALL -> ProbableCause.RECALL;
+                        case CIVIL_PRISONER, CONVICTED_UNSENTENCED, SENTENCED, INDETERMINATE_SENTENCE -> ProbableCause.CONVICTED;
+                        case IMMIGRATION_DETAINEE -> ProbableCause.IMMIGRATION_DETAINEE;
+                        case REMAND -> ProbableCause.REMAND;
+                        case DEAD, OTHER, UNKNOWN -> ProbableCause.UNKNOWN;
                     };
-                return new ReasonWithDetailsAndSource(reason, Source.PRISON, details);
+                return new ReasonWithDetailsAndSource(Reason.ADMISSION, probableCause, Source.PRISON, details);
             });
 
         return new ReceiveReason(reasonWithSourceAndDetails.reason(),
+            reasonWithSourceAndDetails.probableCause(),
             reasonWithSourceAndDetails.source(),
             reasonWithSourceAndDetails.details(),
             currentLocation,
@@ -104,7 +105,7 @@ public class ReceivePrisonerReasonCalculator {
             .filter(Objects::nonNull)
             .max(LocalDate::compareTo)
             .filter(not(hasBeenInPrisonSince))
-            .map(referralDate -> new ReasonWithDetailsAndSource(Reason.RECALL, Source.PROBATION, String.format("%s Recall referral date %s", details, referralDate)));
+            .map(referralDate -> new ReasonWithDetailsAndSource(Reason.ADMISSION, ProbableCause.RECALL, Source.PROBATION, String.format("%s Recall referral date %s", details, referralDate)));
 
     }
 
@@ -120,14 +121,18 @@ public class ReceivePrisonerReasonCalculator {
     }
 
     enum Reason {
+        ADMISSION,
+        TEMPORARY_ABSENCE_RETURN,
+        RETURN_FROM_COURT,
+        TRANSFERRED
+    }
+
+    enum ProbableCause {
         RECALL,
         REMAND,
         CONVICTED,
         IMMIGRATION_DETAINEE,
         UNKNOWN,
-        TEMPORARY_ABSENCE_RETURN,
-        RETURN_FROM_COURT,
-        TRANSFERRED
     }
 
     enum Source {
@@ -135,14 +140,14 @@ public class ReceivePrisonerReasonCalculator {
         PROBATION
     }
 
-    record ReasonWithDetailsAndSource(Reason reason, Source source, String details) {
+    record ReasonWithDetailsAndSource(Reason reason, ProbableCause probableCause, Source source, String details) {
 
     }
 
-    record ReceiveReason(Reason reason, Source source, String details, CurrentLocation currentLocation,
+    record ReceiveReason(Reason reason, ProbableCause probableCause, Source source, String details, CurrentLocation currentLocation,
                          CurrentPrisonStatus currentPrisonStatus, String prisonId) implements PrisonerMovementReason {
-        public ReceiveReason(Reason reason, Source source, CurrentLocation currentLocation, CurrentPrisonStatus currentPrisonStatus, String prisonId) {
-            this(reason, source, null, currentLocation, currentPrisonStatus, prisonId);
+        public ReceiveReason(Reason reason, ProbableCause probableCause, Source source, CurrentLocation currentLocation, CurrentPrisonStatus currentPrisonStatus, String prisonId) {
+            this(reason, probableCause, source, null, currentLocation, currentPrisonStatus, prisonId);
         }
 
         public boolean hasPrisonerActuallyBeenReceived() {

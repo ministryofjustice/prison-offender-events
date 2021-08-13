@@ -140,7 +140,8 @@ public class HMPPSDomainEventsTest extends QueueListenerIntegrationTest {
                     assertThatJson(event).node("publishedAt").asString()
                         .satisfies(dateTime -> assertThat(OffsetDateTime.parse(dateTime))
                             .isCloseTo(OffsetDateTime.now(), within(10, ChronoUnit.SECONDS)));
-                    assertThatJson(event).node("additionalInformation.reason").isEqualTo("RECALL");
+                    assertThatJson(event).node("additionalInformation.reason").isEqualTo("ADMISSION");
+                    assertThatJson(event).node("additionalInformation.probableCause").isEqualTo("RECALL");
                     assertThatJson(event).node("additionalInformation.prisonId").isEqualTo("MDI");
                     assertThatJson(event).node("additionalInformation.source").isEqualTo("PRISON");
                     assertThatJson(event).node("additionalInformation.currentLocation").isEqualTo("IN_PRISON");
@@ -169,7 +170,8 @@ public class HMPPSDomainEventsTest extends QueueListenerIntegrationTest {
                 final var hmppsEventMessages = geMessagesCurrentlyOnHMPPSTestQueue();
                 assertThat(hmppsEventMessages).singleElement().satisfies(event -> {
                     assertThatJson(event).node("eventType").isEqualTo("prison-offender-events.prisoner.received");
-                    assertThatJson(event).node("additionalInformation.reason").isEqualTo("CONVICTED");
+                    assertThatJson(event).node("additionalInformation.reason").isEqualTo("ADMISSION");
+                    assertThatJson(event).node("additionalInformation.probableCause").isEqualTo("CONVICTED");
                     assertThatJson(event).node("additionalInformation.prisonId").isEqualTo("MDI");
                     assertThatJson(event).node("additionalInformation.source").isEqualTo("PRISON");
                 });
@@ -187,7 +189,8 @@ public class HMPPSDomainEventsTest extends QueueListenerIntegrationTest {
                 final var hmppsEventMessages = geMessagesCurrentlyOnHMPPSTestQueue();
                 assertThat(hmppsEventMessages).singleElement().satisfies(event -> {
                     assertThatJson(event).node("eventType").isEqualTo("prison-offender-events.prisoner.received");
-                    assertThatJson(event).node("additionalInformation.reason").isEqualTo("RECALL");
+                    assertThatJson(event).node("additionalInformation.reason").isEqualTo("ADMISSION");
+                    assertThatJson(event).node("additionalInformation.probableCause").isEqualTo("RECALL");
                     assertThatJson(event).node("additionalInformation.prisonId").isEqualTo("MDI");
                     assertThatJson(event).node("additionalInformation.source").isEqualTo("PROBATION");
                 });
@@ -255,6 +258,7 @@ public class HMPPSDomainEventsTest extends QueueListenerIntegrationTest {
                         .satisfies(dateTime -> assertThat(OffsetDateTime.parse(dateTime))
                             .isCloseTo(OffsetDateTime.now(), within(10, ChronoUnit.SECONDS)));
                     assertThatJson(event).node("additionalInformation.reason").isEqualTo("TRANSFERRED");
+                    assertThatJson(event).node("additionalInformation.probableCause").isAbsent();
                     assertThatJson(event).node("additionalInformation.prisonId").isEqualTo("WWA");
                     assertThatJson(event).node("additionalInformation.currentLocation").isEqualTo("BEING_TRANSFERRED");
                     assertThatJson(event)
@@ -281,6 +285,7 @@ public class HMPPSDomainEventsTest extends QueueListenerIntegrationTest {
                 assertThat(hmppsEventMessages).singleElement().satisfies(event -> {
                     assertThatJson(event).node("eventType").isEqualTo("prison-offender-events.prisoner.released");
                     assertThatJson(event).node("additionalInformation.reason").isEqualTo("RELEASED");
+                    assertThatJson(event).node("additionalInformation.probableCause").isAbsent();
                     assertThatJson(event).node("additionalInformation.prisonId").isEqualTo("MDI");
                     assertThatJson(event).node("additionalInformation.currentLocation").isEqualTo("OUTSIDE_PRISON");
                     assertThatJson(event)

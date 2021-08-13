@@ -13,6 +13,7 @@ import org.springframework.stereotype.Service;
 import uk.gov.justice.hmpps.offenderevents.model.OffenderEvent;
 import uk.gov.justice.hmpps.sqs.HmppsQueueService;
 import uk.gov.justice.hmpps.sqs.HmppsTopic;
+import uk.gov.justice.hmpps.offenderevents.services.ReceivePrisonerReasonCalculator.ProbableCause;
 
 import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
@@ -71,8 +72,13 @@ public class HMPPSDomainEventsEmitter {
         ));
 
         Optional
+            .ofNullable(hmppsDomainEvent.additionalInformation().probableCause())
+            .ifPresent(probableCause -> elements.put("probableCause", probableCause));
+
+        Optional
             .ofNullable(hmppsDomainEvent.additionalInformation().source())
             .ifPresent(source -> elements.put("source", source));
+
         Optional
             .ofNullable(hmppsDomainEvent.additionalInformation().details())
             .ifPresent(details -> elements.put("details", details));
@@ -128,6 +134,7 @@ public class HMPPSDomainEventsEmitter {
         return Optional.of(new HMPPSDomainEvent("prison-offender-events.prisoner.received",
             new AdditionalInformation(offenderNumber,
                 receivedReason.reason().name(),
+                Optional.ofNullable(receivedReason.probableCause()).map(ProbableCause::name).orElse(null),
                 receivedReason.source().name(),
                 receivedReason.details(),
                 receivedReason.currentLocation(),
@@ -152,6 +159,7 @@ public class HMPPSDomainEventsEmitter {
         return Optional.of(new HMPPSDomainEvent("prison-offender-events.prisoner.released",
             new AdditionalInformation(offenderNumber,
                 releaseReason.reason().name(),
+                null,
                 null,
                 releaseReason.details(),
                 releaseReason.currentLocation(),
@@ -196,12 +204,13 @@ record HMPPSDomainEvent(String eventType, AdditionalInformation additionalInform
     }
 }
 
-    @JsonInclude(Include.NON_NULL)
-    record AdditionalInformation(String nomsNumber,
-                                 String reason,
-                                 String source,
-                                 String details,
-                                 CurrentLocation currentLocation,
-                                 String prisonId,
-                                 CurrentPrisonStatus currentPrisonStatus) {
-    }
+@JsonInclude(Include.NON_NULL)
+record AdditionalInformation(String nomsNumber,
+                             String reason,
+                             String probableCause,
+                             String source,
+                             String details,
+                             CurrentLocation currentLocation,
+                             String prisonId,
+                             CurrentPrisonStatus currentPrisonStatus) {
+}

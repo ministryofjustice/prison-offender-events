@@ -33,8 +33,7 @@ import uk.gov.justice.hmpps.offenderevents.services.CurrentLocation.IN_PRISON
 import uk.gov.justice.hmpps.offenderevents.services.CurrentLocation.OUTSIDE_PRISON
 import uk.gov.justice.hmpps.offenderevents.services.CurrentPrisonStatus.NOT_UNDER_PRISON_CARE
 import uk.gov.justice.hmpps.offenderevents.services.CurrentPrisonStatus.UNDER_PRISON_CARE
-import uk.gov.justice.hmpps.offenderevents.services.ReceivePrisonerReasonCalculator.Reason.RECALL
-import uk.gov.justice.hmpps.offenderevents.services.ReceivePrisonerReasonCalculator.Reason.UNKNOWN
+import uk.gov.justice.hmpps.offenderevents.services.ReceivePrisonerReasonCalculator.ProbableCause
 import uk.gov.justice.hmpps.offenderevents.services.ReceivePrisonerReasonCalculator.ReceiveReason
 import uk.gov.justice.hmpps.offenderevents.services.ReceivePrisonerReasonCalculator.Source.PRISON
 import uk.gov.justice.hmpps.offenderevents.services.ReleasePrisonerReasonCalculator.Reason
@@ -99,7 +98,8 @@ internal class HMPPSDomainEventsEmitterTest {
     Mockito.`when`(receivePrisonerReasonCalculator!!.calculateMostLikelyReasonForPrisonerReceive(ArgumentMatchers.any()))
       .thenReturn(
         ReceiveReason(
-          UNKNOWN,
+          ReceivePrisonerReasonCalculator.Reason.ADMISSION,
+          ProbableCause.UNKNOWN,
           PRISON,
           IN_PRISON,
           UNDER_PRISON_CARE,
@@ -150,7 +150,8 @@ internal class HMPPSDomainEventsEmitterTest {
       )
         .thenReturn(
           ReceiveReason(
-            RECALL,
+            ReceivePrisonerReasonCalculator.Reason.ADMISSION,
+            ProbableCause.RECALL,
             PRISON,
             "some details",
             IN_PRISON,
@@ -205,7 +206,13 @@ internal class HMPPSDomainEventsEmitterTest {
     @Test
     @DisplayName("will indicate the reason for a prisoners entry")
     fun willIndicateTheReasonForAPrisonersEntry() {
-      JsonAssertions.assertThatJson(payload).node("additionalInformation.reason").isEqualTo("RECALL")
+      JsonAssertions.assertThatJson(payload).node("additionalInformation.reason").isEqualTo("ADMISSION")
+    }
+
+    @Test
+    @DisplayName("will indicate the probable cause for a prisoners entry")
+    fun willIndicateTheProbableCauseForAPrisonersEntry() {
+      JsonAssertions.assertThatJson(payload).node("additionalInformation.probableCause").isEqualTo("RECALL")
     }
 
     @Test
@@ -232,7 +239,13 @@ internal class HMPPSDomainEventsEmitterTest {
     @Test
     @DisplayName("will add reason to telemetry event")
     fun willAddReasonToTelemetryEvent() {
-      Assertions.assertThat(telemetryAttributes).containsEntry("reason", "RECALL")
+      Assertions.assertThat(telemetryAttributes).containsEntry("reason", "ADMISSION")
+    }
+
+    @Test
+    @DisplayName("will add probable cause to telemetry event")
+    fun willAddProbableCauseToTelemetryEvent() {
+      Assertions.assertThat(telemetryAttributes).containsEntry("probableCause", "RECALL")
     }
 
     @Test
@@ -270,7 +283,8 @@ internal class HMPPSDomainEventsEmitterTest {
       Mockito.`when`(receivePrisonerReasonCalculator!!.calculateMostLikelyReasonForPrisonerReceive(ArgumentMatchers.any()))
         .thenReturn(
           ReceiveReason(
-            UNKNOWN,
+            ReceivePrisonerReasonCalculator.Reason.ADMISSION,
+            ProbableCause.UNKNOWN,
             PRISON,
             "some details",
             OUTSIDE_PRISON,
@@ -300,7 +314,7 @@ internal class HMPPSDomainEventsEmitterTest {
     @Test
     @DisplayName("will add reason to telemetry event")
     fun willAddReasonToTelemetryEvent() {
-      Assertions.assertThat(telemetryAttributes).containsEntry("reason", "UNKNOWN")
+      Assertions.assertThat(telemetryAttributes).containsEntry("reason", "ADMISSION")
     }
 
     @Test
