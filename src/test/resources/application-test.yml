@@ -25,9 +25,6 @@ application:
       initialDelay: 0
       lockAtLeastFor: PT1S
 
-aws:
-  provider: localstack
-
 hmpps.sqs:
   provider: localstack
   queues:

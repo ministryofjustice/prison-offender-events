@@ -3,13 +3,13 @@ package uk.gov.justice.hmpps.offenderevents.resource
 import com.amazonaws.services.sqs.AmazonSQS
 import com.amazonaws.services.sqs.model.PurgeQueueRequest
 import org.awaitility.kotlin.await
-import org.springframework.boot.test.mock.mockito.SpyBean
+import org.springframework.beans.factory.annotation.Autowired
 import uk.gov.justice.hmpps.sqs.HmppsQueue
 import uk.gov.justice.hmpps.sqs.HmppsQueueService
 
 abstract class QueueListenerIntegrationTest : IntegrationTestBase() {
 
-  @SpyBean
+  @Autowired
   lateinit var hmppsQueueService: HmppsQueueService
 
   internal val prisonEventQueue by lazy { hmppsQueueService.findByQueueId("prisoneventqueue") as HmppsQueue }

@@ -88,73 +88,73 @@ env:
         name: dps-rds-instance-output
         key: rds_instance_endpoint
 
-  - name: HMPPS_SQS_TOPICS_PRISON_EVENT_TOPIC_ACCESS_KEY_ID
+  - name: HMPPS_SQS_TOPICS_PRISONEVENTTOPIC_ACCESS_KEY_ID
     valueFrom:
       secretKeyRef:
         name: offender-events-topic
         key: access_key_id
 
-  - name: HMPPS_SQS_TOPICS_PRISON_EVENT_TOPIC_SECRET_ACCESS_KEY
+  - name: HMPPS_SQS_TOPICS_PRISONEVENTTOPIC_SECRET_ACCESS_KEY
     valueFrom:
       secretKeyRef:
         name: offender-events-topic
         key: secret_access_key
 
-  - name: HMPPS_SQS_TOPICS_PRISON_EVENT_TOPIC_ARN
+  - name: HMPPS_SQS_TOPICS_PRISONEVENTTOPIC_ARN
     valueFrom:
       secretKeyRef:
         name: offender-events-topic
         key: topic_arn
 
-  - name: HMPPS_SQS_TOPICS_HMPPS_EVENT_ACCESS_KEY_ID
+  - name: HMPPS_SQS_TOPICS_HMPPSEVENTTOPIC_ACCESS_KEY_ID
     valueFrom:
       secretKeyRef:
         name: hmpps-domain-events-topic
         key: access_key_id
 
-  - name: HMPPS_SQS_TOPICS_HMPPS_EVENT_SECRET_ACCESS_KEY
+  - name: HMPPS_SQS_TOPICS_HMPPSEVENTTOPIC_SECRET_ACCESS_KEY
     valueFrom:
       secretKeyRef:
         name: hmpps-domain-events-topic
         key: secret_access_key
 
-  - name: HMPPS_SQS_TOPICS_HMPPS_EVENT_TOPIC_ARN
+  - name: HMPPS_SQS_TOPICS_HMPPSEVENTTOPIC_ARN
     valueFrom:
       secretKeyRef:
         name: hmpps-domain-events-topic
         key: topic_arn
 
-  - name: HMPPS_SQS_QUEUES_PRISON_EVENT_QUEUE_NAME
+  - name: HMPPS_SQS_QUEUES_PRISONEVENTQUEUE_QUEUE_NAME
     valueFrom:
       secretKeyRef:
         name: prisoner-offender-events-queue
         key: sqs_queue_name
 
-  - name: HMPPS_SQS_QUEUES_PRISON_EVENT_ACCESS_KEY_ID
+  - name: HMPPS_SQS_QUEUES_PRISONEVENTQUEUE_QUEUE_ACCESS_KEY_ID
     valueFrom:
       secretKeyRef:
         name: prisoner-offender-events-queue
         key: access_key_id
 
-  - name: HMPPS_SQS_QUEUES_PRISON_EVENT_SECRET_ACCESS_KEY
+  - name: HMPPS_SQS_QUEUES_PRISONEVENTQUEUE_QUEUE_SECRET_ACCESS_KEY
     valueFrom:
       secretKeyRef:
         name: prisoner-offender-events-queue
         key: secret_access_key
 
-  - name: HMPPS_SQS_QUEUES_PRISON_EVENT_DLQ_NAME
+  - name: HMPPS_SQS_QUEUES_PRISONEVENTQUEUE_DLQ_NAME
     valueFrom:
       secretKeyRef:
         name: prisoner-offender-events-dlq
         key: sqs_queue_name
 
-  - name: HMPPS_SQS_QUEUES_PRISON_EVENT_DLQ_ACCESS_KEY_ID
+  - name: HMPPS_SQS_QUEUES_PRISONEVENTQUEUE_DLQ_ACCESS_KEY_ID
     valueFrom:
       secretKeyRef:
         name: prisoner-offender-events-dlq
         key: access_key_id
 
-  - name: HMPPS_SQS_QUEUES_PRISON_EVENT_DLQ_SECRET_ACCESS_KEY
+  - name: HMPPS_SQS_QUEUES_PRISONEVENTQUEUE_DLQ_SECRET_ACCESS_KEY
     valueFrom:
       secretKeyRef:
         name: prisoner-offender-events-dlq
