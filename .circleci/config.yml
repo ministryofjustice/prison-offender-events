@@ -64,10 +64,6 @@ workflows:
           jdk_tag: "16.0"
           requires:
             - deploy_dev
-      - request-preprod-approval:
-          type: approval
-          requires:
-            - smoke_test
       - hmpps/deploy_env:
           name: deploy_preprod
           env: "preprod"
@@ -75,7 +71,7 @@ workflows:
             - hmpps-common-vars
             - offender-events-preprod
           requires:
-            - request-preprod-approval
+            - smoke_test
       - request-prod-approval:
           type: approval
           requires:
