@@ -10,7 +10,6 @@ import org.junit.jupiter.api.TestInstance
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.MethodSource
 import org.springframework.http.MediaType
-import uk.gov.justice.hmpps.offenderevents.config.prisonEventQueue
 
 class QueueResourceTest : QueueListenerIntegrationTest() {
 
@@ -36,7 +35,7 @@ class QueueResourceTest : QueueListenerIntegrationTest() {
   @Test
   fun `should fail if no token`() {
     webTestClient.put()
-      .uri("/queue-admin/retry-dlq/${sqsConfigProperties.prisonEventQueue().dlqName}")
+      .uri("/queue-admin/retry-dlq/anyDlq")
       .contentType(MediaType.APPLICATION_JSON)
       .exchange()
       .expectStatus().isUnauthorized
@@ -45,7 +44,7 @@ class QueueResourceTest : QueueListenerIntegrationTest() {
   @Test
   fun `should fail if wrong role`() {
     webTestClient.put()
-      .uri("/queue-admin/retry-dlq/${sqsConfigProperties.prisonEventQueue().dlqName}")
+      .uri("/queue-admin/retry-dlq/anyDlq")
       .headers(setAuthorisation(roles = listOf("ROLE_WRONG")))
       .contentType(MediaType.APPLICATION_JSON)
       .exchange()
@@ -74,20 +73,20 @@ class QueueResourceTest : QueueListenerIntegrationTest() {
       "details": "{ \"offenderId\": \"99\"}"
     }
   """
-    awsSqsClient.purgeQueue(PurgeQueueRequest(queueUrl))
-    awsSqsDlqClient.purgeQueue(PurgeQueueRequest(dlqUrl))
+    prisonEventQueueSqsClient.purgeQueue(PurgeQueueRequest(prisonEventQueueUrl))
+    prisonEventSqsDlqClient.purgeQueue(PurgeQueueRequest(prisonEventDlqUrl))
 
-    await untilCallTo { getNumberOfMessagesCurrentlyOnDlq() } matches { it == 0 }
-    awsSqsDlqClient.sendMessage(dlqUrl, message)
-    await untilCallTo { getNumberOfMessagesCurrentlyOnDlq() } matches { it == 1 }
+    await untilCallTo { getNumberOfMessagesCurrentlyOnPrisonEventDlq() } matches { it == 0 }
+    prisonEventSqsDlqClient.sendMessage(prisonEventDlqUrl, message)
+    await untilCallTo { getNumberOfMessagesCurrentlyOnPrisonEventDlq() } matches { it == 1 }
 
     webTestClient.put()
-      .uri("/queue-admin/purge-queue/${sqsConfigProperties.prisonEventQueue().dlqName}")
+      .uri("/queue-admin/purge-queue/$prisonEventDlqName")
       .headers(setAuthorisation(roles = listOf("ROLE_QUEUE_ADMIN")))
       .contentType(MediaType.APPLICATION_JSON)
       .exchange()
       .expectStatus().isOk
 
-    await untilCallTo { getNumberOfMessagesCurrentlyOnDlq() } matches { it == 0 }
+    await untilCallTo { getNumberOfMessagesCurrentlyOnPrisonEventDlq() } matches { it == 0 }
   }
 }

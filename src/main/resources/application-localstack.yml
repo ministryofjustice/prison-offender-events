@@ -1,15 +1,18 @@
+aws:
+  provider: localstack
+
 hmpps.sqs:
   provider: localstack
   localstackUrl: http://localhost:4566
   queues:
-    prisonEventQueue:
+    prisoneventqueue:
       queueName: prison-event-queue
       dlqName: prison-event-dlq
+      subscribeTopicId: prisoneventtopic
+      subscribeFilter: '{"eventType":[ "OFFENDER_MOVEMENT-RECEPTION", "OFFENDER_MOVEMENT-DISCHARGE" ] }'
   topics:
-    prisonEventTopic:
-      topicArn: arn:aws:sns:eu-west-2:000000000000:prison-event-topic
-    hmppsEventTopic:
-      topicArn: arn:aws:sns:eu-west-2:000000000000:hmpps-event-topic
+    prisoneventtopic:
+      arn: arn:aws:sns:eu-west-2:000000000000:prison-event-topic
+    hmppseventtopic:
+      arn: arn:aws:sns:eu-west-2:000000000000:hmpps-event-topic
 
-aws:
-  provider: localstack

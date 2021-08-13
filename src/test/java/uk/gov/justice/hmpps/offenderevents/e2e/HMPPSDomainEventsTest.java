@@ -50,7 +50,7 @@ public class HMPPSDomainEventsTest extends QueueListenerIntegrationTest {
 
 
     private List<String> geMessagesCurrentlyOnTestQueue() {
-        final var messageResult = testSqsClient.receiveMessage(getTestQueueUrl());
+        final var messageResult = getPrisonEventTestQueueSqsClient().receiveMessage(getPrisonEventTestQueueUrl());
         return messageResult
             .getMessages()
             .stream()
@@ -62,7 +62,7 @@ public class HMPPSDomainEventsTest extends QueueListenerIntegrationTest {
 
 
     private List<String> geMessagesCurrentlyOnHMPPSTestQueue() {
-        final var messageResult = testHmppsSqsClient.receiveMessage(getTestHmppsQueueUrl());
+        final var messageResult = getPrisonEventTestQueueSqsClient().receiveMessage(getHmppsEventTestQueueUrl());
         return messageResult
             .getMessages()
             .stream()
@@ -112,14 +112,14 @@ public class HMPPSDomainEventsTest extends QueueListenerIntegrationTest {
             @Test
             @DisplayName("will publish prison event and hmpps domain event for reception")
             void willPublishPrisonEventForReception() {
-                await().until(() -> getNumberOfMessagesCurrentlyOnTestQueue() == 1);
-                await().until(() -> getNumberOfMessagesCurrentlyOnHMPPSTestQueue() == 1);
+                await().until(() -> getNumberOfMessagesCurrentlyOnPrisonEventTestQueue() == 1);
+                await().until(() -> getNumberOfMessagesCurrentlyOnHMPPSEventTestQueue() == 1);
             }
 
             @Test
             @DisplayName("will publish OFFENDER_MOVEMENT-RECEPTION prison event")
             void willPublishPrisonEvent() {
-                await().until(() -> getNumberOfMessagesCurrentlyOnTestQueue() == 1);
+                await().until(() -> getNumberOfMessagesCurrentlyOnPrisonEventTestQueue() == 1);
                 final var prisonEventMessages = geMessagesCurrentlyOnTestQueue();
                 assertThat(prisonEventMessages)
                     .singleElement()
@@ -131,7 +131,7 @@ public class HMPPSDomainEventsTest extends QueueListenerIntegrationTest {
             @Test
             @DisplayName("will publish prison-offender-events.prisoner.received HMPPS domain event without asking community-api")
             void willPublishHMPPSDomainEvent() {
-                await().until(() -> getNumberOfMessagesCurrentlyOnHMPPSTestQueue() == 1);
+                await().until(() -> getNumberOfMessagesCurrentlyOnHMPPSEventTestQueue() == 1);
                 final var hmppsEventMessages = geMessagesCurrentlyOnHMPPSTestQueue();
                 assertThat(hmppsEventMessages).singleElement().satisfies(event -> {
                     assertThatJson(event).node("eventType").isEqualTo("prison-offender-events.prisoner.received");
@@ -166,7 +166,7 @@ public class HMPPSDomainEventsTest extends QueueListenerIntegrationTest {
             void willPublishHMPPSDomainEvent() {
                 CommunityApiExtension.server.stubForNoRecall("A5194DY");
 
-                await().until(() -> getNumberOfMessagesCurrentlyOnHMPPSTestQueue() == 1);
+                await().until(() -> getNumberOfMessagesCurrentlyOnHMPPSEventTestQueue() == 1);
                 final var hmppsEventMessages = geMessagesCurrentlyOnHMPPSTestQueue();
                 assertThat(hmppsEventMessages).singleElement().satisfies(event -> {
                     assertThatJson(event).node("eventType").isEqualTo("prison-offender-events.prisoner.received");
@@ -185,7 +185,7 @@ public class HMPPSDomainEventsTest extends QueueListenerIntegrationTest {
                 CommunityApiExtension.server.stubForRecall("A5194DY");
                 PrisonApiExtension.server.stubMovements("A5194DY", List.of(new MovementFragment("IN", LocalDateTime.now())));
 
-                await().until(() -> getNumberOfMessagesCurrentlyOnHMPPSTestQueue() == 1);
+                await().until(() -> getNumberOfMessagesCurrentlyOnHMPPSEventTestQueue() == 1);
                 final var hmppsEventMessages = geMessagesCurrentlyOnHMPPSTestQueue();
                 assertThat(hmppsEventMessages).singleElement().satisfies(event -> {
                     assertThatJson(event).node("eventType").isEqualTo("prison-offender-events.prisoner.received");
@@ -229,14 +229,14 @@ public class HMPPSDomainEventsTest extends QueueListenerIntegrationTest {
             @Test
             @DisplayName("will publish prison event and hmpps domain event for release transfer")
             void willPublishPrisonEventForTransferRelease() {
-                await().until(() -> getNumberOfMessagesCurrentlyOnTestQueue() == 1);
-                await().until(() -> getNumberOfMessagesCurrentlyOnHMPPSTestQueue() == 1);
+                await().until(() -> getNumberOfMessagesCurrentlyOnPrisonEventTestQueue() == 1);
+                await().until(() -> getNumberOfMessagesCurrentlyOnHMPPSEventTestQueue() == 1);
             }
 
             @Test
             @DisplayName("will publish OFFENDER_MOVEMENT-DISCHARGE prison event")
             void willPublishPrisonEvent() {
-                await().until(() -> getNumberOfMessagesCurrentlyOnTestQueue() == 1);
+                await().until(() -> getNumberOfMessagesCurrentlyOnPrisonEventTestQueue() == 1);
                 final var prisonEventMessages = geMessagesCurrentlyOnTestQueue();
                 assertThat(prisonEventMessages)
                     .singleElement()
@@ -248,7 +248,7 @@ public class HMPPSDomainEventsTest extends QueueListenerIntegrationTest {
             @Test
             @DisplayName("will publish prison-offender-events.prisoner.released HMPPS domain event")
             void willPublishHMPPSDomainEvent() {
-                await().until(() -> getNumberOfMessagesCurrentlyOnHMPPSTestQueue() == 1);
+                await().until(() -> getNumberOfMessagesCurrentlyOnHMPPSEventTestQueue() == 1);
                 final var hmppsEventMessages = geMessagesCurrentlyOnHMPPSTestQueue();
                 assertThat(hmppsEventMessages).singleElement().satisfies(event -> {
                     assertThatJson(event).node("eventType").isEqualTo("prison-offender-events.prisoner.released");
@@ -280,7 +280,7 @@ public class HMPPSDomainEventsTest extends QueueListenerIntegrationTest {
             @Test
             @DisplayName("will publish prison-offender-events.prisoner.release HMPPS domain event")
             void willPublishHMPPSDomainEvent() {
-                await().until(() -> getNumberOfMessagesCurrentlyOnHMPPSTestQueue() == 1);
+                await().until(() -> getNumberOfMessagesCurrentlyOnHMPPSEventTestQueue() == 1);
                 final var hmppsEventMessages = geMessagesCurrentlyOnHMPPSTestQueue();
                 assertThat(hmppsEventMessages).singleElement().satisfies(event -> {
                     assertThatJson(event).node("eventType").isEqualTo("prison-offender-events.prisoner.released");

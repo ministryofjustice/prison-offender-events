@@ -22,13 +22,13 @@ metadata:
       }
 spec:
   tls:
-  {{- range .Values.ingress.hosts }}
-  - hosts:
-    - {{ .host }}
-    {{ if .cert_secret }}secretName: {{ .cert_secret }}{{ end }}
-  {{- end }}
+    {{- range .Values.ingress.hosts }}
+    - hosts:
+      - {{ .host }}
+      {{ if .cert_secret }}secretName: {{ .cert_secret }}{{ end }}
+    {{- end }}
   rules:
-  {{- range .Values.ingress.hosts }}
+    {{- range .Values.ingress.hosts }}
     - host: {{ .host }}
       http:
         paths:

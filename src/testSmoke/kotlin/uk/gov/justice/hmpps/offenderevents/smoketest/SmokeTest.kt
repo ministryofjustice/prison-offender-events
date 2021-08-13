@@ -50,5 +50,5 @@ class SmokeTest {
   }
 
   data class TestStatus(val description: String, val progress: TestProgress)
-  enum class TestProgress { INCOMPLETE, COMPLETE, SUCCESS, FAIL; }
+  enum class TestProgress { INCOMPLETE, COMPLETE, SUCCESS, FAIL }
 }

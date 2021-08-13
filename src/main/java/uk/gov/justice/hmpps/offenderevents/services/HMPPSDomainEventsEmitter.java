@@ -1,18 +1,18 @@
 package uk.gov.justice.hmpps.offenderevents.services;
 
 import com.amazonaws.services.sns.AmazonSNSAsync;
+import com.amazonaws.services.sns.model.MessageAttributeValue;
+import com.amazonaws.services.sns.model.PublishRequest;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.microsoft.applicationinsights.TelemetryClient;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.cloud.aws.messaging.core.NotificationMessagingTemplate;
-import org.springframework.cloud.aws.messaging.core.TopicMessageChannel;
 import org.springframework.stereotype.Service;
-import uk.gov.justice.hmpps.offenderevents.config.SqsConfigProperties;
 import uk.gov.justice.hmpps.offenderevents.model.OffenderEvent;
+import uk.gov.justice.hmpps.sqs.HmppsQueueService;
+import uk.gov.justice.hmpps.sqs.HmppsTopic;
 import uk.gov.justice.hmpps.offenderevents.services.ReceivePrisonerReasonCalculator.ProbableCause;
 
 import java.time.LocalDateTime;
@@ -23,29 +23,24 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 
-import static uk.gov.justice.hmpps.offenderevents.config.SqsConfigPropertiesKt.hmppsEventTopic;
-
 @Service
 @Slf4j
 public class HMPPSDomainEventsEmitter {
-    private final NotificationMessagingTemplate topicTemplate;
-    private final AmazonSNSAsync awsHMPPSEventsSnsClient;
+    private final AmazonSNSAsync hmppsEventsTopicSnsClient;
     private final String topicArn;
     private final ObjectMapper objectMapper;
     private final ReceivePrisonerReasonCalculator receivePrisonerReasonCalculator;
     private final ReleasePrisonerReasonCalculator releasePrisonerReasonCalculator;
     private final TelemetryClient telemetryClient;
 
-
-    HMPPSDomainEventsEmitter(@Qualifier("awsHMPPSEventsSnsClient") final AmazonSNSAsync awsHMPPSEventsSnsClient,
-                             SqsConfigProperties sqsConfigProperties,
+    HMPPSDomainEventsEmitter(final HmppsQueueService hmppsQueueService,
                              final ObjectMapper objectMapper,
                              final ReceivePrisonerReasonCalculator receivePrisonerReasonCalculator,
                              final ReleasePrisonerReasonCalculator releasePrisonerReasonCalculator,
                              final TelemetryClient telemetryClient) {
-        this.topicTemplate = new NotificationMessagingTemplate(awsHMPPSEventsSnsClient);
-        this.topicArn = hmppsEventTopic(sqsConfigProperties).getTopicArn();
-        this.awsHMPPSEventsSnsClient = awsHMPPSEventsSnsClient;
+        HmppsTopic hmppsEventTopic = hmppsQueueService.findByTopicId("hmppseventtopic");
+        this.topicArn = hmppsEventTopic.getArn();
+        this.hmppsEventsTopicSnsClient = (AmazonSNSAsync) hmppsEventTopic.getSnsClient();
         this.objectMapper = objectMapper;
         this.receivePrisonerReasonCalculator = receivePrisonerReasonCalculator;
         this.releasePrisonerReasonCalculator = releasePrisonerReasonCalculator;
@@ -177,14 +172,17 @@ public class HMPPSDomainEventsEmitter {
 
     public void sendEvent(final HMPPSDomainEvent payload) {
         try {
-            topicTemplate.convertAndSend(
-                new TopicMessageChannel(awsHMPPSEventsSnsClient, topicArn),
-                objectMapper.writeValueAsString(payload),
-                Map.of("eventType", payload.eventType())
-            );
+            hmppsEventsTopicSnsClient.publishAsync(new PublishRequest(topicArn, objectMapper.writeValueAsString(payload))
+                .withMessageAttributes(metaData(payload)));
         } catch (JsonProcessingException e) {
             log.error("Failed to convert payload {} to json", payload);
         }
+    }
+
+    private Map<String, MessageAttributeValue> metaData(final HMPPSDomainEvent payload) {
+        final Map<String, MessageAttributeValue> messageAttributes = new HashMap<>();
+        messageAttributes.put("eventType", new MessageAttributeValue().withDataType("String").withStringValue(payload.eventType()));
+        return messageAttributes;
     }
 }
 

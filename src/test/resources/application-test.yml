@@ -1,8 +1,6 @@
 server:
   shutdown: immediate
 
-aws:
-  provider: localstack
 
 management.endpoint:
   health.cache.time-to-live: 0
@@ -29,21 +27,23 @@ application:
 
 hmpps.sqs:
   provider: localstack
-  localstackUrl: http://localhost:4566
   queues:
-    prisonEventQueue:
+    prisoneventqueue:
       queueName: ${random.uuid}
       dlqName: ${random.uuid}
-    prisonEventTestQueue:
+      subscribeTopicId: prisoneventtopic
+      subscribeFilter: '{"eventType":[ "OFFENDER_MOVEMENT-RECEPTION", "OFFENDER_MOVEMENT-DISCHARGE" ] }'
+    prisoneventtestqueue:
       queueName: ${random.uuid}
       dlqName: ${random.uuid}
-    hmppsEventTestQueue:
+      subscribeTopicId: prisoneventtopic
+      subscribeFilter: '{"eventType":[ "OFFENDER_MOVEMENT-RECEPTION", "OFFENDER_MOVEMENT-DISCHARGE" ] }'
+    hmppseventtestqueue:
       queueName: ${random.uuid}
       dlqName: ${random.uuid}
+      subscribeTopicId: hmppseventtopic
   topics:
-    prisonEventTopic:
-      topicArn: arn:aws:sns:eu-west-2:000000000000:${random.uuid}
-    hmppsEventTopic:
-      topicArn: arn:aws:sns:eu-west-2:000000000000:${random.uuid}
-
-
+    prisoneventtopic:
+      arn: arn:aws:sns:eu-west-2:000000000000:${random.uuid}
+    hmppseventtopic:
+      arn: arn:aws:sns:eu-west-2:000000000000:${random.uuid}
