@@ -5,8 +5,8 @@ import com.amazonaws.services.sns.model.MessageAttributeValue
 import com.amazonaws.services.sns.model.PublishRequest
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.microsoft.applicationinsights.TelemetryClient
-import com.nhaarman.mockitokotlin2.atLeastOnce
 import com.nhaarman.mockitokotlin2.mock
+import com.nhaarman.mockitokotlin2.times
 import com.nhaarman.mockitokotlin2.whenever
 import net.javacrumbs.jsonunit.assertj.JsonAssertions
 import org.assertj.core.api.Assertions
@@ -67,10 +67,11 @@ internal class HMPPSDomainEventsEmitterTest {
   private val telemetryAttributesCaptor: ArgumentCaptor<Map<String, String>>? = null
 
   private val hmppsQueueService = mock<HmppsQueueService>()
-  private val hmppsEventSnsClient = mock<AmazonSNSAsync>()
+  private var hmppsEventSnsClient = mock<AmazonSNSAsync>()
 
   @BeforeEach
   fun setUp() {
+    hmppsEventSnsClient = mock()
     whenever(hmppsQueueService.findByTopicId("hmppseventtopic"))
       .thenReturn(HmppsTopic("hmppseventtopic", "sometopicarn", hmppsEventSnsClient))
 
@@ -94,7 +95,7 @@ internal class HMPPSDomainEventsEmitterTest {
   @MethodSource("eventMap")
   @DisplayName("Will send to topic for these events")
   @MockitoSettings(strictness = LENIENT)
-  fun willSendToTopicForTheseEvents(prisonEventType: String?, eventType: String?) {
+  fun willSendToTopicForTheseEvents(prisonEventType: String, eventType: String) {
     Mockito.`when`(receivePrisonerReasonCalculator!!.calculateMostLikelyReasonForPrisonerReceive(ArgumentMatchers.any()))
       .thenReturn(
         ReceiveReason(
@@ -123,7 +124,7 @@ internal class HMPPSDomainEventsEmitterTest {
         .build()
     )
 
-    Mockito.verify(hmppsEventSnsClient, atLeastOnce()).publishAsync(publishRequestCaptor!!.capture())
+    Mockito.verify(hmppsEventSnsClient, times(1)).publishAsync(publishRequestCaptor!!.capture())
     val payload = publishRequestCaptor.value.message
     val messageAttributes = publishRequestCaptor.value.messageAttributes
     JsonAssertions.assertThatJson(payload).node("eventType").isEqualTo(eventType)
@@ -166,7 +167,8 @@ internal class HMPPSDomainEventsEmitterTest {
           .eventDatetime(LocalDateTime.parse("2020-12-04T10:42:43"))
           .build()
       )
-      Mockito.verify(hmppsEventSnsClient, atLeastOnce()).publishAsync(publishRequestCaptor!!.capture())
+
+      Mockito.verify(hmppsEventSnsClient, times(1)).publishAsync(publishRequestCaptor!!.capture())
       payload = publishRequestCaptor.value.message
       Mockito.verify(telemetryClient)!!
         .trackEvent(ArgumentMatchers.any(), telemetryAttributesCaptor!!.capture(), ArgumentMatchers.isNull())
@@ -299,7 +301,7 @@ internal class HMPPSDomainEventsEmitterTest {
           .eventDatetime(LocalDateTime.parse("2020-12-04T10:42:43"))
           .build()
       )
-      Mockito.verify(hmppsEventSnsClient, atLeastOnce()).publishAsync(publishRequestCaptor!!.capture())
+      Mockito.verifyNoInteractions(hmppsEventSnsClient)
       Mockito.verify(telemetryClient)!!
         .trackEvent(ArgumentMatchers.any(), telemetryAttributesCaptor!!.capture(), ArgumentMatchers.isNull())
       telemetryAttributes = telemetryAttributesCaptor.value
@@ -361,7 +363,7 @@ internal class HMPPSDomainEventsEmitterTest {
           .eventDatetime(LocalDateTime.parse("2020-07-04T10:42:43"))
           .build()
       )
-      Mockito.verify(hmppsEventSnsClient, atLeastOnce()).publishAsync(publishRequestCaptor!!.capture())
+      Mockito.verify(hmppsEventSnsClient, times(1)).publishAsync(publishRequestCaptor!!.capture())
       payload = publishRequestCaptor.value.message
       Mockito.verify(telemetryClient)!!
         .trackEvent(ArgumentMatchers.any(), telemetryAttributesCaptor!!.capture(), ArgumentMatchers.isNull())
@@ -481,7 +483,7 @@ internal class HMPPSDomainEventsEmitterTest {
           .eventDatetime(LocalDateTime.parse("2020-12-04T10:42:43"))
           .build()
       )
-      Mockito.verify(hmppsEventSnsClient, atLeastOnce()).publishAsync(publishRequestCaptor!!.capture())
+      Mockito.verifyNoInteractions(hmppsEventSnsClient)
       Mockito.verify(telemetryClient)
         ?.trackEvent(ArgumentMatchers.any(), telemetryAttributesCaptor!!.capture(), ArgumentMatchers.isNull())
       telemetryAttributes = telemetryAttributesCaptor!!.value
