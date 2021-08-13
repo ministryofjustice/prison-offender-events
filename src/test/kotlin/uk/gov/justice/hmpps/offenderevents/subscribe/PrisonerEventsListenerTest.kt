@@ -1,10 +1,11 @@
 package uk.gov.justice.hmpps.offenderevents.subscribe
 
 import com.amazon.sqs.javamessaging.message.SQSTextMessage
-import com.amazonaws.services.sqs.AmazonSQS
+import com.amazonaws.services.sqs.AmazonSQSAsync
 import com.amazonaws.services.sqs.model.SendMessageRequest
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.nhaarman.mockitokotlin2.mock
+import com.nhaarman.mockitokotlin2.whenever
 import lombok.SneakyThrows
 import org.assertj.core.api.AssertionsForClassTypes.assertThat
 import org.junit.jupiter.api.BeforeEach
@@ -19,6 +20,8 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.json.JsonTest
 import uk.gov.justice.hmpps.offenderevents.model.OffenderEvent
 import uk.gov.justice.hmpps.offenderevents.services.HMPPSDomainEventsEmitter
+import uk.gov.justice.hmpps.sqs.HmppsQueue
+import uk.gov.justice.hmpps.sqs.HmppsQueueService
 import java.time.Duration
 import java.time.OffsetDateTime
 import java.time.format.DateTimeFormatter
@@ -28,9 +31,9 @@ internal class PrisonerEventsListenerTest {
   @Autowired
   private lateinit var objectMapper: ObjectMapper
 
-  private val eventsEmitter: HMPPSDomainEventsEmitter = mock()
+  private val hmppsQueueService: HmppsQueueService = mock()
 
-  private val client: AmazonSQS = mock()
+  private val eventsEmitter: HMPPSDomainEventsEmitter = mock()
 
   @Captor
   private lateinit var offenderEventArgumentCaptor: ArgumentCaptor<OffenderEvent>
@@ -45,7 +48,7 @@ internal class PrisonerEventsListenerTest {
   @BeforeEach
   fun setUp() {
     listener =
-      PrisonerEventsListener(objectMapper, eventsEmitter, client, Duration.ofMinutes(45), Duration.ofMinutes(15))
+      PrisonerEventsListener(objectMapper, eventsEmitter, hmppsQueueService, Duration.ofMinutes(45), Duration.ofMinutes(15))
   }
 
   @Nested
@@ -125,11 +128,20 @@ internal class PrisonerEventsListenerTest {
   @Nested
   internal inner class MessageYoungerThanFortyFiveMinutes {
     private var messageBody: String? = null
+    private val prisonEventQueueSqsClient = mock<AmazonSQSAsync>()
+    private val prisonEventQueueSqsDlqClient = mock<AmazonSQSAsync>()
 
     @BeforeEach
     @SneakyThrows
     fun setUp() {
       Mockito.`when`(message.queueUrl).thenReturn("https://aws.queue/my-queue")
+      whenever(hmppsQueueService.findByQueueId("prisoneventqueue")).thenReturn(
+        HmppsQueue(
+          "prisoneventqueue", prisonEventQueueSqsClient, "prison-event-queue",
+          prisonEventQueueSqsDlqClient, "prison-event-dlq"
+        )
+      )
+
       val fortyFourMinutesAgo = OffsetDateTime
         .now()
         .minusMinutes(44)
@@ -169,27 +181,27 @@ internal class PrisonerEventsListenerTest {
     @Test
     @DisplayName("will resend message")
     fun willResendMessage() {
-      verify(client).sendMessage(sendMessageRequestArgumentCaptor.capture())
+      verify(prisonEventQueueSqsClient).sendMessage(sendMessageRequestArgumentCaptor.capture())
     }
 
     @Test
     @DisplayName("will set visibility on message to 15 minutes")
     fun willSetVisibilityOnMessageTo15Minutes() {
-      verify(client).sendMessage(sendMessageRequestArgumentCaptor.capture())
+      verify(prisonEventQueueSqsClient).sendMessage(sendMessageRequestArgumentCaptor.capture())
       assertThat(sendMessageRequestArgumentCaptor.value.delaySeconds).isEqualTo(15 * 60)
     }
 
     @Test
     @DisplayName("will resend message back to queue it came from")
     fun willResendMessageBackToQueueItCameFrom() {
-      verify(client).sendMessage(sendMessageRequestArgumentCaptor.capture())
+      verify(prisonEventQueueSqsClient).sendMessage(sendMessageRequestArgumentCaptor.capture())
       assertThat(sendMessageRequestArgumentCaptor.value.queueUrl).isEqualTo("https://aws.queue/my-queue")
     }
 
     @Test
     @DisplayName("message will be sent untouched")
     fun messageWillBeSentUntouched() {
-      verify(client).sendMessage(sendMessageRequestArgumentCaptor.capture())
+      verify(prisonEventQueueSqsClient).sendMessage(sendMessageRequestArgumentCaptor.capture())
       assertThat(sendMessageRequestArgumentCaptor.value.messageBody).isEqualTo(messageBody)
     }
   }

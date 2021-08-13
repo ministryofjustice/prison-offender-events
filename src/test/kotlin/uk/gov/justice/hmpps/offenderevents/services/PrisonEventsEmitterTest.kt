@@ -4,6 +4,8 @@ import com.amazonaws.services.sns.AmazonSNSAsync
 import com.amazonaws.services.sns.model.PublishRequest
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.microsoft.applicationinsights.TelemetryClient
+import com.nhaarman.mockitokotlin2.mock
+import com.nhaarman.mockitokotlin2.whenever
 import org.assertj.core.api.Assertions
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.Before
@@ -15,16 +17,15 @@ import org.mockito.Captor
 import org.mockito.Mock
 import org.mockito.Mockito.verify
 import org.mockito.junit.MockitoJUnitRunner
-import uk.gov.justice.hmpps.offenderevents.config.SqsConfigProperties
 import uk.gov.justice.hmpps.offenderevents.model.OffenderEvent
+import uk.gov.justice.hmpps.sqs.HmppsQueueService
+import uk.gov.justice.hmpps.sqs.HmppsTopic
 import java.time.LocalDateTime
 import java.time.OffsetDateTime
 import java.time.temporal.ChronoUnit.SECONDS
 
 @RunWith(MockitoJUnitRunner::class)
 class PrisonEventsEmitterTest {
-  @Mock
-  private lateinit var awsPrisonEventsSnsClient: AmazonSNSAsync
   private val objectMapper = ObjectMapper()
   private lateinit var service: PrisonEventsEmitter
 
@@ -37,16 +38,15 @@ class PrisonEventsEmitterTest {
   @Captor
   private lateinit var publishRequestCaptor: ArgumentCaptor<PublishRequest>
 
+  private val hmppsQueueService = mock<HmppsQueueService>()
+  private val prisonEventSnsClient = mock<AmazonSNSAsync>()
+
   @Before
   fun setup() {
-    service = PrisonEventsEmitter(
-      awsPrisonEventsSnsClient,
-      SqsConfigProperties(
-        "", "", topics = mapOf("prisonEventTopic" to SqsConfigProperties.TopicConfig(topicArn = "topicARN")),
-        queues = mapOf("prisonEventQueue" to SqsConfigProperties.QueueConfig(queueName = "queueName"))
-      ),
-      objectMapper, telemetryClient
-    )
+    whenever(hmppsQueueService.findByTopicId("prisoneventtopic"))
+      .thenReturn(HmppsTopic("prisoneventtopic", "topicARN", prisonEventSnsClient))
+
+    service = PrisonEventsEmitter(hmppsQueueService, objectMapper, telemetryClient)
   }
 
   @Test
@@ -57,7 +57,7 @@ class PrisonEventsEmitterTest {
       .bookingId(12345L)
       .build()
     service.sendEvent(payload)
-    verify(awsPrisonEventsSnsClient).publish(publishRequestCaptor.capture())
+    verify(prisonEventSnsClient).publishAsync(publishRequestCaptor.capture())
     val request = publishRequestCaptor.value
 
     assertThat(request).extracting("message")
@@ -101,7 +101,7 @@ class PrisonEventsEmitterTest {
         .build()
     )
 
-    verify(awsPrisonEventsSnsClient).publish(publishRequestCaptor.capture())
+    verify(prisonEventSnsClient).publishAsync(publishRequestCaptor.capture())
     val request = publishRequestCaptor.value
 
     assertThat(request.messageAttributes["code"]).satisfies {
@@ -118,7 +118,7 @@ class PrisonEventsEmitterTest {
         .build()
     )
 
-    verify(awsPrisonEventsSnsClient).publish(publishRequestCaptor.capture())
+    verify(prisonEventSnsClient).publishAsync(publishRequestCaptor.capture())
     val request = publishRequestCaptor.value
 
     assertThat(request.messageAttributes["code"]).isNull()
@@ -134,7 +134,7 @@ class PrisonEventsEmitterTest {
         .build()
     )
 
-    verify(awsPrisonEventsSnsClient).publish(publishRequestCaptor.capture())
+    verify(prisonEventSnsClient).publishAsync(publishRequestCaptor.capture())
     val request = publishRequestCaptor.value
 
     assertThat(request.messageAttributes["eventType"]).satisfies {
@@ -152,7 +152,7 @@ class PrisonEventsEmitterTest {
         .build()
     )
 
-    verify(awsPrisonEventsSnsClient).publish(publishRequestCaptor.capture())
+    verify(prisonEventSnsClient).publishAsync(publishRequestCaptor.capture())
     val request = publishRequestCaptor.value
 
     assertThat(request.messageAttributes["publishedAt"]).isNotNull.satisfies {

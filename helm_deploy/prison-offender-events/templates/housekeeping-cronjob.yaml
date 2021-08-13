@@ -1,7 +1,7 @@
 apiVersion: batch/v1beta1
 kind: CronJob
 metadata:
-  name: {{ include "app.fullname" . }}-queue-housekeeping
+  name: {{ include "app.fullname" . }}-queue-housekeeping-cronjob
   labels:
     {{- include "app.labels" . | nindent 4 }}
 spec:
@@ -15,8 +15,8 @@ spec:
       template:
         spec:
           containers:
-            - name: housekeeping
-              image: quay.io/hmpps/dps-tools
+            - name: retryalldlqs
+              image: ghcr.io/ministryofjustice/hmpps-devops-tools
               args:
                 - /bin/sh
                 - -c

@@ -4,7 +4,6 @@ import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
-import uk.gov.justice.hmpps.offenderevents.config.prisonEventQueue
 import uk.gov.justice.hmpps.offenderevents.resource.QueueListenerIntegrationTest
 import uk.gov.justice.hmpps.offenderevents.services.wiremock.CommunityApiExtension
 import uk.gov.justice.hmpps.offenderevents.services.wiremock.HMPPSAuthExtension
@@ -80,12 +79,12 @@ class HealthCheckTest : QueueListenerIntegrationTest() {
       .exchange()
       .expectStatus().isOk
       .expectBody()
-      .jsonPath("components.prisonEventQueue-health.details.queueName").isEqualTo(sqsConfigProperties.prisonEventQueue().queueName)
-      .jsonPath("components.prisonEventQueue-health.details.messagesOnQueue").isEqualTo(0)
-      .jsonPath("components.prisonEventQueue-health.details.messagesInFlight").isEqualTo(0)
-      .jsonPath("components.prisonEventQueue-health.details.messagesOnDlq").isEqualTo(0)
-      .jsonPath("components.prisonEventQueue-health.details.dlqStatus").isEqualTo("UP")
-      .jsonPath("components.prisonEventQueue-health.details.dlqName").isEqualTo(sqsConfigProperties.prisonEventQueue().dlqName)
+      .jsonPath("components.prisoneventqueue-health.details.queueName").isEqualTo(prisonEventQueueName)
+      .jsonPath("components.prisoneventqueue-health.details.messagesOnQueue").isEqualTo(0)
+      .jsonPath("components.prisoneventqueue-health.details.messagesInFlight").isEqualTo(0)
+      .jsonPath("components.prisoneventqueue-health.details.messagesOnDlq").isEqualTo(0)
+      .jsonPath("components.prisoneventqueue-health.details.dlqStatus").isEqualTo("UP")
+      .jsonPath("components.prisoneventqueue-health.details.dlqName").isEqualTo(prisonEventDlqName)
   }
 
   @Test

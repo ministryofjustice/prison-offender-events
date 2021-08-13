@@ -2,64 +2,49 @@ package uk.gov.justice.hmpps.offenderevents.resource
 
 import com.amazonaws.services.sqs.AmazonSQS
 import com.amazonaws.services.sqs.model.PurgeQueueRequest
-import org.awaitility.Awaitility
-import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.beans.factory.annotation.Qualifier
+import org.awaitility.kotlin.await
 import org.springframework.boot.test.mock.mockito.SpyBean
-import uk.gov.justice.hmpps.offenderevents.config.SqsConfigProperties
-import uk.gov.justice.hmpps.offenderevents.config.prisonEventQueue
-import uk.gov.justice.hmpps.offenderevents.subscribe.hmppsEventTestQueue
-import uk.gov.justice.hmpps.offenderevents.subscribe.prisonEventTestQueue
+import uk.gov.justice.hmpps.sqs.HmppsQueue
+import uk.gov.justice.hmpps.sqs.HmppsQueueService
 
 abstract class QueueListenerIntegrationTest : IntegrationTestBase() {
 
   @SpyBean
-  @Qualifier("awsSqsClient")
-  protected lateinit var awsSqsClient: AmazonSQS
+  lateinit var hmppsQueueService: HmppsQueueService
 
-  @SpyBean
-  @Qualifier("awsSqsDlqClient")
-  protected lateinit var awsSqsDlqClient: AmazonSQS
+  internal val prisonEventQueue by lazy { hmppsQueueService.findByQueueId("prisoneventqueue") as HmppsQueue }
+  internal val prisonEventTestQueue by lazy { hmppsQueueService.findByQueueId("prisoneventtestqueue") as HmppsQueue }
+  internal val hmppsEventTestQueue by lazy { hmppsQueueService.findByQueueId("hmppseventtestqueue") as HmppsQueue }
 
-  @SpyBean
-  @Qualifier("testSqsClient")
-  protected lateinit var testSqsClient: AmazonSQS
+  internal val prisonEventQueueSqsClient by lazy { prisonEventQueue.sqsClient }
+  internal val prisonEventQueueName by lazy { prisonEventQueue.queueName }
+  internal val prisonEventQueueUrl by lazy { prisonEventQueue.queueUrl }
 
-  @SpyBean
-  @Qualifier("testHmppsSqsClient")
-  protected lateinit var testHmppsSqsClient: AmazonSQS
+  internal val prisonEventSqsDlqClient by lazy { prisonEventQueue.sqsDlqClient as AmazonSQS }
+  internal val prisonEventDlqName by lazy { prisonEventQueue.dlqName as String }
+  internal val prisonEventDlqUrl by lazy { prisonEventQueue.dlqUrl as String }
 
-  @Autowired
-  protected lateinit var sqsConfigProperties: SqsConfigProperties
+  protected val prisonEventTestQueueSqsClient by lazy { prisonEventTestQueue.sqsClient }
+  protected val prisonEventTestQueueUrl by lazy { prisonEventTestQueue.queueUrl }
 
-  // The SQS clients for the production prisonEventsQueue
-  fun getNumberOfMessagesCurrentlyOnQueue(): Int = awsSqsClient.numMessages(queueUrl)
-  val queueName: String by lazy { sqsConfigProperties.prisonEventQueue().queueName }
-  val queueUrl: String by lazy { awsSqsClient.getQueueUrl(queueName).queueUrl }
-  fun getNumberOfMessagesCurrentlyOnDlq(): Int = awsSqsDlqClient.numMessages(dlqUrl)
-  val dlqName: String by lazy { sqsConfigProperties.prisonEventQueue().dlqName }
-  val dlqUrl: String by lazy { awsSqsDlqClient.getQueueUrl(dlqName).queueUrl }
+  internal val hmppsEventTestQueueSqsClient by lazy { hmppsEventTestQueue.sqsClient }
+  protected val hmppsEventTestQueueUrl: String by lazy { hmppsEventTestQueue.queueUrl }
 
-  // The SQS clients for the test prisonEventTestQueue
-  fun getNumberOfMessagesCurrentlyOnTestQueue(): Int = testSqsClient.numMessages(testQueueUrl)
-  val testQueueName: String by lazy { sqsConfigProperties.prisonEventTestQueue().queueName }
-  val testQueueUrl: String by lazy { testSqsClient.getQueueUrl(testQueueName).queueUrl }
-
-  // The SQS clients for the test hmppsEventTestQueue
-  fun getNumberOfMessagesCurrentlyOnHMPPSTestQueue(): Int = testHmppsSqsClient.numMessages(testHmppsQueueUrl)
   fun purgeQueues() {
-    awsSqsClient.purgeQueue(PurgeQueueRequest(queueUrl))
-    Awaitility.await().until { getNumberOfMessagesCurrentlyOnQueue() == 0 }
-    awsSqsDlqClient.purgeQueue(PurgeQueueRequest(dlqUrl))
-    Awaitility.await().until { getNumberOfMessagesCurrentlyOnDlq() == 0 }
-    testSqsClient.purgeQueue(PurgeQueueRequest(testQueueUrl))
-    Awaitility.await().until { getNumberOfMessagesCurrentlyOnTestQueue() == 0 }
-    testHmppsSqsClient.purgeQueue(PurgeQueueRequest(testHmppsQueueUrl))
-    Awaitility.await().until { getNumberOfMessagesCurrentlyOnHMPPSTestQueue() == 0 }
+    prisonEventQueueSqsClient.purgeQueue(PurgeQueueRequest(prisonEventQueueUrl))
+    await.until { getNumberOfMessagesCurrentlyOnPrisonEventQueue() == 0 }
+    prisonEventQueueSqsClient.purgeQueue(PurgeQueueRequest(prisonEventDlqUrl))
+    await.until { getNumberOfMessagesCurrentlyOnPrisonEventDlq() == 0 }
+    prisonEventTestQueueSqsClient.purgeQueue(PurgeQueueRequest(prisonEventTestQueueUrl))
+    await.until { getNumberOfMessagesCurrentlyOnPrisonEventTestQueue() == 0 }
+    hmppsEventTestQueueSqsClient.purgeQueue(PurgeQueueRequest(hmppsEventTestQueueUrl))
+    await.until { getNumberOfMessagesCurrentlyOnHMPPSEventTestQueue() == 0 }
   }
 
-  val testHmppsQueueName: String by lazy { sqsConfigProperties.hmppsEventTestQueue().queueName }
-  val testHmppsQueueUrl: String by lazy { testHmppsSqsClient.getQueueUrl(testHmppsQueueName).queueUrl }
+  fun getNumberOfMessagesCurrentlyOnPrisonEventQueue(): Int = prisonEventQueueSqsClient.numMessages(prisonEventQueueUrl)
+  fun getNumberOfMessagesCurrentlyOnPrisonEventDlq(): Int = prisonEventSqsDlqClient.numMessages(prisonEventDlqUrl)
+  fun getNumberOfMessagesCurrentlyOnPrisonEventTestQueue(): Int = prisonEventTestQueueSqsClient.numMessages(prisonEventTestQueueUrl)
+  fun getNumberOfMessagesCurrentlyOnHMPPSEventTestQueue(): Int = hmppsEventTestQueueSqsClient.numMessages(hmppsEventTestQueueUrl)
 }
 
 fun AmazonSQS.numMessages(url: String): Int {

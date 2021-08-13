@@ -18,9 +18,9 @@ class HouseKeepingIntegrationTest : QueueListenerIntegrationTest() {
   fun `housekeeping will consume a booking changed message on the dlq and return to main queue`() {
     val message = "/messages/bookingNumberChanged.json".readResourceAsText()
 
-    awsSqsClient.sendMessage(dlqUrl, message)
+    prisonEventQueueSqsClient.sendMessage(prisonEventDlqUrl, message)
 
-    await untilCallTo { getNumberOfMessagesCurrentlyOnDlq() } matches { it == 1 }
+    await untilCallTo { getNumberOfMessagesCurrentlyOnPrisonEventDlq() } matches { it == 1 }
 
     webTestClient.put()
       .uri("/queue-admin/retry-all-dlqs")
@@ -28,8 +28,8 @@ class HouseKeepingIntegrationTest : QueueListenerIntegrationTest() {
       .exchange()
       .expectStatus().isOk
 
-    await untilCallTo { getNumberOfMessagesCurrentlyOnDlq() } matches { it == 0 }
-    await untilCallTo { getNumberOfMessagesCurrentlyOnQueue() } matches { it == 0 }
+    await untilCallTo { getNumberOfMessagesCurrentlyOnPrisonEventDlq() } matches { it == 0 }
+    await untilCallTo { getNumberOfMessagesCurrentlyOnPrisonEventQueue() } matches { it == 0 }
   }
 }
 

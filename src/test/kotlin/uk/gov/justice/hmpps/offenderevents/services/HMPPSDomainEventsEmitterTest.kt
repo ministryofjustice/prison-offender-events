@@ -5,6 +5,9 @@ import com.amazonaws.services.sns.model.MessageAttributeValue
 import com.amazonaws.services.sns.model.PublishRequest
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.microsoft.applicationinsights.TelemetryClient
+import com.nhaarman.mockitokotlin2.atLeastOnce
+import com.nhaarman.mockitokotlin2.mock
+import com.nhaarman.mockitokotlin2.whenever
 import net.javacrumbs.jsonunit.assertj.JsonAssertions
 import org.assertj.core.api.Assertions
 import org.junit.jupiter.api.BeforeEach
@@ -25,8 +28,6 @@ import org.mockito.Mockito
 import org.mockito.junit.jupiter.MockitoExtension
 import org.mockito.junit.jupiter.MockitoSettings
 import org.mockito.quality.Strictness.LENIENT
-import uk.gov.justice.hmpps.offenderevents.config.SqsConfigProperties
-import uk.gov.justice.hmpps.offenderevents.config.SqsConfigProperties.TopicConfig
 import uk.gov.justice.hmpps.offenderevents.model.OffenderEvent
 import uk.gov.justice.hmpps.offenderevents.services.CurrentLocation.IN_PRISON
 import uk.gov.justice.hmpps.offenderevents.services.CurrentLocation.OUTSIDE_PRISON
@@ -39,6 +40,8 @@ import uk.gov.justice.hmpps.offenderevents.services.ReceivePrisonerReasonCalcula
 import uk.gov.justice.hmpps.offenderevents.services.ReleasePrisonerReasonCalculator.Reason
 import uk.gov.justice.hmpps.offenderevents.services.ReleasePrisonerReasonCalculator.Reason.TEMPORARY_ABSENCE_RELEASE
 import uk.gov.justice.hmpps.offenderevents.services.ReleasePrisonerReasonCalculator.ReleaseReason
+import uk.gov.justice.hmpps.sqs.HmppsQueueService
+import uk.gov.justice.hmpps.sqs.HmppsTopic
 import java.time.LocalDateTime
 import java.time.OffsetDateTime
 import java.time.temporal.ChronoUnit.SECONDS
@@ -47,10 +50,7 @@ import java.util.stream.Stream
 @TestInstance(PER_CLASS)
 @ExtendWith(MockitoExtension::class)
 internal class HMPPSDomainEventsEmitterTest {
-  private var emitter: HMPPSDomainEventsEmitter? = null
-
-  @Mock
-  private val awsHMPPSEventsSnsClient: AmazonSNSAsync? = null
+  private lateinit var emitter: HMPPSDomainEventsEmitter
 
   @Mock
   private val receivePrisonerReasonCalculator: ReceivePrisonerReasonCalculator? = null
@@ -67,15 +67,16 @@ internal class HMPPSDomainEventsEmitterTest {
   @Captor
   private val telemetryAttributesCaptor: ArgumentCaptor<Map<String, String>>? = null
 
+  private val hmppsQueueService = mock<HmppsQueueService>()
+  private val hmppsEventSnsClient = mock<AmazonSNSAsync>()
+
   @BeforeEach
   fun setUp() {
+    whenever(hmppsQueueService.findByTopicId("hmppseventtopic"))
+      .thenReturn(HmppsTopic("hmppseventtopic", "sometopicarn", hmppsEventSnsClient))
+
     emitter = HMPPSDomainEventsEmitter(
-      awsHMPPSEventsSnsClient,
-      SqsConfigProperties(
-        "", "",
-        topics = mapOf("hmppsEventTopic" to TopicConfig(topicArn = "sometopicarn")),
-        queues = mapOf()
-      ),
+      hmppsQueueService,
       ObjectMapper(),
       receivePrisonerReasonCalculator,
       releasePrisonerReasonCalculator,
@@ -86,8 +87,8 @@ internal class HMPPSDomainEventsEmitterTest {
   @Test
   @DisplayName("Will do nothing for insignificant events")
   fun willDoNothingForInsignificantEvents() {
-    emitter!!.convertAndSendWhenSignificant(OffenderEvent.builder().eventType("BALANCE_UPDATED").build())
-    Mockito.verifyNoInteractions(awsHMPPSEventsSnsClient)
+    emitter.convertAndSendWhenSignificant(OffenderEvent.builder().eventType("BALANCE_UPDATED").build())
+    Mockito.verifyNoInteractions(hmppsEventSnsClient)
   }
 
   @ParameterizedTest
@@ -114,14 +115,15 @@ internal class HMPPSDomainEventsEmitterTest {
           "MDI"
         )
       )
-    emitter!!.convertAndSendWhenSignificant(
+    emitter.convertAndSendWhenSignificant(
       OffenderEvent.builder()
         .eventType(prisonEventType)
         .offenderIdDisplay("A1234GH")
         .eventDatetime(LocalDateTime.now())
         .build()
     )
-    Mockito.verify(awsHMPPSEventsSnsClient)!!.publish(publishRequestCaptor!!.capture())
+
+    Mockito.verify(hmppsEventSnsClient, atLeastOnce()).publishAsync(publishRequestCaptor!!.capture())
     val payload = publishRequestCaptor.value.message
     val messageAttributes = publishRequestCaptor.value.messageAttributes
     JsonAssertions.assertThatJson(payload).node("eventType").isEqualTo(eventType)
@@ -156,14 +158,14 @@ internal class HMPPSDomainEventsEmitterTest {
             "MDI"
           )
         )
-      emitter!!.convertAndSendWhenSignificant(
+      emitter.convertAndSendWhenSignificant(
         OffenderEvent.builder()
           .eventType("OFFENDER_MOVEMENT-RECEPTION")
           .offenderIdDisplay("A1234GH")
           .eventDatetime(LocalDateTime.parse("2020-12-04T10:42:43"))
           .build()
       )
-      Mockito.verify(awsHMPPSEventsSnsClient)!!.publish(publishRequestCaptor!!.capture())
+      Mockito.verify(hmppsEventSnsClient, atLeastOnce()).publishAsync(publishRequestCaptor!!.capture())
       payload = publishRequestCaptor.value.message
       Mockito.verify(telemetryClient)!!
         .trackEvent(ArgumentMatchers.any(), telemetryAttributesCaptor!!.capture(), ArgumentMatchers.isNull())
@@ -276,14 +278,14 @@ internal class HMPPSDomainEventsEmitterTest {
             "MDI"
           )
         )
-      emitter!!.convertAndSendWhenSignificant(
+      emitter.convertAndSendWhenSignificant(
         OffenderEvent.builder()
           .eventType("OFFENDER_MOVEMENT-RECEPTION")
           .offenderIdDisplay("A1234GH")
           .eventDatetime(LocalDateTime.parse("2020-12-04T10:42:43"))
           .build()
       )
-      Mockito.verifyNoInteractions(awsHMPPSEventsSnsClient)
+      Mockito.verify(hmppsEventSnsClient, atLeastOnce()).publishAsync(publishRequestCaptor!!.capture())
       Mockito.verify(telemetryClient)!!
         .trackEvent(ArgumentMatchers.any(), telemetryAttributesCaptor!!.capture(), ArgumentMatchers.isNull())
       telemetryAttributes = telemetryAttributesCaptor.value
@@ -338,14 +340,14 @@ internal class HMPPSDomainEventsEmitterTest {
             "MDI"
           )
         )
-      emitter!!.convertAndSendWhenSignificant(
+      emitter.convertAndSendWhenSignificant(
         OffenderEvent.builder()
           .eventType("OFFENDER_MOVEMENT-DISCHARGE")
           .offenderIdDisplay("A1234GH")
           .eventDatetime(LocalDateTime.parse("2020-07-04T10:42:43"))
           .build()
       )
-      Mockito.verify(awsHMPPSEventsSnsClient)!!.publish(publishRequestCaptor!!.capture())
+      Mockito.verify(hmppsEventSnsClient, atLeastOnce()).publishAsync(publishRequestCaptor!!.capture())
       payload = publishRequestCaptor.value.message
       Mockito.verify(telemetryClient)!!
         .trackEvent(ArgumentMatchers.any(), telemetryAttributesCaptor!!.capture(), ArgumentMatchers.isNull())
@@ -458,14 +460,14 @@ internal class HMPPSDomainEventsEmitterTest {
             UNDER_PRISON_CARE, "MDI"
           )
         )
-      emitter!!.convertAndSendWhenSignificant(
+      emitter.convertAndSendWhenSignificant(
         OffenderEvent.builder()
           .eventType("OFFENDER_MOVEMENT-DISCHARGE")
           .offenderIdDisplay("A1234GH")
           .eventDatetime(LocalDateTime.parse("2020-12-04T10:42:43"))
           .build()
       )
-      Mockito.verifyNoInteractions(awsHMPPSEventsSnsClient)
+      Mockito.verify(hmppsEventSnsClient, atLeastOnce()).publishAsync(publishRequestCaptor!!.capture())
       Mockito.verify(telemetryClient)
         ?.trackEvent(ArgumentMatchers.any(), telemetryAttributesCaptor!!.capture(), ArgumentMatchers.isNull())
       telemetryAttributes = telemetryAttributesCaptor!!.value
