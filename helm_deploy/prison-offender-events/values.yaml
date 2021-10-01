@@ -1,5 +1,68 @@
 ---
 # Values here are the same across all environments
+generic-service:
+  nameOverride: prison-offender-events
+
+  image:
+    repository: quay.io/hmpps/prison-offender-events
+    tag: app_version    # override at deployment time
+    port: 8080
+
+  ingress:
+    enabled: true
+    annotations:
+      kubernetes.io/ingress.class: "nginx"
+      nginx.ingress.kubernetes.io/custom-http-errors: "418"
+    tlsSecretName: offender-events-cert
+    path: /
+
+
+  env:
+    JAVA_OPTS: "-Xmx512m"
+    AWS_REGION: "eu-west-2"
+    SPRING_PROFILES_ACTIVE: "postgres,sns"
+    APPLICATIONINSIGHTS_CONNECTION_STRING: "InstrumentationKey=$(APPINSIGHTS_INSTRUMENTATIONKEY)"
+
+  # Pre-existing kubernetes secrets to load as environment variables in the deployment.
+  # namespace_secrets:
+  #   [name of kubernetes secret]:
+  #     [name of environment variable as seen by app]: [key of kubernetes secret to load]
+
+  namespace_secrets:
+    prison-offender-events:
+      APPINSIGHTS_INSTRUMENTATIONKEY: "APPINSIGHTS_INSTRUMENTATIONKEY"
+      OFFENDER_EVENTS_CLIENT_SECRET: "OFFENDER_EVENTS_CLIENT_SECRET"
+      OFFENDER_EVENTS_CLIENT_ID: "OFFENDER_EVENTS_CLIENT_ID"
+    dps-rds-instance-output:
+      DATABASE_PASSWORD: "offender_events_password"
+      SUPERUSER_USERNAME: "database_username"
+      SUPERUSER_PASSWORD: "database_password"
+      DATABASE_NAME: "database_name"
+      DATABASE_ENDPOINT: "rds_instance_endpoint"
+    offender-events-topic:
+      HMPPS_SQS_TOPICS_PRISONEVENTTOPIC_ACCESS_KEY_ID: "access_key_id"
+      HMPPS_SQS_TOPICS_PRISONEVENTTOPIC_SECRET_ACCESS_KEY: "secret_access_key"
+      HMPPS_SQS_TOPICS_PRISONEVENTTOPIC_ARN: "topic_arn"
+    hmpps-domain-events-topic:
+      HMPPS_SQS_TOPICS_HMPPSEVENTTOPIC_ACCESS_KEY_ID: "access_key_id"
+      HMPPS_SQS_TOPICS_HMPPSEVENTTOPIC_SECRET_ACCESS_KEY: "secret_access_key"
+      HMPPS_SQS_TOPICS_HMPPSEVENTTOPIC_ARN: "topic_arn"
+    prisoner-offender-events-queue:
+      HMPPS_SQS_QUEUES_PRISONEVENTQUEUE_QUEUE_NAME: "sqs_queue_name"
+      HMPPS_SQS_QUEUES_PRISONEVENTQUEUE_QUEUE_ACCESS_KEY_ID: "access_key_id"
+      HMPPS_SQS_QUEUES_PRISONEVENTQUEUE_QUEUE_SECRET_ACCESS_KEY: "secret_access_key"
+    prisoner-offender-events-dlq:
+      HMPPS_SQS_QUEUES_PRISONEVENTQUEUE_DLQ_NAME: "sqs_queue_name"
+      HMPPS_SQS_QUEUES_PRISONEVENTQUEUE_DLQ_ACCESS_KEY_ID: "access_key_id"
+      HMPPS_SQS_QUEUES_PRISONEVENTQUEUE_DLQ_SECRET_ACCESS_KEY: "secret_access_key"
+
+  allowlist:
+    office: "217.33.148.210/32"
+    health-kick: "35.177.252.195/32"
+    mojvpn: "81.134.202.29/32"
+    cloudplatform-live1-1: "35.178.209.113/32"
+    cloudplatform-live1-2: "3.8.51.207/32"
+    cloudplatform-live1-3: "35.177.252.54/32"
 
 generic-prometheus-alerts:
   targetApplication: prison-offender-events

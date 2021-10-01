@@ -1,31 +1,20 @@
-# This is a YAML-formatted file.
-# Declare variables to be passed into your templates.
+---
+# Environment specific values, override helm_deploy/prison-to-probation-update/values.yaml
+generic-service:
+  replicaCount: 2
+  ingress:
+    host: offender-events-dev.prison.service.justice.gov.uk
 
-replicaCount: 2
+  allowlist: null
 
-image:
-  repository: quay.io/hmpps/prison-offender-events
-  tag: latest
-  port: 8080
-
-ingress:
-  enabled: true
-  annotations:
-    kubernetes.io/ingress.class: "nginx"
-  hosts:
-    - host: offender-events-dev.prison.service.justice.gov.uk
-      cert_secret: offender-events-cert
-  path: /
-
-env:
-  JAVA_OPTS: "-Xmx512m"
-  PRISON_API_BASE_URL: "https://api-dev.prison.service.justice.gov.uk"
-  COMMUNITY_API_BASE_URL: "https://community-api.test.probation.service.justice.gov.uk"
-  OAUTH_API_BASE_URL: "https://sign-in-dev.hmpps.service.justice.gov.uk/auth"
-  WIND_BACK_SECONDS: "10"
-  APPLICATIONINSIGHTS_CONFIGURATION_FILE: applicationinsights.dev.json
-  APPLICATION_LISTENER_TOTALDELAYDURATION: "PT1M"
-  APPLICATION_LISTENER_DELAYDURATION: "PT30S"
+  env:
+    PRISON_API_BASE_URL: "https://api-dev.prison.service.justice.gov.uk"
+    COMMUNITY_API_BASE_URL: "https://community-api.test.probation.service.justice.gov.uk"
+    OAUTH_API_BASE_URL: "https://sign-in-dev.hmpps.service.justice.gov.uk/auth"
+    WIND_BACK_SECONDS: "10"
+    APPLICATIONINSIGHTS_CONFIGURATION_FILE: applicationinsights.dev.json
+    APPLICATION_LISTENER_TOTALDELAYDURATION: "PT1M"
+    APPLICATION_LISTENER_DELAYDURATION: "PT30S"
 
 # CloudPlatform AlertManager receiver to route promethues alerts to slack
 generic-prometheus-alerts:
