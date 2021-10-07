@@ -1,5 +1,5 @@
 ---
-# Environment specific values, override helm_deploy/prison-to-probation-update/values.yaml
+# Environment specific values, override helm_deploy/prison-to-probation-update/values.yaml
 generic-service:
   replicaCount: 4
   ingress:
@@ -14,7 +14,7 @@ generic-service:
     APPLICATION_LISTENER_TOTALDELAYDURATION: "PT45M"
     APPLICATION_LISTENER_DELAYDURATION: "PT10M"
 
-# CloudPlatform AlertManager receiver to route promethues alerts to slack
+# CloudPlatform AlertManager receiver to route promethues alerts to slack
 generic-prometheus-alerts:
   alertSeverity: hmpps_tech
 
@@ -24,6 +24,6 @@ generic-prometheus-alerts:
     - "Digital-Prison-Services-prod-prisoner_offender_events_queue_dl"
 
   # AWS SNS Topics to monitor.
-  # Note: the topics dont have nice names, so just supply the last 8 digits of the random ID assigned by cloudplatforms terraform code.
+  # Note: the topics dont have nice names, so just supply the name as a key, and a nice name as a value.
   snsAlertsTopicNames:
-    - "2ed1fccb"
+    cloud-platform-Digital-Prison-Services-160f3055cc4e04c4105ee85f2ed1fccb: "offender-events"
