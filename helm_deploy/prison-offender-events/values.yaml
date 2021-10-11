@@ -11,8 +11,6 @@ generic-service:
   ingress:
     enabled: true
     annotations:
-      kubernetes.io/ingress.class: "nginx"
-      nginx.ingress.kubernetes.io/custom-http-errors: "418"
       nginx.ingress.kubernetes.io/configuration-snippet: |
         server_tokens off;
         location /queue-admin/retry-all-dlqs {
@@ -20,7 +18,6 @@ generic-service:
           return 401;
         }
     tlsSecretName: offender-events-cert
-    path: /
 
 
   env:
