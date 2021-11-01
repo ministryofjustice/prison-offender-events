@@ -7,7 +7,7 @@ jobs:
   validate:
     executor:
       name: hmpps/localstack
-      jdk_tag: "16.0"
+      jdk_tag: "17.0"
       localstack_tag: "0.12.9.1"
     steps:
       - checkout
@@ -20,7 +20,7 @@ jobs:
             - gradle-{{ checksum "build.gradle.kts" }}
             - gradle-
       - run:
-          command: ./gradlew -Dorg.gradle.jvmargs="--illegal-access=permit" -Dkotlin.daemon.jvm.options="--illegal-access=permit" check
+          command: ./gradlew check
       - save_cache:
           paths:
             - ~/.gradle
@@ -61,7 +61,7 @@ workflows:
       - hmpps/smoke_test:
           context: hmpps-smoketest-common-vars
           name: smoke_test
-          jdk_tag: "16.0"
+          jdk_tag: "17.0"
           requires:
             - deploy_dev
       - hmpps/deploy_env:
