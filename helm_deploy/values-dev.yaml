@@ -24,9 +24,3 @@ generic-prometheus-alerts:
   sqsAlertsQueueNames:
     - "Digital-Prison-Services-dev-prisoner_offender_events_queue"
     - "Digital-Prison-Services-dev-prisoner_offender_events_queue_dl"
-
-  # AWS SNS Topics to monitor.
-  # Note: the topics dont have nice names, so just supply the name as a key, and a nice name as a value.
-  snsAlertsTopicNames:
-    cloud-platform-Digital-Prison-Services-f221e27fcfcf78f6ab4f4c3cc165eee7: "offender-events"
-  snsAlertsNoMessagesThresholdMinutes: 300
