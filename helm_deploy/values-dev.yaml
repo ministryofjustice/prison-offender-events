@@ -4,6 +4,7 @@ generic-service:
   replicaCount: 2
   ingress:
     host: offender-events-dev.prison.service.justice.gov.uk
+    contextColour: green
 
   allowlist: null
 
