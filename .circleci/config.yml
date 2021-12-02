@@ -69,7 +69,7 @@ workflows:
           env: "preprod"
           context:
             - hmpps-common-vars
-            - offender-events-preprod
+            - prison-offender-events-preprod
           requires:
             - smoke_test
       - request-prod-approval:
@@ -82,7 +82,7 @@ workflows:
           slack_notification: true
           context:
             - hmpps-common-vars
-            - offender-events-prod
+            - prison-offender-events-prod
           requires:
             - request-prod-approval
 
