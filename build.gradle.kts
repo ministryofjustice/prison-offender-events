@@ -73,6 +73,7 @@ dependencies {
   testImplementation("org.awaitility:awaitility-kotlin:4.1.0")
   testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-reactive:1.5.2")
   testImplementation("org.mockito:mockito-inline:3.12.4")
+  testImplementation("org.mockito.kotlin:mockito-kotlin:4.0.0")
 }
 
 java {
