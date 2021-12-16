@@ -4,8 +4,6 @@ import com.amazon.sqs.javamessaging.message.SQSTextMessage
 import com.amazonaws.services.sqs.AmazonSQSAsync
 import com.amazonaws.services.sqs.model.SendMessageRequest
 import com.fasterxml.jackson.databind.ObjectMapper
-import org.mockito.kotlin.mock
-import org.mockito.kotlin.whenever
 import lombok.SneakyThrows
 import org.assertj.core.api.AssertionsForClassTypes.assertThat
 import org.junit.jupiter.api.BeforeEach
@@ -15,7 +13,9 @@ import org.junit.jupiter.api.Test
 import org.mockito.ArgumentCaptor
 import org.mockito.Captor
 import org.mockito.Mockito
+import org.mockito.kotlin.mock
 import org.mockito.kotlin.verify
+import org.mockito.kotlin.whenever
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.json.JsonTest
 import uk.gov.justice.hmpps.offenderevents.model.OffenderEvent

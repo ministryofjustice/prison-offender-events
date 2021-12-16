@@ -11,9 +11,9 @@ import com.microsoft.applicationinsights.TelemetryClient;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import uk.gov.justice.hmpps.offenderevents.model.OffenderEvent;
+import uk.gov.justice.hmpps.offenderevents.services.ReceivePrisonerReasonCalculator.ProbableCause;
 import uk.gov.justice.hmpps.sqs.HmppsQueueService;
 import uk.gov.justice.hmpps.sqs.HmppsTopic;
-import uk.gov.justice.hmpps.offenderevents.services.ReceivePrisonerReasonCalculator.ProbableCause;
 
 import java.time.LocalDateTime;
 import java.time.OffsetDateTime;

@@ -7,7 +7,6 @@ import org.springframework.boot.actuate.health.HealthIndicator
 import org.springframework.web.reactive.function.client.WebClient
 import org.springframework.web.reactive.function.client.WebClientResponseException
 import reactor.core.publisher.Mono
-import java.lang.Exception
 import java.time.Duration
 
 @AllArgsConstructor(access = AccessLevel.PROTECTED)

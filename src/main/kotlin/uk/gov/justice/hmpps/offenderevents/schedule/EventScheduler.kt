@@ -6,7 +6,6 @@ import org.slf4j.LoggerFactory
 import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Service
 import uk.gov.justice.hmpps.offenderevents.services.EventRetrievalService
-import java.lang.Exception
 import java.time.LocalDateTime
 
 @Service

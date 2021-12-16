@@ -4,8 +4,6 @@ import com.amazonaws.services.sns.AmazonSNSAsync
 import com.amazonaws.services.sns.model.PublishRequest
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.microsoft.applicationinsights.TelemetryClient
-import org.mockito.kotlin.mock
-import org.mockito.kotlin.whenever
 import org.assertj.core.api.Assertions
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.Before
@@ -15,8 +13,10 @@ import org.mockito.ArgumentCaptor
 import org.mockito.ArgumentMatchers
 import org.mockito.Captor
 import org.mockito.Mock
-import org.mockito.kotlin.verify
 import org.mockito.junit.MockitoJUnitRunner
+import org.mockito.kotlin.mock
+import org.mockito.kotlin.verify
+import org.mockito.kotlin.whenever
 import uk.gov.justice.hmpps.offenderevents.model.OffenderEvent
 import uk.gov.justice.hmpps.sqs.HmppsQueueService
 import uk.gov.justice.hmpps.sqs.HmppsTopic
