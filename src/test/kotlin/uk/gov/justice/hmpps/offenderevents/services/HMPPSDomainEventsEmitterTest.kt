@@ -44,6 +44,7 @@ import uk.gov.justice.hmpps.sqs.HmppsTopic
 import java.time.LocalDateTime
 import java.time.OffsetDateTime
 import java.time.temporal.ChronoUnit.SECONDS
+import java.util.function.Consumer
 import java.util.stream.Stream
 
 @TestInstance(PER_CLASS)
@@ -187,10 +188,12 @@ internal class HMPPSDomainEventsEmitterTest {
       JsonAssertions.assertThatJson(payload)
         .node("publishedAt")
         .asString()
-        .satisfies { publishedAt: String? ->
-          Assertions.assertThat(OffsetDateTime.parse(publishedAt))
-            .isCloseTo(OffsetDateTime.now(), Assertions.within(10, SECONDS))
-        }
+        .satisfies(
+          Consumer { publishedAt: String? ->
+            Assertions.assertThat(OffsetDateTime.parse(publishedAt))
+              .isCloseTo(OffsetDateTime.now(), Assertions.within(10, SECONDS))
+          }
+        )
     }
 
     @Test
@@ -382,10 +385,12 @@ internal class HMPPSDomainEventsEmitterTest {
       JsonAssertions.assertThatJson(payload)
         .node("publishedAt")
         .asString()
-        .satisfies { publishedAt: String? ->
-          Assertions.assertThat(OffsetDateTime.parse(publishedAt))
-            .isCloseTo(OffsetDateTime.now(), Assertions.within(10, SECONDS))
-        }
+        .satisfies(
+          Consumer { publishedAt: String? ->
+            Assertions.assertThat(OffsetDateTime.parse(publishedAt))
+              .isCloseTo(OffsetDateTime.now(), Assertions.within(10, SECONDS))
+          }
+        )
     }
 
     @Test
