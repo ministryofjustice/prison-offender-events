@@ -1,6 +1,5 @@
 package uk.gov.justice.hmpps.offenderevents.e2e;
 
-
 import com.amazonaws.services.sqs.model.Message;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;

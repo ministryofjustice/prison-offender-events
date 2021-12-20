@@ -23,6 +23,7 @@ import uk.gov.justice.hmpps.sqs.HmppsTopic
 import java.time.LocalDateTime
 import java.time.OffsetDateTime
 import java.time.temporal.ChronoUnit.SECONDS
+import java.util.function.Consumer
 
 @RunWith(MockitoJUnitRunner::class)
 class PrisonEventsEmitterTest {
@@ -104,9 +105,11 @@ class PrisonEventsEmitterTest {
     verify(prisonEventSnsClient).publishAsync(publishRequestCaptor.capture())
     val request = publishRequestCaptor.value
 
-    assertThat(request.messageAttributes["code"]).satisfies {
-      assertThat(it?.stringValue).isEqualTo("alert-code")
-    }
+    assertThat(request.messageAttributes["code"]).satisfies(
+      Consumer {
+        assertThat(it?.stringValue).isEqualTo("alert-code")
+      }
+    )
   }
 
   @Test
@@ -137,9 +140,11 @@ class PrisonEventsEmitterTest {
     verify(prisonEventSnsClient).publishAsync(publishRequestCaptor.capture())
     val request = publishRequestCaptor.value
 
-    assertThat(request.messageAttributes["eventType"]).satisfies {
-      assertThat(it?.stringValue).isEqualTo("my-event-type")
-    }
+    assertThat(request.messageAttributes["eventType"]).satisfies(
+      Consumer {
+        assertThat(it?.stringValue).isEqualTo("my-event-type")
+      }
+    )
   }
 
   @Test
@@ -155,9 +160,11 @@ class PrisonEventsEmitterTest {
     verify(prisonEventSnsClient).publishAsync(publishRequestCaptor.capture())
     val request = publishRequestCaptor.value
 
-    assertThat(request.messageAttributes["publishedAt"]).isNotNull.satisfies {
-      assertThat(OffsetDateTime.parse(it?.stringValue).toLocalDateTime())
-        .isCloseTo(LocalDateTime.now(), Assertions.within(10, SECONDS))
-    }
+    assertThat(request.messageAttributes["publishedAt"]).isNotNull.satisfies(
+      Consumer {
+        assertThat(OffsetDateTime.parse(it?.stringValue).toLocalDateTime())
+          .isCloseTo(LocalDateTime.now(), Assertions.within(10, SECONDS))
+      }
+    )
   }
 }
