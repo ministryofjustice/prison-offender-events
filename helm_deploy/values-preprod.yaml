@@ -4,7 +4,6 @@ generic-service:
   replicaCount: 4
   ingress:
     host: offender-events-preprod.prison.service.justice.gov.uk
-    contextColour: green
 
   env:
     PRISON_API_BASE_URL: "https://api-preprod.prison.service.justice.gov.uk"
