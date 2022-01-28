@@ -1,6 +1,6 @@
 plugins {
-  id("uk.gov.justice.hmpps.gradle-spring-boot") version "4.0.0"
-  kotlin("plugin.spring") version "1.6.0"
+  id("uk.gov.justice.hmpps.gradle-spring-boot") version "4.0.2"
+  kotlin("plugin.spring") version "1.6.10"
   id("org.unbroken-dome.test-sets") version "4.0.0"
 }
 
@@ -16,8 +16,8 @@ dependencies {
   annotationProcessor("org.springframework.boot:spring-boot-configuration-processor")
   annotationProcessor("org.projectlombok:lombok:1.18.22")
 
-  runtimeOnly("com.h2database:h2:2.0.202")
-  runtimeOnly("org.flywaydb:flyway-core:8.2.3")
+  runtimeOnly("com.h2database:h2:2.1.210")
+  runtimeOnly("org.flywaydb:flyway-core:8.4.3")
   runtimeOnly("org.postgresql:postgresql:42.3.1")
 
   compileOnly("org.projectlombok:lombok:1.18.22")
@@ -33,10 +33,10 @@ dependencies {
 
   implementation("com.amazonaws:aws-java-sdk-sns")
 
-  implementation("uk.gov.justice.service.hmpps:hmpps-sqs-spring-boot-starter:1.0.3")
+  implementation("uk.gov.justice.service.hmpps:hmpps-sqs-spring-boot-starter:1.0.5")
 
-  implementation("net.javacrumbs.shedlock:shedlock-spring:4.30.0")
-  implementation("net.javacrumbs.shedlock:shedlock-provider-jdbc-template:4.30.0")
+  implementation("net.javacrumbs.shedlock:shedlock-spring:4.32.0")
+  implementation("net.javacrumbs.shedlock:shedlock-provider-jdbc-template:4.32.0")
 
   implementation("javax.activation:activation:1.1.1")
   implementation("javax.transaction:javax.transaction-api:1.3")
@@ -55,9 +55,9 @@ dependencies {
   implementation("com.fasterxml.jackson.core:jackson-databind:2.13.1")
   implementation("com.fasterxml.jackson.core:jackson-annotations:2.13.1")
 
-  implementation("org.springdoc:springdoc-openapi-ui:1.6.2")
-  implementation("org.springdoc:springdoc-openapi-data-rest:1.6.2")
-  implementation("org.springdoc:springdoc-openapi-kotlin:1.6.2")
+  implementation("org.springdoc:springdoc-openapi-ui:1.6.5")
+  implementation("org.springdoc:springdoc-openapi-data-rest:1.6.5")
+  implementation("org.springdoc:springdoc-openapi-kotlin:1.6.5")
 
   testAnnotationProcessor("org.springframework.boot:spring-boot-configuration-processor")
   testAnnotationProcessor("org.projectlombok:lombok:1.18.22")
@@ -71,8 +71,8 @@ dependencies {
   testImplementation("net.javacrumbs.json-unit:json-unit-assertj:2.28.0")
   testImplementation("org.awaitility:awaitility:4.1.1")
   testImplementation("org.awaitility:awaitility-kotlin:4.1.1")
-  testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-reactive:1.5.2")
-  testImplementation("org.mockito:mockito-inline:4.2.0")
+  testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-reactive:1.6.0")
+  testImplementation("org.mockito:mockito-inline:4.3.1")
 }
 
 java {
