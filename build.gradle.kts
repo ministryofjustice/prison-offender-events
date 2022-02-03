@@ -1,5 +1,5 @@
 plugins {
-  id("uk.gov.justice.hmpps.gradle-spring-boot") version "4.0.2"
+  id("uk.gov.justice.hmpps.gradle-spring-boot") version "4.0.3-beta"
   kotlin("plugin.spring") version "1.6.10"
   id("org.unbroken-dome.test-sets") version "4.0.0"
 }
@@ -17,8 +17,8 @@ dependencies {
   annotationProcessor("org.projectlombok:lombok:1.18.22")
 
   runtimeOnly("com.h2database:h2:2.1.210")
-  runtimeOnly("org.flywaydb:flyway-core:8.4.3")
-  runtimeOnly("org.postgresql:postgresql:42.3.1")
+  runtimeOnly("org.flywaydb:flyway-core:8.4.4")
+  runtimeOnly("org.postgresql:postgresql:42.3.2")
 
   compileOnly("org.projectlombok:lombok:1.18.22")
 
@@ -35,8 +35,8 @@ dependencies {
 
   implementation("uk.gov.justice.service.hmpps:hmpps-sqs-spring-boot-starter:1.0.5")
 
-  implementation("net.javacrumbs.shedlock:shedlock-spring:4.32.0")
-  implementation("net.javacrumbs.shedlock:shedlock-provider-jdbc-template:4.32.0")
+  implementation("net.javacrumbs.shedlock:shedlock-spring:4.33.0")
+  implementation("net.javacrumbs.shedlock:shedlock-provider-jdbc-template:4.33.0")
 
   implementation("javax.activation:activation:1.1.1")
   implementation("javax.transaction:javax.transaction-api:1.3")
