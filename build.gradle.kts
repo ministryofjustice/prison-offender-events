@@ -1,5 +1,5 @@
 plugins {
-  id("uk.gov.justice.hmpps.gradle-spring-boot") version "4.0.3-beta"
+  id("uk.gov.justice.hmpps.gradle-spring-boot") version "4.0.4"
   kotlin("plugin.spring") version "1.6.10"
   id("org.unbroken-dome.test-sets") version "4.0.0"
 }
@@ -17,8 +17,8 @@ dependencies {
   annotationProcessor("org.projectlombok:lombok:1.18.22")
 
   runtimeOnly("com.h2database:h2:2.1.210")
-  runtimeOnly("org.flywaydb:flyway-core:8.4.4")
-  runtimeOnly("org.postgresql:postgresql:42.3.2")
+  runtimeOnly("org.flywaydb:flyway-core:8.5.1")
+  runtimeOnly("org.postgresql:postgresql:42.3.3")
 
   compileOnly("org.projectlombok:lombok:1.18.22")
 
@@ -33,7 +33,7 @@ dependencies {
 
   implementation("com.amazonaws:aws-java-sdk-sns")
 
-  implementation("uk.gov.justice.service.hmpps:hmpps-sqs-spring-boot-starter:1.0.5")
+  implementation("uk.gov.justice.service.hmpps:hmpps-sqs-spring-boot-starter:1.0.6")
 
   implementation("net.javacrumbs.shedlock:shedlock-spring:4.33.0")
   implementation("net.javacrumbs.shedlock:shedlock-provider-jdbc-template:4.33.0")
@@ -47,7 +47,7 @@ dependencies {
   implementation("org.apache.commons:commons-text:1.9")
   implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.13.1")
   implementation("com.pauldijou:jwt-core_2.11:5.0.0")
-  implementation("com.google.code.gson:gson:2.8.9")
+  implementation("com.google.code.gson:gson:2.9.0")
   implementation("com.google.guava:guava:31.0.1-jre")
 
   // needed for record serialisation
@@ -55,34 +55,36 @@ dependencies {
   implementation("com.fasterxml.jackson.core:jackson-databind:2.13.1")
   implementation("com.fasterxml.jackson.core:jackson-annotations:2.13.1")
 
-  implementation("org.springdoc:springdoc-openapi-ui:1.6.5")
-  implementation("org.springdoc:springdoc-openapi-data-rest:1.6.5")
-  implementation("org.springdoc:springdoc-openapi-kotlin:1.6.5")
+  implementation("org.springdoc:springdoc-openapi-ui:1.6.6")
+  implementation("org.springdoc:springdoc-openapi-data-rest:1.6.6")
+  implementation("org.springdoc:springdoc-openapi-kotlin:1.6.6")
+  implementation("org.springdoc:springdoc-openapi-security:1.6.6")
 
   testAnnotationProcessor("org.springframework.boot:spring-boot-configuration-processor")
   testAnnotationProcessor("org.projectlombok:lombok:1.18.22")
   testCompileOnly("org.projectlombok:lombok:1.18.22")
   testImplementation("org.springframework.security:spring-security-test")
   testImplementation("com.tngtech.java:junit-dataprovider:1.13.1")
-  testImplementation("net.javacrumbs.json-unit:json-unit-assertj:2.28.0")
+  testImplementation("net.javacrumbs.json-unit:json-unit-assertj:2.32.0")
   testImplementation("io.github.http-builder-ng:http-builder-ng-apache:1.0.4")
   testImplementation("com.github.tomakehurst:wiremock-standalone:2.27.2")
   testImplementation("junit:junit:4.13.2")
-  testImplementation("net.javacrumbs.json-unit:json-unit-assertj:2.28.0")
+  testImplementation("net.javacrumbs.json-unit:json-unit-assertj:2.32.0")
   testImplementation("org.awaitility:awaitility:4.1.1")
   testImplementation("org.awaitility:awaitility-kotlin:4.1.1")
   testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-reactive:1.6.0")
   testImplementation("org.mockito:mockito-inline:4.3.1")
+  testImplementation("io.swagger.parser.v3:swagger-parser:2.0.30")
 }
 
 java {
-  toolchain.languageVersion.set(JavaLanguageVersion.of(16))
+  toolchain.languageVersion.set(JavaLanguageVersion.of(17))
 }
 
 tasks {
   withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile> {
     kotlinOptions {
-      jvmTarget = "16"
+      jvmTarget = "17"
     }
   }
 }
