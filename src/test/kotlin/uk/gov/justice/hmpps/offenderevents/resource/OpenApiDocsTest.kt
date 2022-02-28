@@ -1,16 +1,22 @@
 package uk.gov.justice.hmpps.offenderevents.resource
 
+import io.swagger.v3.parser.OpenAPIV3Parser
+import net.minidev.json.JSONArray
+import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
+import org.springframework.boot.web.server.LocalServerPort
 import org.springframework.http.MediaType
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 
 class OpenApiDocsTest : IntegrationTestBase() {
+  @LocalServerPort
+  private var port: Int = 0
 
   @Test
   fun `open api docs are available`() {
     webTestClient.get()
-      .uri("/swagger-ui/index.html?configUrl=/v3/api-docs/swagger-config")
+      .uri("/swagger-ui/index.html?configUrl=/v3/api-docs")
       .accept(MediaType.APPLICATION_JSON)
       .exchange()
       .expectStatus().isOk
@@ -37,6 +43,13 @@ class OpenApiDocsTest : IntegrationTestBase() {
   }
 
   @Test
+  fun `the open api json is valid and contains documentation`() {
+    val result = OpenAPIV3Parser().readLocation("http://localhost:$port/v3/api-docs", null, null)
+    assertThat(result.messages).isEmpty()
+    assertThat(result.openAPI.paths).isNotEmpty
+  }
+
+  @Test
   fun `the swagger json contains the version number`() {
     webTestClient.get()
       .uri("/v3/api-docs")
@@ -44,5 +57,21 @@ class OpenApiDocsTest : IntegrationTestBase() {
       .exchange()
       .expectStatus().isOk
       .expectBody().jsonPath("info.version").isEqualTo(DateTimeFormatter.ISO_DATE.format(LocalDate.now()))
+  }
+
+  @Test
+  fun `the security scheme is setup for bearer tokens`() {
+    val bearerJwts = JSONArray()
+    bearerJwts.addAll(listOf("read", "write"))
+    webTestClient.get()
+      .uri("/v3/api-docs")
+      .accept(MediaType.APPLICATION_JSON)
+      .exchange()
+      .expectStatus().isOk
+      .expectBody()
+      .jsonPath("$.components.securitySchemes.bearer-jwt")
+      .isEqualTo(mapOf("type" to "http", "scheme" to "bearer", "bearerFormat" to "JWT"))
+      .jsonPath("$.security[0].bearer-jwt")
+      .isEqualTo(bearerJwts)
   }
 }
