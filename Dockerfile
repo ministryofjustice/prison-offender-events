@@ -8,7 +8,7 @@ ADD . .
 RUN ./gradlew assemble -Dorg.gradle.daemon=false
 
 # Grab AWS RDS Root cert
-RUN apt-get install -y curl
+RUN apt-get update && apt-get install -y curl
 RUN curl https://s3.amazonaws.com/rds-downloads/rds-ca-2019-root.pem  > root.crt
 
 FROM openjdk:17-slim
