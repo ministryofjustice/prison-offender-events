@@ -7,6 +7,10 @@ WORKDIR /app
 ADD . .
 RUN ./gradlew assemble -Dorg.gradle.daemon=false
 
+# Grab AWS RDS Root cert
+RUN apt-get install -y curl
+RUN curl https://s3.amazonaws.com/rds-downloads/rds-ca-2019-root.pem  > root.crt
+
 FROM openjdk:17-slim
 LABEL maintainer="HMPPS Digital Studio <info@digital.justice.gov.uk>"
 
@@ -24,9 +28,8 @@ RUN addgroup --gid 2000 --system appgroup && \
     adduser --uid 2000 --system appuser --gid 2000
 
 # Install AWS RDS Root cert into Java truststore
-RUN mkdir /home/appuser/.postgresql \
-  && curl https://s3.amazonaws.com/rds-downloads/rds-ca-2019-root.pem \
-    > /home/appuser/.postgresql/root.crt
+RUN mkdir /home/appuser/.postgresql
+COPY --from=builder --chown=appuser:appgroup /app/root.crt /home/appuser/.postgresql/root.crt
 
 WORKDIR /app
 
