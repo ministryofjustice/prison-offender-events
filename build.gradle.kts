@@ -1,5 +1,5 @@
 plugins {
-  id("uk.gov.justice.hmpps.gradle-spring-boot") version "4.1.0"
+  id("uk.gov.justice.hmpps.gradle-spring-boot") version "4.1.2-beta-2"
   kotlin("plugin.spring") version "1.6.10"
   id("org.unbroken-dome.test-sets") version "4.0.0"
 }
@@ -17,7 +17,7 @@ dependencies {
   annotationProcessor("org.projectlombok:lombok:1.18.22")
 
   runtimeOnly("com.h2database:h2:2.1.210")
-  runtimeOnly("org.flywaydb:flyway-core:8.5.4")
+  runtimeOnly("org.flywaydb:flyway-core:8.5.5")
   runtimeOnly("org.postgresql:postgresql:42.3.3")
 
   compileOnly("org.projectlombok:lombok:1.18.22")
@@ -33,7 +33,7 @@ dependencies {
 
   implementation("com.amazonaws:aws-java-sdk-sns")
 
-  implementation("uk.gov.justice.service.hmpps:hmpps-sqs-spring-boot-starter:1.1.1")
+  implementation("uk.gov.justice.service.hmpps:hmpps-sqs-spring-boot-starter:1.1.2")
 
   implementation("net.javacrumbs.shedlock:shedlock-spring:4.33.0")
   implementation("net.javacrumbs.shedlock:shedlock-provider-jdbc-template:4.33.0")
@@ -52,7 +52,7 @@ dependencies {
 
   // needed for record serialisation
   implementation("com.fasterxml.jackson.core:jackson-core:2.13.2")
-  implementation("com.fasterxml.jackson.core:jackson-databind:2.13.2")
+  implementation("com.fasterxml.jackson.core:jackson-databind:2.13.2.2")
   implementation("com.fasterxml.jackson.core:jackson-annotations:2.13.2")
 
   implementation("org.springdoc:springdoc-openapi-ui:1.6.6")
