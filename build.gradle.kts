@@ -1,6 +1,6 @@
 plugins {
-  id("uk.gov.justice.hmpps.gradle-spring-boot") version "4.1.4-beta"
-  kotlin("plugin.spring") version "1.6.20"
+  id("uk.gov.justice.hmpps.gradle-spring-boot") version "4.1.5-beta"
+  kotlin("plugin.spring") version "1.6.21"
   id("org.unbroken-dome.test-sets") version "4.0.0"
 }
 
@@ -14,13 +14,13 @@ testSets {
 
 dependencies {
   annotationProcessor("org.springframework.boot:spring-boot-configuration-processor")
-  annotationProcessor("org.projectlombok:lombok:1.18.22")
+  annotationProcessor("org.projectlombok:lombok:1.18.24")
 
   runtimeOnly("com.h2database:h2:2.1.212")
-  runtimeOnly("org.flywaydb:flyway-core:8.5.7")
-  runtimeOnly("org.postgresql:postgresql:42.3.3")
+  runtimeOnly("org.flywaydb:flyway-core:8.5.8")
+  runtimeOnly("org.postgresql:postgresql:42.3.4")
 
-  compileOnly("org.projectlombok:lombok:1.18.22")
+  compileOnly("org.projectlombok:lombok:1.18.24")
 
   implementation("org.springframework.boot:spring-boot-starter-actuator")
   implementation("org.springframework.boot:spring-boot-starter-cache")
@@ -61,19 +61,19 @@ dependencies {
   implementation("org.springdoc:springdoc-openapi-security:1.6.7")
 
   testAnnotationProcessor("org.springframework.boot:spring-boot-configuration-processor")
-  testAnnotationProcessor("org.projectlombok:lombok:1.18.22")
-  testCompileOnly("org.projectlombok:lombok:1.18.22")
+  testAnnotationProcessor("org.projectlombok:lombok:1.18.24")
+  testCompileOnly("org.projectlombok:lombok:1.18.24")
   testImplementation("org.springframework.security:spring-security-test")
   testImplementation("com.tngtech.java:junit-dataprovider:1.13.1")
-  testImplementation("net.javacrumbs.json-unit:json-unit-assertj:2.33.0")
+  testImplementation("net.javacrumbs.json-unit:json-unit-assertj:2.34.0")
   testImplementation("io.github.http-builder-ng:http-builder-ng-apache:1.0.4")
   testImplementation("com.github.tomakehurst:wiremock-standalone:2.27.2")
   testImplementation("junit:junit:4.13.2")
-  testImplementation("net.javacrumbs.json-unit:json-unit-assertj:2.33.0")
+  testImplementation("net.javacrumbs.json-unit:json-unit-assertj:2.34.0")
   testImplementation("org.awaitility:awaitility:4.2.0")
   testImplementation("org.awaitility:awaitility-kotlin:4.2.0")
   testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-reactive:1.6.1")
-  testImplementation("org.mockito:mockito-inline:4.4.0")
+  testImplementation("org.mockito:mockito-inline:4.5.0")
   testImplementation("io.swagger.parser.v3:swagger-parser:2.0.32")
 }
 
