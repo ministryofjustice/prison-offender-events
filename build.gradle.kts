@@ -1,5 +1,5 @@
 plugins {
-  id("uk.gov.justice.hmpps.gradle-spring-boot") version "4.1.5-beta"
+  id("uk.gov.justice.hmpps.gradle-spring-boot") version "4.1.5-beta-2"
   kotlin("plugin.spring") version "1.6.21"
   id("org.unbroken-dome.test-sets") version "4.0.0"
 }
@@ -17,7 +17,7 @@ dependencies {
   annotationProcessor("org.projectlombok:lombok:1.18.24")
 
   runtimeOnly("com.h2database:h2:2.1.212")
-  runtimeOnly("org.flywaydb:flyway-core:8.5.8")
+  runtimeOnly("org.flywaydb:flyway-core:8.5.9")
   runtimeOnly("org.postgresql:postgresql:42.3.4")
 
   compileOnly("org.projectlombok:lombok:1.18.24")
@@ -55,10 +55,10 @@ dependencies {
   implementation("com.fasterxml.jackson.core:jackson-databind:2.13.2.2")
   implementation("com.fasterxml.jackson.core:jackson-annotations:2.13.2")
 
-  implementation("org.springdoc:springdoc-openapi-ui:1.6.7")
-  implementation("org.springdoc:springdoc-openapi-data-rest:1.6.7")
-  implementation("org.springdoc:springdoc-openapi-kotlin:1.6.7")
-  implementation("org.springdoc:springdoc-openapi-security:1.6.7")
+  implementation("org.springdoc:springdoc-openapi-ui:1.6.8")
+  implementation("org.springdoc:springdoc-openapi-data-rest:1.6.8")
+  implementation("org.springdoc:springdoc-openapi-kotlin:1.6.8")
+  implementation("org.springdoc:springdoc-openapi-security:1.6.8")
 
   testAnnotationProcessor("org.springframework.boot:spring-boot-configuration-processor")
   testAnnotationProcessor("org.projectlombok:lombok:1.18.24")
@@ -73,7 +73,7 @@ dependencies {
   testImplementation("org.awaitility:awaitility:4.2.0")
   testImplementation("org.awaitility:awaitility-kotlin:4.2.0")
   testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-reactive:1.6.1")
-  testImplementation("org.mockito:mockito-inline:4.5.0")
+  testImplementation("org.mockito:mockito-inline:4.5.1")
   testImplementation("io.swagger.parser.v3:swagger-parser:2.0.32")
 }
 
