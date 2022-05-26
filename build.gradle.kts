@@ -1,5 +1,5 @@
 plugins {
-  id("uk.gov.justice.hmpps.gradle-spring-boot") version "4.2.0-beta"
+  id("uk.gov.justice.hmpps.gradle-spring-boot") version "4.2.0-beta-4"
   kotlin("plugin.spring") version "1.6.21"
   id("org.unbroken-dome.test-sets") version "4.0.0"
 }
@@ -18,7 +18,7 @@ dependencies {
 
   runtimeOnly("com.h2database:h2:2.1.212")
   runtimeOnly("org.flywaydb:flyway-core:8.5.11")
-  runtimeOnly("org.postgresql:postgresql:42.3.5")
+  runtimeOnly("org.postgresql:postgresql:42.3.6")
 
   compileOnly("org.projectlombok:lombok:1.18.24")
 
