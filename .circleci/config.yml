@@ -102,15 +102,15 @@ workflows:
     jobs:
       - hmpps/gradle_owasp_dependency_check:
           cache_key: "v2_0"
-          slack_channel: hmpps_tech_alerts_security
+          slack_channel: syscon-alerts
           context:
             - hmpps-common-vars
       - hmpps/trivy_latest_scan:
-          slack_channel: hmpps_tech_alerts_security
+          slack_channel: syscon-alerts
           context:
             - hmpps-common-vars
       - hmpps/veracode_pipeline_scan:
-          slack_channel: hmpps_tech_alerts_security
+          slack_channel: syscon-alerts
           context:
             - hmpps-common-vars
             - veracode-credentials
@@ -124,7 +124,7 @@ workflows:
                 - main
     jobs:
       - hmpps/veracode_policy_scan:
-          slack_channel: hmpps_tech_alerts_security
+          slack_channel: syscon-alerts
           context:
             - veracode-credentials
             - hmpps-common-vars
