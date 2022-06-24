@@ -109,11 +109,12 @@ workflows:
           slack_channel: syscon-alerts
           context:
             - hmpps-common-vars
-      - hmpps/veracode_pipeline_scan:
-          slack_channel: syscon-alerts
-          context:
-            - hmpps-common-vars
-            - veracode-credentials
+      # currently disabled as no support for jdk 18 or kotlin 1.7
+      # - hmpps/veracode_pipeline_scan:
+      #   slack_channel: syscon-alerts
+      #   context:
+      #     - veracode-credentials
+      #     - hmpps-common-vars
   security-weekly:
     triggers:
       - schedule:
