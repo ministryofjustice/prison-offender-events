@@ -22,3 +22,6 @@ generic-prometheus-alerts:
   sqsAlertsQueueNames:
     - "Digital-Prison-Services-preprod-prisoner_offender_events_queue"
     - "Digital-Prison-Services-preprod-prisoner_offender_events_queue_dl"
+
+  rdsAlertsDatabases:
+    cloud-platform-49f2de1fed495464: "prison offender events"
