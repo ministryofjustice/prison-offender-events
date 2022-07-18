@@ -1,5 +1,5 @@
 plugins {
-  id("uk.gov.justice.hmpps.gradle-spring-boot") version "4.3.2"
+  id("uk.gov.justice.hmpps.gradle-spring-boot") version "4.3.3"
   kotlin("plugin.spring") version "1.7.0"
   id("org.unbroken-dome.test-sets") version "4.0.0"
 }
@@ -17,7 +17,7 @@ dependencies {
   annotationProcessor("org.projectlombok:lombok:1.18.24")
 
   runtimeOnly("com.h2database:h2:2.1.214")
-  runtimeOnly("org.flywaydb:flyway-core:8.5.13")
+  runtimeOnly("org.flywaydb:flyway-core")
   runtimeOnly("org.postgresql:postgresql:42.4.0")
 
   compileOnly("org.projectlombok:lombok:1.18.24")
@@ -33,10 +33,10 @@ dependencies {
 
   implementation("com.amazonaws:aws-java-sdk-sns")
 
-  implementation("uk.gov.justice.service.hmpps:hmpps-sqs-spring-boot-starter:1.1.5")
+  implementation("uk.gov.justice.service.hmpps:hmpps-sqs-spring-boot-starter:1.1.6")
 
-  implementation("net.javacrumbs.shedlock:shedlock-spring:4.37.0")
-  implementation("net.javacrumbs.shedlock:shedlock-provider-jdbc-template:4.37.0")
+  implementation("net.javacrumbs.shedlock:shedlock-spring:4.38.0")
+  implementation("net.javacrumbs.shedlock:shedlock-provider-jdbc-template:4.38.0")
 
   implementation("javax.activation:activation:1.1.1")
   implementation("javax.transaction:javax.transaction-api:1.3")
@@ -72,7 +72,7 @@ dependencies {
   testImplementation("net.javacrumbs.json-unit:json-unit-assertj:2.35.0")
   testImplementation("org.awaitility:awaitility:4.2.0")
   testImplementation("org.awaitility:awaitility-kotlin:4.2.0")
-  testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-reactive:1.6.3")
+  testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-reactive:1.6.4")
   testImplementation("org.mockito:mockito-inline:4.6.1")
   testImplementation("io.swagger.parser.v3:swagger-parser:2.1.1")
 }
