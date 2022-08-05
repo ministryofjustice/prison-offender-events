@@ -36,7 +36,7 @@ class EventScheduler(
 
   @Scheduled(
     fixedDelayString = "\${application.events.poll.frequency}",
-    initialDelayString = "1000"
+    initialDelayString = "30000"
   )
   @SchedulerLock(name = "runTestPollsLock")
   fun runTestPolls() {

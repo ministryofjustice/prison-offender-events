@@ -1,7 +1,6 @@
 package uk.gov.justice.hmpps.offenderevents.services;
 
 import lombok.extern.slf4j.Slf4j;
-import lombok.val;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -96,15 +95,12 @@ public class EventRetrievalService {
      *  <li>store A end time in POLL_NAME_TEST.time
      * </ol>
      */
-    public void runTestPolls(LocalDateTime now) {
+    public void runTestPolls(final LocalDateTime now) {
         final LocalDateTime endTimeA = now.minus(1, SECONDS);
 
         repository.findById(POLL_NAME_TEST).ifPresentOrElse(
                 test -> {
-                    val previousTest = repository.findById(PREVIOUS_POLL_NAME_TEST).orElse(PollAudit.builder()
-                            .pollName(PREVIOUS_POLL_NAME_TEST)
-                            .build());
-
+                    final var previousTest = repository.findById(PREVIOUS_POLL_NAME_TEST).orElseThrow();
                     final var eventsA = externalApiService.getEvents(test.getNextStartTime(), endTimeA);
                     final var countA = eventsA.size();
                     log.debug("runTestPolls(): A interval {} to {}, count {}", test.getNextStartTime(), endTimeA, countA);
