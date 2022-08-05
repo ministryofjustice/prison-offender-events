@@ -33,4 +33,21 @@ class EventScheduler(
     }
     log.info("Complete: Event Poll")
   }
+
+  @Scheduled(
+    fixedDelayString = "\${application.events.poll.frequency}",
+    initialDelayString = "1000"
+  )
+  @SchedulerLock(name = "runTestPollsLock")
+  fun runTestPolls() {
+
+    log.info("Starting: runTestPolls()")
+    try {
+      eventRetrievalService.runTestPolls(LocalDateTime.now())
+    } catch (e: Exception) {
+      log.error("runTestPolls: Global exception handler", e)
+      telemetryClient.trackException(e)
+    }
+    log.info("Complete: runTestPolls()")
+  }
 }
