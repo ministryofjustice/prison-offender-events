@@ -14,6 +14,7 @@ import java.util.List;
 import java.util.Optional;
 
 import static java.time.temporal.ChronoUnit.MICROS;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.times;
@@ -21,6 +22,8 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 import static uk.gov.justice.hmpps.offenderevents.services.EventRetrievalService.POLL_NAME;
+import static uk.gov.justice.hmpps.offenderevents.services.EventRetrievalService.POLL_NAME_TEST;
+import static uk.gov.justice.hmpps.offenderevents.services.EventRetrievalService.PREVIOUS_POLL_NAME_TEST;
 
 @ExtendWith(MockitoExtension.class)
 public class EventRetrievalServiceTest {
@@ -180,4 +183,44 @@ public class EventRetrievalServiceTest {
         verify(prisonEventsEmitter, times(2)).sendEvent(any(OffenderEvent.class));
     }
 
+    @Test
+    public void testRunTestPolls() {
+        final var now = LocalDateTime.parse("2022-08-01T12:01:01");
+        LocalDateTime startA = LocalDateTime.parse("2022-08-01T12:00:00");
+        LocalDateTime endA = LocalDateTime.parse("2022-08-01T12:01:00");
+        LocalDateTime startB = LocalDateTime.parse("2022-08-01T11:59:00");
+        LocalDateTime endB = startA;
+
+        PollAudit auditA = PollAudit.builder().pollName(POLL_NAME_TEST).nextStartTime(startA).numberOfRecords(2).build();
+        when(repository.findById(eq(POLL_NAME_TEST))).thenReturn(Optional.of(auditA));
+        PollAudit auditB = PollAudit.builder().pollName(PREVIOUS_POLL_NAME_TEST).nextStartTime(startB).build();
+        when(repository.findById(eq(PREVIOUS_POLL_NAME_TEST))).thenReturn(Optional.of(auditB));
+
+        OffenderEvent oe = OffenderEvent.builder().build();
+        when(externalApiService.getEvents(eq(startA), eq(endA))).thenReturn(List.of(oe, oe, oe, oe));
+        when(externalApiService.getEvents(eq(startB), eq(endB))).thenReturn(List.of(oe, oe));
+
+        eventRetrievalService.runTestPolls(now);
+
+        assertThat(auditA.getNumberOfRecords()).isEqualTo(4);
+        assertThat(auditB.getNextStartTime()).isEqualTo(startA);
+        assertThat(auditA.getNextStartTime()).isEqualTo(endA);
+    }
+
+    @Test
+    public void testRunTestPollsFirstRun() {
+        final var now = LocalDateTime.parse("2022-08-01T12:01:01");
+        LocalDateTime startA = LocalDateTime.parse("2022-08-01T12:00:00");
+        LocalDateTime endA = LocalDateTime.parse("2022-08-01T12:01:00");
+
+        OffenderEvent oe = OffenderEvent.builder().build();
+        when(externalApiService.getEvents(eq(startA), eq(endA))).thenReturn(List.of(oe, oe, oe, oe));
+
+        eventRetrievalService.runTestPolls(now);
+
+        verify(repository, times(1)).save(eq(PollAudit.builder().pollName(POLL_NAME_TEST)
+                .nextStartTime(endA).numberOfRecords(4).build()));
+        verify(repository, times(1)).save(eq(PollAudit.builder().pollName(PREVIOUS_POLL_NAME_TEST)
+                .nextStartTime(startA).build()));
+    }
 }
