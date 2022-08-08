@@ -44,7 +44,7 @@ public class EventRetrievalServiceTest {
 
     @BeforeEach
     public void setup() {
-        eventRetrievalService = new EventRetrievalService(externalApiService, prisonEventsEmitter, repository, POLL_INTERVAL, WIND_BACK_SECONDS, maxEventRangeMinutes);
+        eventRetrievalService = new EventRetrievalService(externalApiService, prisonEventsEmitter, repository, POLL_INTERVAL, WIND_BACK_SECONDS, 5, maxEventRangeMinutes);
     }
 
     @Test
@@ -185,7 +185,7 @@ public class EventRetrievalServiceTest {
 
     @Test
     public void testRunTestPolls() {
-        final var now = LocalDateTime.parse("2022-08-01T12:01:01");
+        final var now = LocalDateTime.parse("2022-08-01T12:01:05");
         LocalDateTime startA = LocalDateTime.parse("2022-08-01T12:00:00");
         LocalDateTime endA = LocalDateTime.parse("2022-08-01T12:01:00");
         LocalDateTime startB = LocalDateTime.parse("2022-08-01T11:59:00");
@@ -209,7 +209,7 @@ public class EventRetrievalServiceTest {
 
     @Test
     public void testRunTestPollsFirstRun() {
-        final var now = LocalDateTime.parse("2022-08-01T12:01:01");
+        final var now = LocalDateTime.parse("2022-08-01T12:01:05");
         LocalDateTime startA = LocalDateTime.parse("2022-08-01T12:00:00");
         LocalDateTime endA = LocalDateTime.parse("2022-08-01T12:01:00");
 

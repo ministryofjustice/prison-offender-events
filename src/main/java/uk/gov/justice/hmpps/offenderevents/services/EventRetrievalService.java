@@ -15,7 +15,6 @@ import java.util.Comparator;
 import static java.time.temporal.ChronoUnit.MICROS;
 import static java.time.temporal.ChronoUnit.MILLIS;
 import static java.time.temporal.ChronoUnit.MINUTES;
-import static java.time.temporal.ChronoUnit.SECONDS;
 
 @Service
 @Slf4j
@@ -32,6 +31,7 @@ public class EventRetrievalService {
     private final int pollInterval;
     private final int maxEventRangeMinutes;
     private final int windBackSeconds;
+    private final int testWindBackSeconds;
 
 
     public EventRetrievalService(final ExternalApiService externalApiService,
@@ -39,6 +39,7 @@ public class EventRetrievalService {
                                  final PollAuditRepository repository,
                                  @Value("${application.events.poll.frequency:60000}") final int pollInterval,
                                  @Value("${wind.back.seconds:10}") int windBackSeconds,
+                                 @Value("${test.wind.back.seconds:10}") int testWindBackSeconds,
                                  @Value("${application.events.max.range.minutes:20}") final int maxEventRangeMinutes) {
         this.externalApiService = externalApiService;
         this.prisonEventsEmitter = prisonEventsEmitter;
@@ -46,6 +47,7 @@ public class EventRetrievalService {
         this.pollInterval = pollInterval;
         this.maxEventRangeMinutes = maxEventRangeMinutes;
         this.windBackSeconds = windBackSeconds;
+        this.testWindBackSeconds = testWindBackSeconds;
         log.info("Using {} wind back seconds", windBackSeconds);
     }
 
@@ -96,7 +98,7 @@ public class EventRetrievalService {
      * </ol>
      */
     public void runTestPolls(final LocalDateTime now) {
-        final LocalDateTime endTimeA = now.minus(1, SECONDS);
+        final LocalDateTime endTimeA = now.minusSeconds(testWindBackSeconds);
 
         repository.findById(POLL_NAME_TEST).ifPresentOrElse(
                 test -> {
@@ -110,7 +112,7 @@ public class EventRetrievalService {
                     log.debug("runTestPolls(): B interval {} to {}, count {}", previousTest.getNextStartTime(), test.getNextStartTime(), countB);
 
                     if (countB != test.getNumberOfRecords()) {
-                        log.warn("runTestPolls(): Found different counts, original={}, repeat={}, events {}", test.getNumberOfRecords(), countB, eventsB);
+                        log.warn("runTestPolls(): Found different counts using windback {}, original={}, repeat={}, events {}", testWindBackSeconds, test.getNumberOfRecords(), countB, eventsB);
                     }
 
                     test.setNumberOfRecords(countA);
