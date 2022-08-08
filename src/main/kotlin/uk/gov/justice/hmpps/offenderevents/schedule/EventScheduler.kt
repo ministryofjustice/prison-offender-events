@@ -17,6 +17,7 @@ class EventScheduler(
   companion object {
     private val log = LoggerFactory.getLogger(this::class.java)
   }
+
   @Scheduled(
     fixedDelayString = "\${application.events.poll.frequency}",
     initialDelayString = "\${application.events.poll.initialDelay}"
@@ -34,10 +35,7 @@ class EventScheduler(
     log.info("Complete: Event Poll")
   }
 
-  @Scheduled(
-    fixedDelayString = "\${application.events.poll.frequency}",
-    initialDelayString = "30000"
-  )
+  @Scheduled(cron = "43 * * * * ?")
   @SchedulerLock(name = "runTestPollsLock")
   fun runTestPolls() {
 
