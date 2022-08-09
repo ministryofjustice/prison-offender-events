@@ -66,6 +66,48 @@ class PrisonEventsEmitterTest {
   }
 
   @Test
+  fun `will add additional fields to JSON payload`() {
+    service.sendEvent(
+      OffenderEvent.builder()
+        .eventType("my-event-type")
+        .alertCode("alert-code")
+        .bookingId(12345L)
+        .additionalFields(
+          mapOf(
+            "number" to 2,
+            "boolean" to true,
+            "string" to "some-string",
+            "list" to listOf(3, "string", true),
+            "map" to mapOf("some-key" to 3, "nested-list" to listOf(7, 8, 9))
+          )
+        )
+        .build()
+    )
+
+    verify(prisonEventSnsClient).publishAsync(publishRequestCaptor.capture())
+    val request = publishRequestCaptor.value
+
+    assertThat(objectMapper.readTree(request.message)).isEqualTo(
+      objectMapper.readTree(
+        """
+      {
+        "eventType":"my-event-type",
+        "bookingId":12345,
+        "alertCode":"alert-code",
+        "number":2,
+        "boolean":true,
+        "string":"some-string",
+        "list":[3,"string",true],
+        "map":{
+          "some-key":3,
+           "nested-list":[7,8,9]
+        }
+      }"""
+      )
+    )
+  }
+
+  @Test
   fun `will add telemetry event`() {
     service.sendEvent(
       OffenderEvent.builder()

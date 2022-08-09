@@ -1,15 +1,22 @@
 package uk.gov.justice.hmpps.offenderevents.model;
 
+import com.fasterxml.jackson.annotation.JsonAnyGetter;
+import com.fasterxml.jackson.annotation.JsonAnySetter;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 import lombok.ToString;
+import lombok.extern.jackson.Jacksonized;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.HashMap;
+import java.util.Map;
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @Data
@@ -95,4 +102,12 @@ public class OffenderEvent {
     private String toAgencyLocationId;
 
     private String nomisEventType;
+
+    @Getter(onMethod_ = @JsonAnyGetter)
+    private Map<String, Object> additionalFields = new HashMap<>();
+
+    @JsonAnySetter
+    private void addAdditionalField(final String key, final Object value) {
+        additionalFields.put(key, value);
+    }
 }
