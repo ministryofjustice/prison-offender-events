@@ -27,7 +27,7 @@ generic-service:
     AWS_REGION: "eu-west-2"
     SPRING_PROFILES_ACTIVE: "postgres,sns"
     APPLICATIONINSIGHTS_CONNECTION_STRING: "InstrumentationKey=$(APPINSIGHTS_INSTRUMENTATIONKEY);IngestionEndpoint=https://northeurope-0.in.applicationinsights.azure.com/;LiveEndpoint=https://northeurope.livediagnostics.monitor.azure.com/"
-    TEST_WIND_BACK_SECONDS: "10"
+    TEST_WIND_BACK_SECONDS: "0"
 
   # Pre-existing kubernetes secrets to load as environment variables in the deployment.
   # namespace_secrets:

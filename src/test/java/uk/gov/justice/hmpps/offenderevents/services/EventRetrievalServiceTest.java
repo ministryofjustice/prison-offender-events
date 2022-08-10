@@ -197,8 +197,8 @@ public class EventRetrievalServiceTest {
         when(repository.findById(eq(PREVIOUS_POLL_NAME_TEST))).thenReturn(Optional.of(auditB));
 
         OffenderEvent oe = OffenderEvent.builder().build();
-        when(externalApiService.getEvents(eq(startA), eq(endA))).thenReturn(List.of(oe, oe, oe, oe));
-        when(externalApiService.getEvents(eq(startB), eq(endB))).thenReturn(List.of(oe, oe));
+        when(externalApiService.getTestEvents(eq(startA), eq(endA), eq(false))).thenReturn(List.of(oe, oe, oe, oe));
+        when(externalApiService.getTestEvents(eq(startB), eq(endB), eq(false))).thenReturn(List.of(oe, oe));
 
         eventRetrievalService.runTestPolls(now);
 
@@ -214,7 +214,7 @@ public class EventRetrievalServiceTest {
         LocalDateTime endA = LocalDateTime.parse("2022-08-01T12:01:00");
 
         OffenderEvent oe = OffenderEvent.builder().build();
-        when(externalApiService.getEvents(eq(startA), eq(endA))).thenReturn(List.of(oe, oe, oe, oe));
+        when(externalApiService.getTestEvents(eq(startA), eq(endA), eq(false))).thenReturn(List.of(oe, oe, oe, oe));
 
         eventRetrievalService.runTestPolls(now);
 
