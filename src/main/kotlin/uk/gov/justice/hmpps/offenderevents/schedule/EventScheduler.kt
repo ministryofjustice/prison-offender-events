@@ -41,7 +41,8 @@ class EventScheduler(
 
     log.info("Starting: runTestPolls()")
     try {
-      eventRetrievalService.runTestPolls(LocalDateTime.now())
+      eventRetrievalService.runTestPolls(LocalDateTime.now(), true, 30)
+      eventRetrievalService.runTestPolls(LocalDateTime.now(), false, 10)
     } catch (e: Exception) {
       log.error("runTestPolls: Global exception handler", e)
       telemetryClient.trackException(e)

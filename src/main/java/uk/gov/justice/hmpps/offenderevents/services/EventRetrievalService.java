@@ -31,8 +31,6 @@ public class EventRetrievalService {
     private final int pollInterval;
     private final int maxEventRangeMinutes;
     private final int windBackSeconds;
-    private final int testWindBackSeconds;
-
 
     public EventRetrievalService(final ExternalApiService externalApiService,
                                  final PrisonEventsEmitter prisonEventsEmitter,
@@ -47,7 +45,6 @@ public class EventRetrievalService {
         this.pollInterval = pollInterval;
         this.maxEventRangeMinutes = maxEventRangeMinutes;
         this.windBackSeconds = windBackSeconds;
-        this.testWindBackSeconds = testWindBackSeconds;
         log.info("Using {} wind back seconds", windBackSeconds);
     }
 
@@ -97,9 +94,8 @@ public class EventRetrievalService {
      *  <li>store A end time (now) in POLL_NAME_TEST.time
      * </ol>
      */
-    public void runTestPolls(final LocalDateTime now) {
+    public void runTestPolls(final LocalDateTime now, final boolean useEnq, final int testWindBackSeconds) {
         final LocalDateTime endTimeA = now.minusSeconds(testWindBackSeconds);
-        final boolean useEnq = false;
 
         repository.findById(POLL_NAME_TEST).ifPresentOrElse(
                 test -> {
