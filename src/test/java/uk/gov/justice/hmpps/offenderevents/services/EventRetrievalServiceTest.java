@@ -200,7 +200,7 @@ public class EventRetrievalServiceTest {
         when(externalApiService.getTestEvents(eq(startA), eq(endA), eq(false))).thenReturn(List.of(oe, oe, oe, oe));
         when(externalApiService.getTestEvents(eq(startB), eq(endB), eq(false))).thenReturn(List.of(oe, oe));
 
-        eventRetrievalService.runTestPolls(now);
+        eventRetrievalService.runTestPolls(now, false, 5);
 
         assertThat(auditA.getNumberOfRecords()).isEqualTo(4);
         assertThat(auditB.getNextStartTime()).isEqualTo(startA);
@@ -209,18 +209,18 @@ public class EventRetrievalServiceTest {
 
     @Test
     public void testRunTestPollsFirstRun() {
-        final var now = LocalDateTime.parse("2022-08-01T12:01:05");
+        final var now = LocalDateTime.parse("2022-08-01T12:01:10");
         LocalDateTime startA = LocalDateTime.parse("2022-08-01T12:00:00");
         LocalDateTime endA = LocalDateTime.parse("2022-08-01T12:01:00");
 
         OffenderEvent oe = OffenderEvent.builder().build();
-        when(externalApiService.getTestEvents(eq(startA), eq(endA), eq(false))).thenReturn(List.of(oe, oe, oe, oe));
+        when(externalApiService.getTestEvents(eq(startA), eq(endA), eq(true))).thenReturn(List.of(oe, oe, oe, oe));
 
-        eventRetrievalService.runTestPolls(now);
+        eventRetrievalService.runTestPolls(now, true, 10);
 
-        verify(repository, times(1)).save(eq(PollAudit.builder().pollName(POLL_NAME_TEST)
-                .nextStartTime(endA).numberOfRecords(4).build()));
-        verify(repository, times(1)).save(eq(PollAudit.builder().pollName(PREVIOUS_POLL_NAME_TEST)
-                .nextStartTime(startA).build()));
+        verify(repository, times(1)).save(eq(
+                PollAudit.builder().pollName(POLL_NAME_TEST).nextStartTime(endA).numberOfRecords(4).build()));
+        verify(repository, times(1)).save(eq(
+                PollAudit.builder().pollName(PREVIOUS_POLL_NAME_TEST).nextStartTime(startA).build()));
     }
 }
