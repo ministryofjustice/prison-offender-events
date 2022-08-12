@@ -37,7 +37,6 @@ public class EventRetrievalService {
                                  final PollAuditRepository repository,
                                  @Value("${application.events.poll.frequency:60000}") final int pollInterval,
                                  @Value("${wind.back.seconds:10}") int windBackSeconds,
-                                 @Value("${test.wind.back.seconds:10}") int testWindBackSeconds,
                                  @Value("${application.events.max.range.minutes:20}") final int maxEventRangeMinutes) {
         this.externalApiService = externalApiService;
         this.prisonEventsEmitter = prisonEventsEmitter;
@@ -96,10 +95,12 @@ public class EventRetrievalService {
      */
     public void runTestPolls(final LocalDateTime now, final boolean useEnq, final int testWindBackSeconds) {
         final LocalDateTime endTimeA = now.minusSeconds(testWindBackSeconds);
+        final String pollName = String.format("%s-%s", POLL_NAME_TEST, useEnq ? "enq" : "deq");
+        final String previousPollName = String.format("%s-%s", PREVIOUS_POLL_NAME_TEST, useEnq ? "enq" : "deq");
 
-        repository.findById(POLL_NAME_TEST).ifPresentOrElse(
+        repository.findById(pollName).ifPresentOrElse(
                 test -> {
-                    final var previousTest = repository.findById(PREVIOUS_POLL_NAME_TEST).orElseThrow();
+                    final var previousTest = repository.findById(previousPollName).orElseThrow();
                     final var eventsA = externalApiService.getTestEvents(test.getNextStartTime(), endTimeA, useEnq);
                     final var countA = eventsA.size();
                     log.debug("runTestPolls(): A interval {} to {}, count {}", test.getNextStartTime(), endTimeA, countA);
@@ -124,12 +125,12 @@ public class EventRetrievalService {
                     final var countA = eventsA.size();
 
                     repository.save(PollAudit.builder()
-                            .pollName(POLL_NAME_TEST)
+                            .pollName(pollName)
                             .nextStartTime(endTimeA)
                             .numberOfRecords(countA)
                             .build());
                     repository.save(PollAudit.builder()
-                            .pollName(PREVIOUS_POLL_NAME_TEST)
+                            .pollName(previousPollName)
                             .nextStartTime(startTimeA)
                             .build());
                 }
