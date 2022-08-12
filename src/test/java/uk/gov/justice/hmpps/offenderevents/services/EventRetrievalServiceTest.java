@@ -22,8 +22,6 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 import static uk.gov.justice.hmpps.offenderevents.services.EventRetrievalService.POLL_NAME;
-import static uk.gov.justice.hmpps.offenderevents.services.EventRetrievalService.POLL_NAME_TEST;
-import static uk.gov.justice.hmpps.offenderevents.services.EventRetrievalService.PREVIOUS_POLL_NAME_TEST;
 
 @ExtendWith(MockitoExtension.class)
 public class EventRetrievalServiceTest {
@@ -44,7 +42,7 @@ public class EventRetrievalServiceTest {
 
     @BeforeEach
     public void setup() {
-        eventRetrievalService = new EventRetrievalService(externalApiService, prisonEventsEmitter, repository, POLL_INTERVAL, WIND_BACK_SECONDS, 5, maxEventRangeMinutes);
+        eventRetrievalService = new EventRetrievalService(externalApiService, prisonEventsEmitter, repository, POLL_INTERVAL, WIND_BACK_SECONDS, maxEventRangeMinutes);
     }
 
     @Test
@@ -191,10 +189,10 @@ public class EventRetrievalServiceTest {
         LocalDateTime startB = LocalDateTime.parse("2022-08-01T11:59:00");
         LocalDateTime endB = startA;
 
-        PollAudit auditA = PollAudit.builder().pollName(POLL_NAME_TEST).nextStartTime(startA).numberOfRecords(2).build();
-        when(repository.findById(eq(POLL_NAME_TEST))).thenReturn(Optional.of(auditA));
-        PollAudit auditB = PollAudit.builder().pollName(PREVIOUS_POLL_NAME_TEST).nextStartTime(startB).build();
-        when(repository.findById(eq(PREVIOUS_POLL_NAME_TEST))).thenReturn(Optional.of(auditB));
+        PollAudit auditA = PollAudit.builder().pollName("offenderEvents-test-deq").nextStartTime(startA).numberOfRecords(2).build();
+        when(repository.findById(eq("offenderEvents-test-deq"))).thenReturn(Optional.of(auditA));
+        PollAudit auditB = PollAudit.builder().pollName("offenderEvents-test-previous-deq").nextStartTime(startB).build();
+        when(repository.findById(eq("offenderEvents-test-previous-deq"))).thenReturn(Optional.of(auditB));
 
         OffenderEvent oe = OffenderEvent.builder().build();
         when(externalApiService.getTestEvents(eq(startA), eq(endA), eq(false))).thenReturn(List.of(oe, oe, oe, oe));
@@ -219,8 +217,8 @@ public class EventRetrievalServiceTest {
         eventRetrievalService.runTestPolls(now, true, 10);
 
         verify(repository, times(1)).save(eq(
-                PollAudit.builder().pollName(POLL_NAME_TEST).nextStartTime(endA).numberOfRecords(4).build()));
+                PollAudit.builder().pollName("offenderEvents-test-enq").nextStartTime(endA).numberOfRecords(4).build()));
         verify(repository, times(1)).save(eq(
-                PollAudit.builder().pollName(PREVIOUS_POLL_NAME_TEST).nextStartTime(startA).build()));
+                PollAudit.builder().pollName("offenderEvents-test-previous-enq").nextStartTime(startA).build()));
     }
 }
