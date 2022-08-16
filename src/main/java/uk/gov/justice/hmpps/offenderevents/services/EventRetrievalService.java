@@ -103,11 +103,11 @@ public class EventRetrievalService {
                     final var previousTest = repository.findById(previousPollName).orElseThrow();
                     final var eventsA = externalApiService.getTestEvents(test.getNextStartTime(), endTimeA, useEnq);
                     final var countA = eventsA.size();
-                    log.debug("runTestPolls(): A interval {} to {}, count {}", test.getNextStartTime(), endTimeA, countA);
+                    log.debug("runTestPolls(): useEnq {}, A interval {} to {}, count {}", useEnq, test.getNextStartTime(), endTimeA, countA);
 
                     final var eventsB = externalApiService.getTestEvents(previousTest.getNextStartTime(), test.getNextStartTime(), useEnq);
                     final var countB = eventsB.size();
-                    log.debug("runTestPolls(): B interval {} to {}, count {}", previousTest.getNextStartTime(), test.getNextStartTime(), countB);
+                    log.debug("runTestPolls(): useEnq {}, B interval {} to {}, count {}", useEnq, previousTest.getNextStartTime(), test.getNextStartTime(), countB);
 
                     if (countB != test.getNumberOfRecords()) {
                         log.warn("runTestPolls(): Found different counts using windback {}, useEnq {}, original={}, repeat={}, events {}",
