@@ -7,13 +7,21 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.microsoft.applicationinsights.TelemetryClient
 import net.javacrumbs.jsonunit.assertj.JsonAssertions
 import org.assertj.core.api.Assertions
-import org.junit.jupiter.api.*
+import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.DisplayName
+import org.junit.jupiter.api.Nested
+import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.TestInstance
 import org.junit.jupiter.api.TestInstance.Lifecycle.PER_CLASS
 import org.junit.jupiter.api.extension.ExtendWith
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.Arguments
 import org.junit.jupiter.params.provider.MethodSource
-import org.mockito.*
+import org.mockito.ArgumentCaptor
+import org.mockito.ArgumentMatchers
+import org.mockito.Captor
+import org.mockito.Mock
+import org.mockito.Mockito
 import org.mockito.junit.jupiter.MockitoExtension
 import org.mockito.junit.jupiter.MockitoSettings
 import org.mockito.kotlin.mock
@@ -167,7 +175,6 @@ internal class HMPPSDomainEventsEmitterTest {
     Mockito.verify(telemetryClient)!!
       .trackEvent(ArgumentMatchers.eq(eventType), ArgumentMatchers.anyMap(), ArgumentMatchers.isNull())
   }
-
 
   @Nested
   internal inner class PrisonerReceived {
@@ -622,7 +629,6 @@ internal class HMPPSDomainEventsEmitterTest {
       JsonAssertions.assertThatJson(payload).node("additionalInformation.removedNomsNumber").isEqualTo("A1234GH")
     }
 
-
     @Test
     @DisplayName("will indicate the reason for a event")
     fun willIndicateTheReasonForAPrisonersEntry() {
@@ -648,7 +654,6 @@ internal class HMPPSDomainEventsEmitterTest {
       Assertions.assertThat(telemetryAttributes).containsEntry("removedNomsNumber", "A1234GH")
     }
 
-
     @Test
     @DisplayName("will add reason to telemetry event")
     fun willAddReasonToTelemetryEvent() {
@@ -660,7 +665,6 @@ internal class HMPPSDomainEventsEmitterTest {
     fun willAddOccurredAtToTelemetryEvent() {
       Assertions.assertThat(telemetryAttributes).containsEntry("occurredAt", "2020-12-04T10:42:43Z")
     }
-
   }
 
   @Nested
@@ -747,7 +751,6 @@ internal class HMPPSDomainEventsEmitterTest {
     fun willAddOccurredAtToTelemetryEvent() {
       Assertions.assertThat(telemetryAttributes).containsEntry("occurredAt", "2020-12-04T10:42:43Z")
     }
-
   }
 
   @Suppress("unused")
