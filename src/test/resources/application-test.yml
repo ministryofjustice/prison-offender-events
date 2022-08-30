@@ -32,12 +32,12 @@ hmpps.sqs:
       queueName: ${random.uuid}
       dlqName: ${random.uuid}
       subscribeTopicId: prisoneventtopic
-      subscribeFilter: '{"eventType":[ "OFFENDER_MOVEMENT-RECEPTION", "OFFENDER_MOVEMENT-DISCHARGE" ] }'
+      subscribeFilter: '{"eventType":[ "OFFENDER_MOVEMENT-RECEPTION", "OFFENDER_MOVEMENT-DISCHARGE", "BOOKING_NUMBER-CHANGED" ] }'
     prisoneventtestqueue:
       queueName: ${random.uuid}
       dlqName: ${random.uuid}
       subscribeTopicId: prisoneventtopic
-      subscribeFilter: '{"eventType":[ "OFFENDER_MOVEMENT-RECEPTION", "OFFENDER_MOVEMENT-DISCHARGE" ] }'
+      subscribeFilter: '{"eventType":[ "OFFENDER_MOVEMENT-RECEPTION", "OFFENDER_MOVEMENT-DISCHARGE", "BOOKING_NUMBER-CHANGED" ] }'
     hmppseventtestqueue:
       queueName: ${random.uuid}
       dlqName: ${random.uuid}

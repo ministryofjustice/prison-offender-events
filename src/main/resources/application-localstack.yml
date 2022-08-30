@@ -9,7 +9,7 @@ hmpps.sqs:
       queueName: prison-event-queue
       dlqName: prison-event-dlq
       subscribeTopicId: prisoneventtopic
-      subscribeFilter: '{"eventType":[ "OFFENDER_MOVEMENT-RECEPTION", "OFFENDER_MOVEMENT-DISCHARGE" ] }'
+      subscribeFilter: '{"eventType":[ "OFFENDER_MOVEMENT-RECEPTION", "OFFENDER_MOVEMENT-DISCHARGE". "BOOKING_NUMBER-CHANGED" ] }'
   topics:
     prisoneventtopic:
       arn: arn:aws:sns:eu-west-2:000000000000:prison-event-topic

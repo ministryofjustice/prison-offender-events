@@ -33,4 +33,4 @@ aws --endpoint-url=http://localhost:4566 sns subscribe \
     --topic-arn arn:aws:sns:eu-west-2:000000000000:offender_events \
     --protocol sqs \
     --notification-endpoint http://localhost:4566/queue/prisoner_offender_events_queue \
-    --attributes '{"FilterPolicy":"{\"eventType\":[ \"OFFENDER_MOVEMENT-RECEPTION\", \"OFFENDER_MOVEMENT-DISCHARGE\"] }"}'
+    --attributes '{"FilterPolicy":"{\"eventType\":[ \"OFFENDER_MOVEMENT-RECEPTION\", \"OFFENDER_MOVEMENT-DISCHARGE\", \"BOOKING_NUMBER-CHANGED\"] }"}'
