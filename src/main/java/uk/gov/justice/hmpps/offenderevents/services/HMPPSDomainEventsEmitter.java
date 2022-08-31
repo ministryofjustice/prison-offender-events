@@ -19,9 +19,14 @@ import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
+
+import static java.lang.String.format;
 
 @Service
 @Slf4j
@@ -31,12 +36,14 @@ public class HMPPSDomainEventsEmitter {
     private final ObjectMapper objectMapper;
     private final ReceivePrisonerReasonCalculator receivePrisonerReasonCalculator;
     private final ReleasePrisonerReasonCalculator releasePrisonerReasonCalculator;
+    private final MergeRecordDiscriminator mergeRecordDiscriminator;
     private final TelemetryClient telemetryClient;
 
     HMPPSDomainEventsEmitter(final HmppsQueueService hmppsQueueService,
                              final ObjectMapper objectMapper,
                              final ReceivePrisonerReasonCalculator receivePrisonerReasonCalculator,
                              final ReleasePrisonerReasonCalculator releasePrisonerReasonCalculator,
+                             final MergeRecordDiscriminator mergeRecordDiscriminator,
                              final TelemetryClient telemetryClient) {
         HmppsTopic hmppsEventTopic = hmppsQueueService.findByTopicId("hmppseventtopic");
         this.topicArn = hmppsEventTopic.getArn();
@@ -44,17 +51,19 @@ public class HMPPSDomainEventsEmitter {
         this.objectMapper = objectMapper;
         this.receivePrisonerReasonCalculator = receivePrisonerReasonCalculator;
         this.releasePrisonerReasonCalculator = releasePrisonerReasonCalculator;
+        this.mergeRecordDiscriminator = mergeRecordDiscriminator;
         this.telemetryClient = telemetryClient;
     }
 
     public void convertAndSendWhenSignificant(OffenderEvent event) {
-        final Optional<HMPPSDomainEvent> hmppsEvent = switch (event.getEventType()) {
-            case "OFFENDER_MOVEMENT-RECEPTION" -> toPrisonerReceived(event);
-            case "OFFENDER_MOVEMENT-DISCHARGE" -> toPrisonerReleased(event);
-            default -> Optional.empty();
+        final List<HMPPSDomainEvent> hmppsEvents = switch (event.getEventType()) {
+            case "OFFENDER_MOVEMENT-RECEPTION" -> toPrisonerReceived(event).stream().collect(Collectors.toList());
+            case "OFFENDER_MOVEMENT-DISCHARGE" -> toPrisonerReleased(event).stream().collect(Collectors.toList());
+            case "BOOKING_NUMBER-CHANGED" -> toMergedOffenderNumbers(event);
+            default -> Collections.emptyList();
         };
 
-        hmppsEvent.ifPresent(hmppsDomainEvent -> {
+        hmppsEvents.forEach(hmppsDomainEvent -> {
             sendEvent(hmppsDomainEvent);
             telemetryClient.trackEvent(hmppsDomainEvent.eventType(), asTelemetryMap(hmppsDomainEvent), null);
         });
@@ -66,10 +75,12 @@ public class HMPPSDomainEventsEmitter {
             "nomsNumber",
             hmppsDomainEvent.additionalInformation().nomsNumber(),
             "reason",
-            hmppsDomainEvent.additionalInformation().reason(),
-            "prisonId",
-            hmppsDomainEvent.additionalInformation().prisonId()
+            hmppsDomainEvent.additionalInformation().reason()
         ));
+
+        Optional
+            .ofNullable(hmppsDomainEvent.additionalInformation().prisonId())
+            .ifPresent(prisonId -> elements.put("prisonId", prisonId));
 
         Optional
             .ofNullable(hmppsDomainEvent.additionalInformation().probableCause())
@@ -90,6 +101,10 @@ public class HMPPSDomainEventsEmitter {
         Optional
             .ofNullable(hmppsDomainEvent.additionalInformation().currentPrisonStatus())
             .ifPresent(currentPrisonStatus -> elements.put("currentPrisonStatus", currentPrisonStatus.name()));
+
+        Optional
+            .ofNullable(hmppsDomainEvent.additionalInformation().removedNomsNumber())
+            .ifPresent(removedNomsNumber -> elements.put("removedNomsNumber", removedNomsNumber));
 
         return elements;
     }
@@ -139,10 +154,24 @@ public class HMPPSDomainEventsEmitter {
                 receivedReason.details(),
                 receivedReason.currentLocation(),
                 receivedReason.prisonId(),
-                receivedReason.currentPrisonStatus()
+                receivedReason.currentPrisonStatus(),
+                null
             ),
             event.getEventDatetime(),
             "A prisoner has been received into prison"));
+    }
+
+    private List<HMPPSDomainEvent> toMergedOffenderNumbers(OffenderEvent event) {
+        final var mergeResults = mergeRecordDiscriminator.identifyMergedPrisoner(event.getBookingId());
+
+        return mergeResults.stream()
+            .map(mergeResult ->
+            new HMPPSDomainEvent("prison-offender-events.prisoner.merged",
+                new AdditionalInformation(mergeResult.remainingNumber(), mergeResult.mergedNumber()),
+                event.getEventDatetime(),
+                format("A prisoner has been merged from %s to %s", mergeResult.mergedNumber(), mergeResult.remainingNumber()))
+            )
+       .collect(Collectors.toList());
     }
 
     private Optional<HMPPSDomainEvent> toPrisonerReleased(OffenderEvent event) {
@@ -164,7 +193,8 @@ public class HMPPSDomainEventsEmitter {
                 releaseReason.details(),
                 releaseReason.currentLocation(),
                 releaseReason.prisonId(),
-                releaseReason.currentPrisonStatus()
+                releaseReason.currentPrisonStatus(),
+             null
             ),
             event.getEventDatetime(),
             "A prisoner has been released from prison"));
@@ -212,5 +242,10 @@ record AdditionalInformation(String nomsNumber,
                              String details,
                              CurrentLocation currentLocation,
                              String prisonId,
-                             CurrentPrisonStatus currentPrisonStatus) {
+                             CurrentPrisonStatus currentPrisonStatus,
+                             String removedNomsNumber) {
+
+    public AdditionalInformation(String nomsNumber, String removedNomsNumber) {
+        this(nomsNumber, "MERGE", null, null, null, null, null, null, removedNomsNumber);
+    }
 }

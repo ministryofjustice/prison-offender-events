@@ -15,8 +15,8 @@ class HouseKeepingIntegrationTest : QueueListenerIntegrationTest() {
   }
 
   @Test
-  fun `housekeeping will consume a booking changed message on the dlq and return to main queue`() {
-    val message = "/messages/bookingNumberChanged.json".readResourceAsText()
+  fun `housekeeping will consume a message on the dlq and return to main queue`() {
+    val message = "/messages/NotUsedMessage.json".readResourceAsText()
 
     prisonEventQueueSqsClient.sendMessage(prisonEventDlqUrl, message)
 

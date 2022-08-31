@@ -11,6 +11,8 @@ import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 
+import static java.lang.String.format;
+
 enum LegalStatus {
     RECALL,
     DEAD,
@@ -67,10 +69,19 @@ public class PrisonApiService {
 
     public PrisonerDetails getPrisonerDetails(final String offenderNumber) {
         return webClient.get()
-            .uri(String.format("/api/offenders/%s", offenderNumber))
+            .uri(format("/api/offenders/%s", offenderNumber))
             .retrieve()
             .bodyToMono(PrisonerDetails.class)
             .block(timeout);
+    }
+
+    public Optional<String> getPrisonerNumberForBookingId(final Long bookingId) {
+        final var basicBookingDetail = webClient.get()
+            .uri(format("/api/bookings/%d?basicInfo=true&extraInfo=false", bookingId))
+            .retrieve()
+            .bodyToMono(BasicBookingDetail.class)
+            .block(timeout);
+        return basicBookingDetail != null ? Optional.of(basicBookingDetail.offenderNo()) : Optional.empty();
     }
 
     public List<Movement> getMovements(final String offenderNumber) {
@@ -79,6 +90,15 @@ public class PrisonApiService {
             .bodyValue(List.of(offenderNumber))
             .retrieve()
             .bodyToMono(new ParameterizedTypeReference<List<Movement>>() {
+            })
+            .block(timeout);
+    }
+
+    public List<BookingIdentifier> getIdentifiersByBookingId(final Long bookingId) {
+        return webClient.get()
+            .uri(format("/api/bookings/%d/identifiers?type=MERGED", bookingId))
+            .retrieve()
+            .bodyToMono(new ParameterizedTypeReference<List<BookingIdentifier>>() {
             })
             .block(timeout);
     }
@@ -162,4 +182,10 @@ record PrisonerDetails(LegalStatus legalStatus,
 }
 
 record Movement(String directionCode, LocalDate movementDate) {
+}
+
+record BookingIdentifier(String value) {
+}
+
+record BasicBookingDetail(String offenderNo) {
 }

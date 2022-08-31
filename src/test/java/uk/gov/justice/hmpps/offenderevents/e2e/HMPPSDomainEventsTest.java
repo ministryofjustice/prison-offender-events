@@ -294,5 +294,69 @@ public class HMPPSDomainEventsTest extends QueueListenerIntegrationTest {
             }
         }
     }
+
+    @Nested
+    class MergePrisoner {
+        @BeforeEach
+        void setUp() {
+            PrisonApiExtension.server.stubFirstPollWithOffenderEvents("""
+                [
+                    {
+                        "eventType":"BOOKING_NUMBER-CHANGED",
+                        "eventDatetime":"2021-02-08T14:41:11.526762",
+                        "bookingId":1201234,
+                        "previousBookingNumber": "38430A",
+                        "nomisEventType":"BOOK_UPD_OASYS"
+                    }
+                ]
+                """);
+
+        }
+
+        @Nested
+        class WhenIsReportedAsTransfer {
+            @BeforeEach
+            void setUp() {
+                PrisonApiExtension.server.stubBasicPrisonerDetails("A5194DY", 1201234L);
+                PrisonApiExtension.server.stubPrisonerIdentifiers("A5694DR", 1201234L);
+            }
+
+            @Test
+            @DisplayName("will publish prison event and hmpps domain event for release transfer")
+            void willPublishPrisonEventForTransferRelease() {
+                await().until(() -> getNumberOfMessagesCurrentlyOnPrisonEventTestQueue() == 1);
+                await().until(() -> getNumberOfMessagesCurrentlyOnHMPPSEventTestQueue() == 1);
+            }
+
+            @Test
+            @DisplayName("will publish BOOKING_NUMBER-CHANGED prison event")
+            void willPublishPrisonEvent() {
+                await().until(() -> getNumberOfMessagesCurrentlyOnPrisonEventTestQueue() == 1);
+                final var prisonEventMessages = geMessagesCurrentlyOnTestQueue();
+                assertThat(prisonEventMessages)
+                    .singleElement()
+                    .satisfies(event -> assertThatJson(event)
+                        .node("eventType")
+                        .isEqualTo("BOOKING_NUMBER-CHANGED"));
+            }
+
+            @Test
+            @DisplayName("will publish prison-offender-events.prisoner.merged HMPPS domain event")
+            void willPublishHMPPSDomainEvent() {
+                await().until(() -> getNumberOfMessagesCurrentlyOnHMPPSEventTestQueue() == 1);
+                final var hmppsEventMessages = geMessagesCurrentlyOnHMPPSTestQueue();
+                assertThat(hmppsEventMessages).singleElement().satisfies(event -> {
+                    assertThatJson(event).node("eventType").isEqualTo("prison-offender-events.prisoner.merged");
+                    assertThatJson(event).node("occurredAt").asString()
+                        .satisfies(dateTime -> assertThat(dateTime).isEqualTo("2021-02-08T14:41:11.526762Z"));
+                    assertThatJson(event).node("publishedAt").asString()
+                        .satisfies(dateTime -> assertThat(OffsetDateTime.parse(dateTime))
+                            .isCloseTo(OffsetDateTime.now(), within(10, ChronoUnit.SECONDS)));
+                    assertThatJson(event).node("additionalInformation.reason").isEqualTo("MERGE");
+                    assertThatJson(event).node("additionalInformation.removedNomsNumber").isEqualTo("A5694DR");
+                });
+            }
+        }
+    }
 }
 

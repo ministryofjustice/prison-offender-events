@@ -299,6 +299,7 @@
                     <li><b>NOT_UNDER_PRISON_CARE</b> prisoner has been discharged from prison</li>
                   </ul>
                 </li>
+                <li><b>prisonId</b> string - the current prison where the prisoner was last located</li>
               </ul>
             </li>
           </ul>
@@ -353,6 +354,29 @@
                     <li><b>NOT_UNDER_PRISON_CARE</b> prisoner has been discharged from prison</li>
                   </ul>
                 </li>
+                <li><b>prisonId</b> string - the current prison where the prisoner was last located</li>
+              </ul>
+            </li>
+          </ul>
+        </li>
+        <li>
+          <b>prison-offender-events.prisoner.merged</b> is raised when a prisoner is merged into an exists prisoner record. This will mean that the prisoner will be
+          now attached to the original NOMS (prisoner) number and the new one removed from NOMIS
+          <ul>
+            <li><b>eventType</b> string</li>
+            <li><b>occurredAt</b> ISO offset date time - when the receive booking was recorded e.g 2021-02-08T14:41:11.526762Z</li>
+            <li><b>publishedAt</b> ISO offset date time - when this event was first published e.g 2021-06-08T14:41:11.526762+01:00</li>
+            <li><b>version</b> number - version of this event message. Currently <b>1</b></li>
+            <li><b>description</b> string - human readable description of event</li>
+            <li><b>additionalInformation</b> object - additional information
+              <ul>
+                <li><b>reason</b> enum -
+                  <ul>
+                    <li><b>MERGE</b> indicates the prisoner records have been merged</li>
+                  </ul>
+                </li>
+                <li><b>nomsNumber</b> string - NOMS number of the prisoner (this will be the value that the prisoner record now holds)</li>
+                <li><b>removedNomsNumber</b> string - NOMS number that was MERGED into <em/>nomsNumber</em> and then removed</li>
               </ul>
             </li>
           </ul>
@@ -368,7 +392,7 @@
     topic_arn     = module.hmpps-domain-events.topic_arn
     protocol      = "sqs"
     endpoint      = module.my_queue.sqs_arn
-    filter_policy = "{\"eventType\":[ \"prison-offender-events.prisoner.released\", \"prison-offender-events.prisoner.receive\"] }"
+    filter_policy = "{\"eventType\":[ \"prison-offender-events.prisoner.released\", \"prison-offender-events.prisoner.receive\", \"prison-offender-events.prisoner.merged\"] }"
     }
 </pre>
 <p>and this would be defined in the Cloud Platform hmpps-domain-events namespace or the offender-events namespace for <b>offender_events</b></p>

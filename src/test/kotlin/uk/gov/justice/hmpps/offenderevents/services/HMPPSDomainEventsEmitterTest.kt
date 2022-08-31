@@ -59,6 +59,9 @@ internal class HMPPSDomainEventsEmitterTest {
   private val releasePrisonerReasonCalculator: ReleasePrisonerReasonCalculator? = null
 
   @Mock
+  private val mergeRecordDiscriminator: MergeRecordDiscriminator? = null
+
+  @Mock
   private val telemetryClient: TelemetryClient? = null
 
   @Captor
@@ -81,6 +84,7 @@ internal class HMPPSDomainEventsEmitterTest {
       ObjectMapper(),
       receivePrisonerReasonCalculator,
       releasePrisonerReasonCalculator,
+      mergeRecordDiscriminator,
       telemetryClient
     )
   }
@@ -121,6 +125,40 @@ internal class HMPPSDomainEventsEmitterTest {
       OffenderEvent.builder()
         .eventType(prisonEventType)
         .offenderIdDisplay("A1234GH")
+        .eventDatetime(LocalDateTime.now())
+        .build()
+    )
+
+    Mockito.verify(hmppsEventSnsClient, times(1)).publishAsync(publishRequestCaptor!!.capture())
+    val payload = publishRequestCaptor.value.message
+    val messageAttributes = publishRequestCaptor.value.messageAttributes
+    JsonAssertions.assertThatJson(payload).node("eventType").isEqualTo(eventType)
+    JsonAssertions.assertThatJson(payload).node("version").isEqualTo(1)
+    Assertions.assertThat(
+      messageAttributes["eventType"]
+    )
+      .isEqualTo(MessageAttributeValue().withStringValue(eventType).withDataType("String"))
+    Mockito.verify(telemetryClient)!!
+      .trackEvent(ArgumentMatchers.eq(eventType), ArgumentMatchers.anyMap(), ArgumentMatchers.isNull())
+  }
+
+  @ParameterizedTest
+  @MethodSource("bookingChangedEventMap")
+  @DisplayName("Will send to topic for these events")
+  @MockitoSettings(strictness = LENIENT)
+  fun willSendToTopicForBookingChangedEvent(prisonEventType: String, eventType: String) {
+    Mockito.`when`(mergeRecordDiscriminator!!.identifyMergedPrisoner(ArgumentMatchers.eq(43124234L)))
+      .thenReturn(
+        listOf(
+          MergeRecordDiscriminator.MergeOutcome("A1234GH", "A1233GP")
+        )
+      )
+
+    emitter.convertAndSendWhenSignificant(
+      OffenderEvent.builder()
+        .eventType(prisonEventType)
+        .offenderIdDisplay("A1234GH")
+        .bookingId(43124234L)
         .eventDatetime(LocalDateTime.now())
         .build()
     )
@@ -526,11 +564,207 @@ internal class HMPPSDomainEventsEmitterTest {
     }
   }
 
+  @Nested
+  internal inner class MergeRecords {
+    private var payload: String? = null
+    private var telemetryAttributes: Map<String, String>? = null
+
+    @BeforeEach
+    fun setUp() {
+      Mockito.`when`(
+        mergeRecordDiscriminator!!.identifyMergedPrisoner(
+          ArgumentMatchers.any()
+        )
+      )
+        .thenReturn(
+          listOf(
+            MergeRecordDiscriminator.MergeOutcome("A1234GH", "A1233GP")
+          )
+        )
+
+      emitter.convertAndSendWhenSignificant(
+        OffenderEvent.builder()
+          .eventType("BOOKING_NUMBER-CHANGED")
+          .bookingId(43124234L)
+          .eventDatetime(LocalDateTime.parse("2020-12-04T10:42:43"))
+          .build()
+      )
+
+      Mockito.verify(hmppsEventSnsClient, times(1)).publishAsync(publishRequestCaptor!!.capture())
+      payload = publishRequestCaptor.value.message
+      Mockito.verify(telemetryClient)!!
+        .trackEvent(ArgumentMatchers.any(), telemetryAttributesCaptor!!.capture(), ArgumentMatchers.isNull())
+      telemetryAttributes = telemetryAttributesCaptor.value
+    }
+
+    @Test
+    @DisplayName("will use event datetime for occurred at time")
+    fun willUseEventDatetimeForOccurredAtTime() {
+      JsonAssertions.assertThatJson(payload).node("occurredAt").isEqualTo("2020-12-04T10:42:43Z")
+    }
+
+    @Test
+    @DisplayName("will user current time as publishedAt")
+    fun willUserCurrentTimeAsPublishedAt() {
+      JsonAssertions.assertThatJson(payload)
+        .node("publishedAt")
+        .asString()
+        .satisfies(
+          Consumer { publishedAt: String? ->
+            Assertions.assertThat(OffsetDateTime.parse(publishedAt))
+              .isCloseTo(OffsetDateTime.now(), Assertions.within(10, SECONDS))
+          }
+        )
+    }
+
+    @Test
+    @DisplayName("additionalInformation will contain offenderNumber as NOMS number")
+    fun additionalInformationWillContainOffenderNumberAsNOMSNumber() {
+      JsonAssertions.assertThatJson(payload).node("additionalInformation.nomsNumber").isEqualTo("A1233GP")
+    }
+
+    @Test
+    @DisplayName("additionalInformation will contain removed NOMS number")
+    fun additionalInformationWillContainRemovedNOMSNumber() {
+      JsonAssertions.assertThatJson(payload).node("additionalInformation.removedNomsNumber").isEqualTo("A1234GH")
+    }
+
+    @Test
+    @DisplayName("will indicate the reason for a event")
+    fun willIndicateTheReasonForAPrisonersEntry() {
+      JsonAssertions.assertThatJson(payload).node("additionalInformation.reason").isEqualTo("MERGE")
+    }
+
+    @Test
+    @DisplayName("will describe the event as a merge")
+    fun willDescribeTheEventAsAMerge() {
+      JsonAssertions.assertThatJson(payload).node("description")
+        .isEqualTo("A prisoner has been merged from A1234GH to A1233GP")
+    }
+
+    @Test
+    @DisplayName("will add retained noms number to telemetry event")
+    fun willAddNomsNumberToTelemetryEvent() {
+      Assertions.assertThat(telemetryAttributes).containsEntry("nomsNumber", "A1233GP")
+    }
+
+    @Test
+    @DisplayName("will add removed (merged) noms number to telemetry event")
+    fun willAddMergeNumberToTelemetryEvent() {
+      Assertions.assertThat(telemetryAttributes).containsEntry("removedNomsNumber", "A1234GH")
+    }
+
+    @Test
+    @DisplayName("will add reason to telemetry event")
+    fun willAddReasonToTelemetryEvent() {
+      Assertions.assertThat(telemetryAttributes).containsEntry("reason", "MERGE")
+    }
+
+    @Test
+    @DisplayName("will add occurredAt to telemetry event")
+    fun willAddOccurredAtToTelemetryEvent() {
+      Assertions.assertThat(telemetryAttributes).containsEntry("occurredAt", "2020-12-04T10:42:43Z")
+    }
+  }
+
+  @Nested
+  internal inner class MergeRecordsMultiple {
+    private var payload: String? = null
+    private var telemetryAttributes: Map<String, String>? = null
+
+    @BeforeEach
+    fun setUp() {
+      Mockito.`when`(
+        mergeRecordDiscriminator!!.identifyMergedPrisoner(
+          ArgumentMatchers.any()
+        )
+      )
+        .thenReturn(
+          listOf(
+            MergeRecordDiscriminator.MergeOutcome("A1234GH", "A1233GP"),
+            MergeRecordDiscriminator.MergeOutcome("A1238GH", "A1233GP"),
+            MergeRecordDiscriminator.MergeOutcome("A1239GH", "A1233GP")
+          )
+        )
+
+      emitter.convertAndSendWhenSignificant(
+        OffenderEvent.builder()
+          .eventType("BOOKING_NUMBER-CHANGED")
+          .bookingId(43124234L)
+          .eventDatetime(LocalDateTime.parse("2020-12-04T10:42:43"))
+          .build()
+      )
+
+      Mockito.verify(hmppsEventSnsClient, times(3)).publishAsync(publishRequestCaptor!!.capture())
+      payload = publishRequestCaptor.value.message
+      Mockito.verify(telemetryClient, times(3))!!
+        .trackEvent(ArgumentMatchers.any(), telemetryAttributesCaptor!!.capture(), ArgumentMatchers.isNull())
+      telemetryAttributes = telemetryAttributesCaptor.value
+    }
+
+    @Test
+    @DisplayName("will use event datetime for occurred at time")
+    fun willUseEventDatetimeForOccurredAtTime() {
+      JsonAssertions.assertThatJson(payload).node("occurredAt").isEqualTo("2020-12-04T10:42:43Z")
+    }
+
+    @Test
+    @DisplayName("will user current time as publishedAt")
+    fun willUserCurrentTimeAsPublishedAt() {
+      JsonAssertions.assertThatJson(payload)
+        .node("publishedAt")
+        .asString()
+        .satisfies(
+          Consumer { publishedAt: String? ->
+            Assertions.assertThat(OffsetDateTime.parse(publishedAt))
+              .isCloseTo(OffsetDateTime.now(), Assertions.within(10, SECONDS))
+          }
+        )
+    }
+
+    @Test
+    @DisplayName("additionalInformation will contain offenderNumber as NOMS number")
+    fun additionalInformationWillContainOffenderNumberAsNOMSNumber() {
+      JsonAssertions.assertThatJson(payload).node("additionalInformation.nomsNumber").isEqualTo("A1233GP")
+    }
+
+    @Test
+    @DisplayName("will indicate the reason for a event")
+    fun willIndicateTheReasonForAPrisonersEntry() {
+      JsonAssertions.assertThatJson(payload).node("additionalInformation.reason").isEqualTo("MERGE")
+    }
+
+    @Test
+    @DisplayName("will add retained noms number to telemetry event")
+    fun willAddNomsNumberToTelemetryEvent() {
+      Assertions.assertThat(telemetryAttributes).containsEntry("nomsNumber", "A1233GP")
+    }
+
+    @Test
+    @DisplayName("will add reason to telemetry event")
+    fun willAddReasonToTelemetryEvent() {
+      Assertions.assertThat(telemetryAttributes).containsEntry("reason", "MERGE")
+    }
+
+    @Test
+    @DisplayName("will add occurredAt to telemetry event")
+    fun willAddOccurredAtToTelemetryEvent() {
+      Assertions.assertThat(telemetryAttributes).containsEntry("occurredAt", "2020-12-04T10:42:43Z")
+    }
+  }
+
   @Suppress("unused")
   private fun eventMap(): Stream<Arguments> {
     return Stream.of(
       Arguments.of("OFFENDER_MOVEMENT-DISCHARGE", "prison-offender-events.prisoner.released"),
       Arguments.of("OFFENDER_MOVEMENT-RECEPTION", "prison-offender-events.prisoner.received")
+    )
+  }
+
+  @Suppress("unused")
+  private fun bookingChangedEventMap(): Stream<Arguments> {
+    return Stream.of(
+      Arguments.of("BOOKING_NUMBER-CHANGED", "prison-offender-events.prisoner.merged")
     )
   }
 }
