@@ -10,7 +10,7 @@ TMPDIR=/private$TMPDIR docker-compose up localstack prison-offender-events-db
 ```
 
 ## Creating the Topic and Queue
-Simpliest way is running the following script
+Simplest way is running the following script
 ```bash
 ./setup-sns.bash
 ```
