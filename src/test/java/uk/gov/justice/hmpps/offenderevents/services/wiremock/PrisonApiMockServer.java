@@ -14,6 +14,7 @@ import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 import static com.github.tomakehurst.wiremock.client.WireMock.get;
 import static com.github.tomakehurst.wiremock.client.WireMock.post;
 import static com.github.tomakehurst.wiremock.stubbing.Scenario.STARTED;
+import static java.lang.String.format;
 
 public class PrisonApiMockServer extends WireMockServer {
     PrisonApiMockServer() {
@@ -27,6 +28,28 @@ public class PrisonApiMockServer extends WireMockServer {
                 aResponse()
                     .withHeader("Content-Type", "application/json")
                     .withBody(prisonerDetails(offenderNumber, legalStatus, recall, lastMovementTypeCode, lastMovementReasonCode, status, latestLocationId))
+                    .withStatus(200)
+            )
+        );
+    }
+
+    public void stubBasicPrisonerDetails(String offenderNumber, Long bookingId) {
+        stubFor(
+            get(String.format("/api/bookings/%d?basicInfo=true&extraInfo=false", bookingId)).willReturn(
+                aResponse()
+                    .withHeader("Content-Type", "application/json")
+                    .withBody(basicPrisonerDetails(offenderNumber, bookingId))
+                    .withStatus(200)
+            )
+        );
+    }
+
+    public void stubPrisonerIdentifiers(String mergedNumber, Long bookingId) {
+        stubFor(
+            get(String.format("/api/bookings/%d/identifiers?type=MERGED", bookingId)).willReturn(
+                aResponse()
+                    .withHeader("Content-Type", "application/json")
+                    .withBody(mergeIdentifier(mergedNumber))
                     .withStatus(200)
             )
         );
@@ -177,6 +200,26 @@ public class PrisonApiMockServer extends WireMockServer {
                 "latestLocationId": "%s"
             }
                         """, offenderNumber, status, lastMovementTypeCode, lastMovementReasonCode, legalStatus, recall, latestLocationId);
+    }
+
+    private String basicPrisonerDetails(String offenderNumber, Long bookingId) {
+        return String.format("""
+            {
+                "offenderNo": "%s",
+                "bookingId": %d
+            }
+            """, offenderNumber, bookingId);
+    }
+
+    private String mergeIdentifier(String mergedNumber) {
+        return String.format("""
+            [
+                {
+                    "type": "MERGE",
+                    "value": "%s"
+                }
+            ]
+            """, mergedNumber);
     }
 
     public void stubHealthPing(Integer status) {

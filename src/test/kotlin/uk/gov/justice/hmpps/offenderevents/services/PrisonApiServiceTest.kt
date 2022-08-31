@@ -177,6 +177,65 @@ internal class PrisonApiServiceTest {
   }
 
   @Nested
+  internal inner class GetBasicPrisonerDetails {
+    @BeforeEach
+    fun setUp() {
+      server.stubBasicPrisonerDetails(
+        "A7841DY",
+        1200835L
+      )
+    }
+
+    @Test
+    @DisplayName("Will request basic prisoner details for booking number")
+    fun willRequestPrisonerDetailsForOffenderNumber() {
+      service.getPrisonerNumberForBookingId(1200835L)
+      server.verify(
+        WireMock.getRequestedFor(WireMock.urlEqualTo("/api/bookings/1200835?basicInfo=true&extraInfo=false"))
+          .withHeader("Authorization", equalTo("Bearer ABCDE"))
+      )
+    }
+
+    @Test
+    @DisplayName("can parse the offender Number")
+    fun canParseTheOffenderNo() {
+      val offenderNo = service.getPrisonerNumberForBookingId(1200835L)
+      assertThat(offenderNo).isPresent
+      assertThat(offenderNo.get()).isEqualTo("A7841DY")
+    }
+  }
+
+  @Nested
+  internal inner class GetMergeIdentifiers {
+    @BeforeEach
+    fun setUp() {
+      server.stubPrisonerIdentifiers(
+        "A5841DY",
+        1200835L
+      )
+    }
+
+    @Test
+    @DisplayName("Will request prisoner merge identifiers for booking number")
+    fun willRequestMergeIdentifiersForBookingNumber() {
+      service.getIdentifiersByBookingId(1200835L)
+      server.verify(
+        WireMock.getRequestedFor(WireMock.urlEqualTo("/api/bookings/1200835/identifiers?type=MERGED"))
+          .withHeader("Authorization", equalTo("Bearer ABCDE"))
+      )
+    }
+
+    @Test
+    @DisplayName("can parse the merged offender Number")
+    fun canParseTheOffenderNo() {
+      val identifiers = service.getIdentifiersByBookingId(1200835L)
+      assertThat(identifiers).isNotEmpty
+      assertThat(identifiers).hasSize(1)
+      assertThat(identifiers.get(0).value).isEqualTo("A5841DY")
+    }
+  }
+
+  @Nested
   internal inner class GetMovements {
     @BeforeEach
     fun setUp() {
