@@ -1,5 +1,5 @@
 plugins {
-  id("uk.gov.justice.hmpps.gradle-spring-boot") version "4.4.2"
+  id("uk.gov.justice.hmpps.gradle-spring-boot") version "4.4.3-beta"
   kotlin("plugin.spring") version "1.7.10"
   id("org.unbroken-dome.test-sets") version "4.0.0"
 }
@@ -18,7 +18,7 @@ dependencies {
 
   runtimeOnly("com.h2database:h2:2.1.214")
   runtimeOnly("org.flywaydb:flyway-core")
-  runtimeOnly("org.postgresql:postgresql:42.4.2")
+  runtimeOnly("org.postgresql:postgresql:42.5.0")
 
   compileOnly("org.projectlombok:lombok:1.18.24")
 
@@ -45,15 +45,15 @@ dependencies {
 
   implementation("net.sf.ehcache:ehcache")
   implementation("org.apache.commons:commons-text:1.9")
-  implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.13.3")
+  implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.13.4")
   implementation("com.pauldijou:jwt-core_2.11:5.0.0")
   implementation("com.google.code.gson:gson:2.9.1")
   implementation("com.google.guava:guava:31.1-jre")
 
   // needed for record serialisation
-  implementation("com.fasterxml.jackson.core:jackson-core:2.13.3")
-  implementation("com.fasterxml.jackson.core:jackson-databind:2.13.3")
-  implementation("com.fasterxml.jackson.core:jackson-annotations:2.13.3")
+  implementation("com.fasterxml.jackson.core:jackson-core:2.13.4")
+  implementation("com.fasterxml.jackson.core:jackson-databind:2.13.4")
+  implementation("com.fasterxml.jackson.core:jackson-annotations:2.13.4")
 
   implementation("org.springdoc:springdoc-openapi-ui:1.6.11")
   implementation("org.springdoc:springdoc-openapi-data-rest:1.6.11")
