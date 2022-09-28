@@ -1,5 +1,5 @@
 plugins {
-  id("uk.gov.justice.hmpps.gradle-spring-boot") version "4.5.1-beta"
+  id("uk.gov.justice.hmpps.gradle-spring-boot") version "4.5.2-beta"
   kotlin("plugin.spring") version "1.7.10"
   id("org.unbroken-dome.test-sets") version "4.0.0"
 }
@@ -33,10 +33,10 @@ dependencies {
 
   implementation("com.amazonaws:aws-java-sdk-sns")
 
-  implementation("uk.gov.justice.service.hmpps:hmpps-sqs-spring-boot-starter:1.1.9")
+  implementation("uk.gov.justice.service.hmpps:hmpps-sqs-spring-boot-starter:1.1.10")
 
-  implementation("net.javacrumbs.shedlock:shedlock-spring:4.41.0")
-  implementation("net.javacrumbs.shedlock:shedlock-provider-jdbc-template:4.41.0")
+  implementation("net.javacrumbs.shedlock:shedlock-spring:4.42.0")
+  implementation("net.javacrumbs.shedlock:shedlock-provider-jdbc-template:4.42.0")
 
   implementation("javax.activation:activation:1.1.1")
   implementation("javax.transaction:javax.transaction-api:1.3")
@@ -74,7 +74,7 @@ dependencies {
   testImplementation("org.awaitility:awaitility-kotlin:4.2.0")
   testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-reactive:1.6.4")
   testImplementation("org.mockito:mockito-inline:4.8.0")
-  testImplementation("io.swagger.parser.v3:swagger-parser:2.1.2")
+  testImplementation("io.swagger.parser.v3:swagger-parser:2.1.3")
 }
 
 java {
