@@ -22,5 +22,5 @@ spec:
               args:
                 - /bin/sh
                 - -c
-                - curl -XPUT http://prison-offender-events/queue-admin/retry-all-dlqs
+                - curl --retry 2 -XPUT http://prison-offender-events/queue-admin/retry-all-dlqs
           restartPolicy: Never
