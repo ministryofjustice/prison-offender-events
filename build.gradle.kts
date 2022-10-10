@@ -33,7 +33,7 @@ dependencies {
 
   implementation("com.amazonaws:aws-java-sdk-sns")
 
-  implementation("uk.gov.justice.service.hmpps:hmpps-sqs-spring-boot-starter:1.1.11")
+  implementation("uk.gov.justice.service.hmpps:hmpps-sqs-spring-boot-starter:1.1.12")
 
   implementation("net.javacrumbs.shedlock:shedlock-spring:4.42.0")
   implementation("net.javacrumbs.shedlock:shedlock-provider-jdbc-template:4.42.0")
@@ -65,11 +65,11 @@ dependencies {
   testCompileOnly("org.projectlombok:lombok:1.18.24")
   testImplementation("org.springframework.security:spring-security-test")
   testImplementation("com.tngtech.java:junit-dataprovider:1.13.1")
-  testImplementation("net.javacrumbs.json-unit:json-unit-assertj:2.35.0")
+  testImplementation("net.javacrumbs.json-unit:json-unit-assertj:2.36.0")
   testImplementation("io.github.http-builder-ng:http-builder-ng-apache:1.0.4")
   testImplementation("com.github.tomakehurst:wiremock-standalone:2.27.2")
   testImplementation("junit:junit:4.13.2")
-  testImplementation("net.javacrumbs.json-unit:json-unit-assertj:2.35.0")
+  testImplementation("net.javacrumbs.json-unit:json-unit-assertj:2.36.0")
   testImplementation("org.awaitility:awaitility:4.2.0")
   testImplementation("org.awaitility:awaitility-kotlin:4.2.0")
   testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-reactive:1.6.4")
