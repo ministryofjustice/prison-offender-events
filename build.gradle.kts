@@ -50,11 +50,6 @@ dependencies {
   implementation("com.google.code.gson:gson:2.9.1")
   implementation("com.google.guava:guava:31.1-jre")
 
-  // needed for record serialisation
-  implementation("com.fasterxml.jackson.core:jackson-core:2.13.4")
-  implementation("com.fasterxml.jackson.core:jackson-databind:2.13.4")
-  implementation("com.fasterxml.jackson.core:jackson-annotations:2.13.4")
-
   implementation("org.springdoc:springdoc-openapi-ui:1.6.11")
   implementation("org.springdoc:springdoc-openapi-data-rest:1.6.11")
   implementation("org.springdoc:springdoc-openapi-kotlin:1.6.11")
@@ -65,7 +60,6 @@ dependencies {
   testCompileOnly("org.projectlombok:lombok:1.18.24")
   testImplementation("org.springframework.security:spring-security-test")
   testImplementation("com.tngtech.java:junit-dataprovider:1.13.1")
-  testImplementation("net.javacrumbs.json-unit:json-unit-assertj:2.36.0")
   testImplementation("io.github.http-builder-ng:http-builder-ng-apache:1.0.4")
   testImplementation("com.github.tomakehurst:wiremock-standalone:2.27.2")
   testImplementation("junit:junit:4.13.2")
