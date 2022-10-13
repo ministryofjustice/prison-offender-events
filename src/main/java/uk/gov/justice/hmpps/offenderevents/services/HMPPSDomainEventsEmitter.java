@@ -9,7 +9,9 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.microsoft.applicationinsights.TelemetryClient;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.web.reactive.function.client.WebClientResponseException;
 import uk.gov.justice.hmpps.offenderevents.model.OffenderEvent;
 import uk.gov.justice.hmpps.offenderevents.services.ReceivePrisonerReasonCalculator.ProbableCause;
 import uk.gov.justice.hmpps.sqs.HmppsQueueService;
@@ -138,7 +140,17 @@ public class HMPPSDomainEventsEmitter {
 
     private Optional<HMPPSDomainEvent> toPrisonerReceived(OffenderEvent event) {
         final var offenderNumber = event.getOffenderIdDisplay();
-        final var receivedReason = receivePrisonerReasonCalculator.calculateMostLikelyReasonForPrisonerReceive(offenderNumber);
+        final ReceivePrisonerReasonCalculator.ReceiveReason receivedReason;
+        try {
+            receivedReason = receivePrisonerReasonCalculator.calculateMostLikelyReasonForPrisonerReceive(offenderNumber);
+        } catch (WebClientResponseException e) {
+            if (e.getStatusCode().equals(HttpStatus.NOT_FOUND)) {
+                // Possibly the offender has been merged since the receive event
+                log.warn("Ignoring receive event for {} who no longer exists", offenderNumber);
+                return Optional.empty();
+            }
+            throw e;
+        }
 
         if (!receivedReason.hasPrisonerActuallyBeenReceived()) {
             telemetryClient.trackEvent("prison-offender-events.prisoner.not-received", asTelemetryMap(event, receivedReason, receivedReason
@@ -176,8 +188,17 @@ public class HMPPSDomainEventsEmitter {
 
     private Optional<HMPPSDomainEvent> toPrisonerReleased(OffenderEvent event) {
         final var offenderNumber = event.getOffenderIdDisplay();
-        final var releaseReason = releasePrisonerReasonCalculator.calculateReasonForRelease(offenderNumber);
-
+        final ReleasePrisonerReasonCalculator.ReleaseReason releaseReason;
+        try {
+            releaseReason = releasePrisonerReasonCalculator.calculateReasonForRelease(offenderNumber);
+        } catch (WebClientResponseException e) {
+            if (e.getStatusCode().equals(HttpStatus.NOT_FOUND)) {
+                // Possibly the offender has been merged since the discharge event
+                log.warn("Ignoring release event for {} who no longer exists", offenderNumber);
+                return Optional.empty();
+            }
+            throw e;
+        }
         if (!releaseReason.hasPrisonerActuallyBeenRelease()) {
             telemetryClient.trackEvent("prison-offender-events.prisoner.not-released", asTelemetryMap(event, releaseReason, releaseReason
                 .reason()
