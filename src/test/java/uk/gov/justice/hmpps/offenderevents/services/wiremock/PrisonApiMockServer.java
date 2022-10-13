@@ -14,7 +14,6 @@ import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 import static com.github.tomakehurst.wiremock.client.WireMock.get;
 import static com.github.tomakehurst.wiremock.client.WireMock.post;
 import static com.github.tomakehurst.wiremock.stubbing.Scenario.STARTED;
-import static java.lang.String.format;
 
 public class PrisonApiMockServer extends WireMockServer {
     PrisonApiMockServer() {
@@ -29,6 +28,16 @@ public class PrisonApiMockServer extends WireMockServer {
                     .withHeader("Content-Type", "application/json")
                     .withBody(prisonerDetails(offenderNumber, legalStatus, recall, lastMovementTypeCode, lastMovementReasonCode, status, latestLocationId))
                     .withStatus(200)
+            )
+        );
+    }
+
+    public void stubPrisonerDetails404(String offenderNumber) {
+        stubFor(
+            get(String.format("/api/offenders/%s", offenderNumber)).willReturn(
+                aResponse()
+                    .withHeader("Content-Type", "application/json")
+                    .withStatus(404)
             )
         );
     }

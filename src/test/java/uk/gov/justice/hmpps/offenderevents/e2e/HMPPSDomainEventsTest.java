@@ -98,7 +98,6 @@ public class HMPPSDomainEventsTest extends QueueListenerIntegrationTest {
                     }
                 ]
                 """);
-
         }
 
         @Nested
@@ -215,7 +214,6 @@ public class HMPPSDomainEventsTest extends QueueListenerIntegrationTest {
                     }
                 ]
                 """);
-
         }
 
         @Nested
@@ -310,7 +308,6 @@ public class HMPPSDomainEventsTest extends QueueListenerIntegrationTest {
                     }
                 ]
                 """);
-
         }
 
         @Nested
@@ -358,5 +355,37 @@ public class HMPPSDomainEventsTest extends QueueListenerIntegrationTest {
             }
         }
     }
-}
 
+    @Nested
+    class NonExistentOffenders {
+        @BeforeEach
+        void setUp() {
+            PrisonApiExtension.server.stubFirstPollWithOffenderEvents("""
+                [
+                     {
+                        "eventType":"OFFENDER_MOVEMENT-RECEPTION",
+                        "eventDatetime":"2021-06-08T14:41:11.526762",
+                        "offenderIdDisplay":"NONEXISTENT"
+                    },
+                    {
+                        "eventType":"OFFENDER_MOVEMENT-DISCHARGE",
+                        "eventDatetime":"2021-02-08T14:41:11.526762",
+                        "offenderIdDisplay":"NONEXISTENT"
+                    }
+                ]
+                """);
+            PrisonApiExtension.server.stubPrisonerDetails404("NONEXISTENT");
+        }
+
+        @Test
+        @DisplayName("will ignore a deleted or non-existent offender")
+        void willIgnoreNonExistentOffender() {
+            // Wait for messages to have been sent to the prisoneventqueue
+            await().until(() -> getNumberOfMessagesCurrentlyOnPrisonEventTestQueue() == 2);
+            // Wait for messages to have been consumed by JMS
+            await().until(() -> getNumberOfMessagesCurrentlyOnPrisonEventQueue() == 0);
+            // Check that no hmpps event messages were generated from them
+            assertThat(getNumberOfMessagesCurrentlyOnHMPPSEventTestQueue()).isEqualTo(0);
+        }
+    }
+}
