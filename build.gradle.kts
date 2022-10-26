@@ -1,5 +1,5 @@
 plugins {
-  id("uk.gov.justice.hmpps.gradle-spring-boot") version "4.5.6-beta"
+  id("uk.gov.justice.hmpps.gradle-spring-boot") version "4.5.6"
   kotlin("plugin.spring") version "1.7.20"
   id("org.unbroken-dome.test-sets") version "4.0.0"
 }
@@ -47,7 +47,7 @@ dependencies {
   implementation("org.apache.commons:commons-text:1.10.0")
   implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.13.4")
   implementation("com.pauldijou:jwt-core_2.11:5.0.0")
-  implementation("com.google.code.gson:gson:2.9.1")
+  implementation("com.google.code.gson:gson:2.10")
   implementation("com.google.guava:guava:31.1-jre")
 
   implementation("org.springdoc:springdoc-openapi-ui:1.6.12")
