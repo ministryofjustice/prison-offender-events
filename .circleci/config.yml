@@ -7,7 +7,7 @@ jobs:
   validate:
     executor:
       name: hmpps/localstack
-      jdk_tag: "18.0"
+      jdk_tag: "19.0"
       localstack_tag: "0.14.0"
     steps:
       - checkout
@@ -62,7 +62,7 @@ workflows:
       - hmpps/smoke_test:
           context: hmpps-smoketest-common-vars
           name: smoke_test
-          jdk_tag: "18.0"
+          jdk_tag: "19.0"
           requires:
             - deploy_dev
       - hmpps/deploy_env:
