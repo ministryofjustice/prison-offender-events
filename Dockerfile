@@ -11,7 +11,7 @@ RUN ./gradlew --no-daemon assemble
 RUN apt-get update && apt-get install -y curl
 RUN curl https://s3.amazonaws.com/rds-downloads/rds-ca-2019-root.pem  > root.crt
 
-FROM eclipse-temurin:18-jre-jammy
+FROM eclipse-temurin:19-jre-jammy
 LABEL maintainer="HMPPS Digital Studio <info@digital.justice.gov.uk>"
 
 ARG BUILD_NUMBER
