@@ -1,5 +1,5 @@
 plugins {
-  id("uk.gov.justice.hmpps.gradle-spring-boot") version "4.5.6"
+  id("uk.gov.justice.hmpps.gradle-spring-boot") version "4.5.7-beta"
   kotlin("plugin.spring") version "1.7.20"
   id("org.unbroken-dome.test-sets") version "4.0.0"
 }
@@ -68,7 +68,7 @@ dependencies {
   testImplementation("org.awaitility:awaitility-kotlin:4.2.0")
   testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-reactive:1.6.4")
   testImplementation("org.mockito:mockito-inline:4.8.1")
-  testImplementation("io.swagger.parser.v3:swagger-parser:2.1.6")
+  testImplementation("io.swagger.parser.v3:swagger-parser:2.1.7")
 }
 
 java {
