@@ -1,10 +1,7 @@
 package uk.gov.justice.hmpps.offenderevents.services;
 
 import com.amazonaws.services.sns.AmazonSNSAsync;
-import com.amazonaws.services.sns.model.MessageAttributeValue;
 import com.amazonaws.services.sns.model.PublishRequest;
-import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.microsoft.applicationinsights.TelemetryClient;
@@ -12,12 +9,14 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClientResponseException;
+import uk.gov.justice.hmpps.offenderevents.config.OffenderEventsProperties;
+import uk.gov.justice.hmpps.offenderevents.model.HmppsDomainEvent;
+import uk.gov.justice.hmpps.offenderevents.model.HmppsDomainEvent.PersonReference;
 import uk.gov.justice.hmpps.offenderevents.model.OffenderEvent;
 import uk.gov.justice.hmpps.offenderevents.services.ReceivePrisonerReasonCalculator.ProbableCause;
 import uk.gov.justice.hmpps.sqs.HmppsQueueService;
 import uk.gov.justice.hmpps.sqs.HmppsTopic;
 
-import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
@@ -26,7 +25,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 import static java.lang.String.format;
 
@@ -40,13 +38,15 @@ public class HMPPSDomainEventsEmitter {
     private final ReleasePrisonerReasonCalculator releasePrisonerReasonCalculator;
     private final MergeRecordDiscriminator mergeRecordDiscriminator;
     private final TelemetryClient telemetryClient;
+    private final OffenderEventsProperties offenderEventsProperties;
 
     HMPPSDomainEventsEmitter(final HmppsQueueService hmppsQueueService,
                              final ObjectMapper objectMapper,
                              final ReceivePrisonerReasonCalculator receivePrisonerReasonCalculator,
                              final ReleasePrisonerReasonCalculator releasePrisonerReasonCalculator,
                              final MergeRecordDiscriminator mergeRecordDiscriminator,
-                             final TelemetryClient telemetryClient) {
+                             final TelemetryClient telemetryClient,
+                             final OffenderEventsProperties offenderEventsProperties) {
         HmppsTopic hmppsEventTopic = hmppsQueueService.findByTopicId("hmppseventtopic");
         this.topicArn = hmppsEventTopic.getArn();
         this.hmppsEventsTopicSnsClient = (AmazonSNSAsync) hmppsEventTopic.getSnsClient();
@@ -55,60 +55,37 @@ public class HMPPSDomainEventsEmitter {
         this.releasePrisonerReasonCalculator = releasePrisonerReasonCalculator;
         this.mergeRecordDiscriminator = mergeRecordDiscriminator;
         this.telemetryClient = telemetryClient;
+        this.offenderEventsProperties = offenderEventsProperties;
     }
 
     public void convertAndSendWhenSignificant(OffenderEvent event) {
-        final List<HMPPSDomainEvent> hmppsEvents = switch (event.getEventType()) {
-            case "OFFENDER_MOVEMENT-RECEPTION" -> toPrisonerReceived(event).stream().collect(Collectors.toList());
-            case "OFFENDER_MOVEMENT-DISCHARGE" -> toPrisonerReleased(event).stream().collect(Collectors.toList());
-            case "BOOKING_NUMBER-CHANGED" -> toMergedOffenderNumbers(event);
-            default -> Collections.emptyList();
-        };
+        final List<HmppsDomainEvent> hmppsEvents =
+            event.getCaseNoteId() != null ? toCaseNotePublished(event).stream().toList()
+            : switch (event.getEventType()) {
+                case "OFFENDER_MOVEMENT-RECEPTION" -> toPrisonerReceived(event).stream().toList();
+                case "OFFENDER_MOVEMENT-DISCHARGE" -> toPrisonerReleased(event).stream().toList();
+                case "BOOKING_NUMBER-CHANGED" -> toMergedOffenderNumbers(event);
+                default -> Collections.emptyList();
+            };
 
         hmppsEvents.forEach(hmppsDomainEvent -> {
             sendEvent(hmppsDomainEvent);
-            telemetryClient.trackEvent(hmppsDomainEvent.eventType(), asTelemetryMap(hmppsDomainEvent), null);
+            telemetryClient.trackEvent(hmppsDomainEvent.getEventType(), hmppsDomainEvent.asTelemetryMap(), null);
         });
     }
 
-    private Map<String, String> asTelemetryMap(HMPPSDomainEvent hmppsDomainEvent) {
-        var elements = new HashMap<>(Map.of("occurredAt",
-            hmppsDomainEvent.occurredAt(),
-            "nomsNumber",
-            hmppsDomainEvent.additionalInformation().nomsNumber(),
-            "reason",
-            hmppsDomainEvent.additionalInformation().reason()
-        ));
-
-        Optional
-            .ofNullable(hmppsDomainEvent.additionalInformation().prisonId())
-            .ifPresent(prisonId -> elements.put("prisonId", prisonId));
-
-        Optional
-            .ofNullable(hmppsDomainEvent.additionalInformation().probableCause())
-            .ifPresent(probableCause -> elements.put("probableCause", probableCause));
-
-        Optional
-            .ofNullable(hmppsDomainEvent.additionalInformation().source())
-            .ifPresent(source -> elements.put("source", source));
-
-        Optional
-            .ofNullable(hmppsDomainEvent.additionalInformation().details())
-            .ifPresent(details -> elements.put("details", details));
-
-        Optional
-            .ofNullable(hmppsDomainEvent.additionalInformation().currentLocation())
-            .ifPresent(currentLocation -> elements.put("currentLocation", currentLocation.name()));
-
-        Optional
-            .ofNullable(hmppsDomainEvent.additionalInformation().currentPrisonStatus())
-            .ifPresent(currentPrisonStatus -> elements.put("currentPrisonStatus", currentPrisonStatus.name()));
-
-        Optional
-            .ofNullable(hmppsDomainEvent.additionalInformation().removedNomsNumber())
-            .ifPresent(removedNomsNumber -> elements.put("removedNomsNumber", removedNomsNumber));
-
-        return elements;
+    /**
+     * <p>Check whether an OffenderEvent should be converted and sent to the Domain Events topic only (instead of to the
+     * Offender Events topic).
+     * <p>Note: This is currently only true for "case note" events.  OFFENDER_MOVEMENT-RECEPTION/DISCHARGE and
+     * BOOKING_NUMBER-CHANGED events are sent to both topics.
+     *
+     * @param event the OffenderEvent to check
+     * @return true if the event should be sent to the Domain Events topic only, false if it should be sent to the
+     * Offender Events topic.
+     */
+    public boolean isDomainEventOnly(OffenderEvent event) {
+        return event.getCaseNoteId() != null;
     }
 
     private Map<String, String> asTelemetryMap(OffenderEvent event, PrisonerMovementReason reason, String reasonDescription) {
@@ -138,7 +115,7 @@ public class HMPPSDomainEventsEmitter {
         return elements;
     }
 
-    private Optional<HMPPSDomainEvent> toPrisonerReceived(OffenderEvent event) {
+    private Optional<HmppsDomainEvent> toPrisonerReceived(OffenderEvent event) {
         final var offenderNumber = event.getOffenderIdDisplay();
         final ReceivePrisonerReasonCalculator.ReceiveReason receivedReason;
         try {
@@ -158,35 +135,41 @@ public class HMPPSDomainEventsEmitter {
                 .name()), null);
             return Optional.empty();
         }
-        return Optional.of(new HMPPSDomainEvent("prison-offender-events.prisoner.received",
-            new AdditionalInformation(offenderNumber,
-                receivedReason.reason().name(),
-                Optional.ofNullable(receivedReason.probableCause()).map(ProbableCause::name).orElse(null),
-                receivedReason.source().name(),
-                receivedReason.details(),
-                receivedReason.currentLocation(),
-                receivedReason.prisonId(),
-                receivedReason.currentPrisonStatus(),
-                null
-            ),
-            event.getEventDatetime(),
-            "A prisoner has been received into prison"));
+        return Optional.of(HmppsDomainEvent.builder()
+            .eventType("prison-offender-events.prisoner.received")
+            .description("A prisoner has been received into prison")
+            .occurredAt(toOccurredAt(event))
+            .publishedAt(OffsetDateTime.now().toString())
+            .personReference(new PersonReference(event.getOffenderIdDisplay()))
+            .build()
+            .withAdditionalInformation("nomsNumber", offenderNumber)
+            .withAdditionalInformation("reason", receivedReason.reason().name())
+            .withAdditionalInformation("probableCause", Optional.ofNullable(receivedReason.probableCause()).map(ProbableCause::name).orElse(null))
+            .withAdditionalInformation("source", receivedReason.source().name())
+            .withAdditionalInformation("details", receivedReason.details())
+            .withAdditionalInformation("currentLocation", receivedReason.currentLocation().name())
+            .withAdditionalInformation("prisonId", receivedReason.prisonId())
+            .withAdditionalInformation("currentPrisonStatus", receivedReason.currentPrisonStatus().name()));
     }
 
-    private List<HMPPSDomainEvent> toMergedOffenderNumbers(OffenderEvent event) {
+    private List<HmppsDomainEvent> toMergedOffenderNumbers(OffenderEvent event) {
         final var mergeResults = mergeRecordDiscriminator.identifyMergedPrisoner(event.getBookingId());
 
         return mergeResults.stream()
-            .map(mergeResult ->
-            new HMPPSDomainEvent("prison-offender-events.prisoner.merged",
-                new AdditionalInformation(mergeResult.remainingNumber(), mergeResult.mergedNumber()),
-                event.getEventDatetime(),
-                format("A prisoner has been merged from %s to %s", mergeResult.mergedNumber(), mergeResult.remainingNumber()))
-            )
-       .collect(Collectors.toList());
+            .map(mergeResult -> HmppsDomainEvent.builder()
+                .eventType("prison-offender-events.prisoner.merged")
+                .description(format("A prisoner has been merged from %s to %s", mergeResult.mergedNumber(), mergeResult.remainingNumber()))
+                .occurredAt(toOccurredAt(event))
+                .publishedAt(OffsetDateTime.now().toString())
+                .personReference(new PersonReference(mergeResult.remainingNumber()))
+                .build()
+                .withAdditionalInformation("nomsNumber", mergeResult.remainingNumber())
+                .withAdditionalInformation("removedNomsNumber", mergeResult.mergedNumber())
+                .withAdditionalInformation("reason", "MERGE"))
+            .toList();
     }
 
-    private Optional<HMPPSDomainEvent> toPrisonerReleased(OffenderEvent event) {
+    private Optional<HmppsDomainEvent> toPrisonerReleased(OffenderEvent event) {
         final var offenderNumber = event.getOffenderIdDisplay();
         final ReleasePrisonerReasonCalculator.ReleaseReason releaseReason;
         try {
@@ -206,67 +189,44 @@ public class HMPPSDomainEventsEmitter {
             return Optional.empty();
         }
 
-        return Optional.of(new HMPPSDomainEvent("prison-offender-events.prisoner.released",
-            new AdditionalInformation(offenderNumber,
-                releaseReason.reason().name(),
-                null,
-                null,
-                releaseReason.details(),
-                releaseReason.currentLocation(),
-                releaseReason.prisonId(),
-                releaseReason.currentPrisonStatus(),
-             null
-            ),
-            event.getEventDatetime(),
-            "A prisoner has been released from prison"));
+        return Optional.of(HmppsDomainEvent.builder()
+            .eventType("prison-offender-events.prisoner.released")
+            .description("A prisoner has been released from prison")
+            .occurredAt(toOccurredAt(event))
+            .publishedAt(OffsetDateTime.now().toString())
+            .personReference(new PersonReference(offenderNumber))
+            .build()
+            .withAdditionalInformation("nomsNumber", offenderNumber)
+            .withAdditionalInformation("reason", releaseReason.reason().name())
+            .withAdditionalInformation("details", releaseReason.details())
+            .withAdditionalInformation("currentLocation", releaseReason.currentLocation().name())
+            .withAdditionalInformation("prisonId", releaseReason.prisonId())
+            .withAdditionalInformation("currentPrisonStatus", releaseReason.currentPrisonStatus().name()));
     }
 
-    public void sendEvent(final HMPPSDomainEvent payload) {
+    private Optional<HmppsDomainEvent> toCaseNotePublished(OffenderEvent event) {
+        return Optional.of(HmppsDomainEvent.builder()
+            .eventType("prison.case-note.published")
+            .description("A prison case note has been created or amended")
+            .detailUrl(String.format("%s/case-notes/%s/%d", offenderEventsProperties.getCasenotesApiBaseUrl(), event.getOffenderIdDisplay(), event.getCaseNoteId()))
+            .occurredAt(toOccurredAt(event))
+            .publishedAt(OffsetDateTime.now().toString())
+            .personReference(new PersonReference(event.getOffenderIdDisplay()))
+            .build()
+            .withAdditionalInformation("caseNoteId", event.getCaseNoteId().toString())
+            .withAdditionalInformation("caseNoteType", event.getEventType()));
+    }
+
+    private String toOccurredAt(OffenderEvent event) {
+        return event.getEventDatetime().atZone(ZoneId.of("Europe/London")).toOffsetDateTime().format(DateTimeFormatter.ISO_OFFSET_DATE_TIME);
+    }
+
+    public void sendEvent(final HmppsDomainEvent payload) {
         try {
             hmppsEventsTopicSnsClient.publishAsync(new PublishRequest(topicArn, objectMapper.writeValueAsString(payload))
-                .withMessageAttributes(metaData(payload)));
+                .withMessageAttributes(payload.asMetadataMap()));
         } catch (JsonProcessingException e) {
             log.error("Failed to convert payload {} to json", payload);
         }
-    }
-
-    private Map<String, MessageAttributeValue> metaData(final HMPPSDomainEvent payload) {
-        final Map<String, MessageAttributeValue> messageAttributes = new HashMap<>();
-        messageAttributes.put("eventType", new MessageAttributeValue().withDataType("String").withStringValue(payload.eventType()));
-        return messageAttributes;
-    }
-}
-
-record HMPPSDomainEvent(String eventType, AdditionalInformation additionalInformation, int version,
-                        String occurredAt, String publishedAt, String description) {
-    public HMPPSDomainEvent(String eventType,
-                            AdditionalInformation additionalInformation,
-                            LocalDateTime occurredAt,
-                            String description) {
-        this(eventType,
-            additionalInformation,
-            1,
-            occurredAt.atZone(ZoneId.of("Europe/London")).toOffsetDateTime()
-                .format(DateTimeFormatter.ISO_OFFSET_DATE_TIME),
-            OffsetDateTime
-                .now()
-                .format(DateTimeFormatter.ISO_OFFSET_DATE_TIME),
-            description);
-    }
-}
-
-@JsonInclude(Include.NON_NULL)
-record AdditionalInformation(String nomsNumber,
-                             String reason,
-                             String probableCause,
-                             String source,
-                             String details,
-                             CurrentLocation currentLocation,
-                             String prisonId,
-                             CurrentPrisonStatus currentPrisonStatus,
-                             String removedNomsNumber) {
-
-    public AdditionalInformation(String nomsNumber, String removedNomsNumber) {
-        this(nomsNumber, "MERGE", null, null, null, null, null, null, removedNomsNumber);
     }
 }

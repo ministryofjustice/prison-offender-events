@@ -17,6 +17,7 @@ import static java.time.temporal.ChronoUnit.MICROS;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
@@ -34,6 +35,8 @@ public class EventRetrievalServiceTest {
     @Mock
     private PrisonEventsEmitter prisonEventsEmitter;
     @Mock
+    private HMPPSDomainEventsEmitter hmppsDomainEventsEmitter;
+    @Mock
     private PollAuditRepository repository;
 
     private final int maxEventRangeMinutes = 60;
@@ -42,7 +45,7 @@ public class EventRetrievalServiceTest {
 
     @BeforeEach
     public void setup() {
-        eventRetrievalService = new EventRetrievalService(externalApiService, prisonEventsEmitter, repository, POLL_INTERVAL, WIND_BACK_SECONDS, maxEventRangeMinutes);
+        eventRetrievalService = new EventRetrievalService(externalApiService, prisonEventsEmitter, hmppsDomainEventsEmitter, repository, POLL_INTERVAL, WIND_BACK_SECONDS, maxEventRangeMinutes);
     }
 
     @Test
@@ -220,5 +223,29 @@ public class EventRetrievalServiceTest {
                 PollAudit.builder().pollName("offenderEvents-test-enq").nextStartTime(endA).numberOfRecords(4).build()));
         verify(repository, times(1)).save(eq(
                 PollAudit.builder().pollName("offenderEvents-test-previous-enq").nextStartTime(startA).build()));
+    }
+
+    @Test
+    public void testDomainEventsAreSentToTheDomainEventsTopic() {
+        OffenderEvent oe = OffenderEvent.builder().eventDatetime(LocalDateTime.now()).build();
+        when(hmppsDomainEventsEmitter.isDomainEventOnly(oe)).thenReturn(true);
+        when(externalApiService.getEvents(any(), any())).thenReturn(List.of(oe));
+
+        eventRetrievalService.pollEvents(LocalDateTime.now());
+
+        verify(hmppsDomainEventsEmitter).convertAndSendWhenSignificant(oe);
+        verifyNoInteractions(prisonEventsEmitter);
+    }
+
+    @Test
+    public void testNonDomainEventsAreSentToThePrisonEventsTopic() {
+        OffenderEvent oe = OffenderEvent.builder().eventDatetime(LocalDateTime.now()).build();
+        when(hmppsDomainEventsEmitter.isDomainEventOnly(oe)).thenReturn(false);
+        when(externalApiService.getEvents(any(), any())).thenReturn(List.of(oe));
+
+        eventRetrievalService.pollEvents(LocalDateTime.now());
+
+        verify(prisonEventsEmitter).sendEvent(oe);
+        verify(hmppsDomainEventsEmitter, never()).convertAndSendWhenSignificant(oe);
     }
 }

@@ -388,4 +388,48 @@ public class HMPPSDomainEventsTest extends QueueListenerIntegrationTest {
             assertThat(getNumberOfMessagesCurrentlyOnHMPPSEventTestQueue()).isEqualTo(0);
         }
     }
+
+    @Nested
+    class CaseNote {
+        @BeforeEach
+        void setUp() {
+            PrisonApiExtension.server.stubFirstPollWithOffenderEvents("""
+                [
+                    {
+                        "eventType": "ALERT-ACTIVE",
+                        "eventDatetime": "2022-11-02T00:39:05.0709360Z",
+                        "caseNoteId": 1301234,
+                        "rootOffenderId": 1259340,
+                        "offenderIdDisplay": "A1234AM",
+                        "agencyLocationId": "PVI"
+                    }
+                ]
+                """);
+        }
+
+        @Test
+        @DisplayName("will not publish prison event")
+        void willNotPublishPrisonEvent() {
+            assertThat(getNumberOfMessagesCurrentlyOnPrisonEventTestQueue()).isEqualTo(0);
+        }
+
+        @Test
+        @DisplayName("will publish prison.case-note.published HMPPS domain event")
+        void willPublishHMPPSDomainEvent() {
+            await().until(() -> getNumberOfMessagesCurrentlyOnHMPPSEventTestQueue() == 1);
+            final var hmppsEventMessages = geMessagesCurrentlyOnHMPPSTestQueue();
+            assertThat(hmppsEventMessages).singleElement().satisfies(event -> {
+                assertThatJson(event).node("eventType").isEqualTo("prison.case-note.published");
+                assertThatJson(event).node("occurredAt").asString()
+                    .satisfies(dateTime -> assertThat(dateTime).isEqualTo("2022-11-02T00:39:05.070936Z"));
+                assertThatJson(event).node("publishedAt").asString()
+                    .satisfies(dateTime -> assertThat(OffsetDateTime.parse(dateTime))
+                        .isCloseTo(OffsetDateTime.now(), within(10, ChronoUnit.SECONDS)));
+                assertThatJson(event).node("detailUrl").isEqualTo("http://localhost:8088/case-notes/A1234AM/1301234");
+                assertThatJson(event).node("additionalInformation.caseNoteType").isEqualTo("ALERT-ACTIVE");
+                assertThatJson(event).node("additionalInformation.caseNoteId").isEqualTo("\"1301234\"");
+            });
+        }
+    }
+
 }

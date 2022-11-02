@@ -28,6 +28,7 @@ import org.mockito.kotlin.mock
 import org.mockito.kotlin.times
 import org.mockito.kotlin.whenever
 import org.mockito.quality.Strictness.LENIENT
+import uk.gov.justice.hmpps.offenderevents.config.OffenderEventsProperties
 import uk.gov.justice.hmpps.offenderevents.model.OffenderEvent
 import uk.gov.justice.hmpps.offenderevents.services.CurrentLocation.IN_PRISON
 import uk.gov.justice.hmpps.offenderevents.services.CurrentLocation.OUTSIDE_PRISON
@@ -64,6 +65,9 @@ internal class HMPPSDomainEventsEmitterTest {
   @Mock
   private val telemetryClient: TelemetryClient? = null
 
+  @Mock
+  private val offenderEventsProperties: OffenderEventsProperties? = null
+
   @Captor
   private val publishRequestCaptor: ArgumentCaptor<PublishRequest>? = null
 
@@ -85,7 +89,8 @@ internal class HMPPSDomainEventsEmitterTest {
       receivePrisonerReasonCalculator,
       releasePrisonerReasonCalculator,
       mergeRecordDiscriminator,
-      telemetryClient
+      telemetryClient,
+      offenderEventsProperties
     )
   }
 
@@ -750,6 +755,114 @@ internal class HMPPSDomainEventsEmitterTest {
     @DisplayName("will add occurredAt to telemetry event")
     fun willAddOccurredAtToTelemetryEvent() {
       Assertions.assertThat(telemetryAttributes).containsEntry("occurredAt", "2020-12-04T10:42:43Z")
+    }
+  }
+
+  @Nested
+  internal inner class CaseNotePublished {
+    private var payload: String? = null
+    private var telemetryAttributes: Map<String, String>? = null
+
+    @BeforeEach
+    fun setUp() {
+      whenever(offenderEventsProperties!!.casenotesApiBaseUrl).thenReturn("http://localhost:1234")
+      emitter.convertAndSendWhenSignificant(
+        OffenderEvent.builder()
+          .eventType("GEN-OSE")
+          .caseNoteId(-12345L)
+          .offenderIdDisplay("A1234GH")
+          .eventDatetime(LocalDateTime.parse("2020-07-04T10:42:43"))
+          .build()
+      )
+      Mockito.verify(hmppsEventSnsClient, times(1)).publishAsync(publishRequestCaptor!!.capture())
+      payload = publishRequestCaptor.value.message
+      Mockito.verify(telemetryClient)!!
+        .trackEvent(ArgumentMatchers.any(), telemetryAttributesCaptor!!.capture(), ArgumentMatchers.isNull())
+      telemetryAttributes = telemetryAttributesCaptor.value
+    }
+
+    @Test
+    @DisplayName("will use event datetime for occurred at time")
+    fun willUseEventDatetimeForOccurredAtTime() {
+      JsonAssertions.assertThatJson(payload).node("occurredAt").isEqualTo("2020-07-04T10:42:43+01:00")
+    }
+
+    @Test
+    @DisplayName("will user current time as publishedAt")
+    fun willUseCurrentTimeAsPublishedAt() {
+      JsonAssertions.assertThatJson(payload)
+        .node("publishedAt")
+        .asString()
+        .satisfies(
+          Consumer { publishedAt: String? ->
+            Assertions.assertThat(OffsetDateTime.parse(publishedAt))
+              .isCloseTo(OffsetDateTime.now(), Assertions.within(10, SECONDS))
+          }
+        )
+    }
+
+    @Test
+    @DisplayName("person reference will contain offenderNumber as NOMS number")
+    fun personReferenceWillContainOffenderNumberAsNOMSNumber() {
+      JsonAssertions.assertThatJson(payload).node("personReference.identifiers").isArray.hasSize(1)
+      JsonAssertions.assertThatJson(payload).node("personReference.identifiers[0].type").isEqualTo("NOMS")
+      JsonAssertions.assertThatJson(payload).node("personReference.identifiers[0].value").isEqualTo("A1234GH")
+    }
+
+    @Test
+    @DisplayName("additional information will contain the case note type")
+    fun additionalInformationWillContainCaseNoteType() {
+      JsonAssertions.assertThatJson(payload).node("additionalInformation.caseNoteType").isEqualTo("GEN-OSE")
+    }
+
+    @Test
+    @DisplayName("additional information will contain the case note id")
+    fun additionalInformationWillContainCaseNoteId() {
+      JsonAssertions.assertThatJson(payload).node("additionalInformation.caseNoteId").isEqualTo("\"-12345\"")
+    }
+
+    @Test
+    @DisplayName("detail url will be set to the offender-case-notes endpoint")
+    fun detailUrlWillBeSetToCaseNotesService() {
+      JsonAssertions.assertThatJson(payload).node("detailUrl")
+        .isEqualTo("http://localhost:1234/case-notes/A1234GH/-12345")
+    }
+
+    @Test
+    @DisplayName("will describe the event as a case note")
+    fun willDescribeTheEventAsACaseNote() {
+      JsonAssertions.assertThatJson(payload).node("description")
+        .isEqualTo("A prison case note has been created or amended")
+    }
+
+    @Test
+    @DisplayName("will add noms number to telemetry event")
+    fun willAddNomsNumberToTelemetryEvent() {
+      Assertions.assertThat(telemetryAttributes).containsEntry("nomsNumber", "A1234GH")
+    }
+
+    @Test
+    @DisplayName("will add occurredAt to telemetry event")
+    fun willAddOccurredAtToTelemetryEvent() {
+      Assertions.assertThat(telemetryAttributes).containsEntry("occurredAt", "2020-07-04T10:42:43+01:00")
+    }
+
+    @Test
+    @DisplayName("will add caseNoteId to telemetry event")
+    fun willAddCaseNoteIdToTelemetryEvent() {
+      Assertions.assertThat(telemetryAttributes).containsEntry("caseNoteId", "-12345")
+    }
+
+    @Test
+    @DisplayName("will add caseNoteType to telemetry event")
+    fun willAddCaseNoteTypeToTelemetryEvent() {
+      Assertions.assertThat(telemetryAttributes).containsEntry("caseNoteType", "GEN-OSE")
+    }
+
+    @Test
+    @DisplayName("will contain no other telemetry properties")
+    fun willContainNoOtherTelemetryProperties() {
+      Assertions.assertThat(telemetryAttributes).containsOnlyKeys("eventType", "nomsNumber", "occurredAt", "caseNoteId", "caseNoteType")
     }
   }
 
