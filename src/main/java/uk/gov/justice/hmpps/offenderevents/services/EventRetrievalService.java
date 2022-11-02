@@ -27,6 +27,7 @@ public class EventRetrievalService {
 
     private final ExternalApiService externalApiService;
     private final PrisonEventsEmitter prisonEventsEmitter;
+    private final HMPPSDomainEventsEmitter hmppsDomainEventsEmitter;
     private final PollAuditRepository repository;
     private final int pollInterval;
     private final int maxEventRangeMinutes;
@@ -34,12 +35,14 @@ public class EventRetrievalService {
 
     public EventRetrievalService(final ExternalApiService externalApiService,
                                  final PrisonEventsEmitter prisonEventsEmitter,
+                                 final HMPPSDomainEventsEmitter hmppsDomainEventsEmitter,
                                  final PollAuditRepository repository,
                                  @Value("${application.events.poll.frequency:60000}") final int pollInterval,
                                  @Value("${wind.back.seconds:10}") int windBackSeconds,
                                  @Value("${application.events.max.range.minutes:20}") final int maxEventRangeMinutes) {
         this.externalApiService = externalApiService;
         this.prisonEventsEmitter = prisonEventsEmitter;
+        this.hmppsDomainEventsEmitter = hmppsDomainEventsEmitter;
         this.repository = repository;
         this.pollInterval = pollInterval;
         this.maxEventRangeMinutes = maxEventRangeMinutes;
@@ -65,7 +68,13 @@ public class EventRetrievalService {
             log.debug("Getting events between {} and {}", startTime, endTime);
             final var events = externalApiService.getEvents(startTime, endTime);
             log.debug("There are {} events {}", events.size(), events);
-            events.forEach(prisonEventsEmitter::sendEvent);
+            events.forEach(event -> {
+                if (hmppsDomainEventsEmitter.isDomainEventOnly(event)) {
+                    hmppsDomainEventsEmitter.convertAndSendWhenSignificant(event);
+                } else {
+                    prisonEventsEmitter.sendEvent(event);
+                }
+            });
 
             final var lastEventTime = events.stream()
                     .max(Comparator.comparing(OffenderEvent::getEventDatetime))

@@ -9,6 +9,7 @@ management.endpoint:
 oauth.api.base.url: http://localhost:8090/auth
 prison.api.base.url: http://localhost:8086
 community.api.base.url: http://localhost:8087
+casenotes.api.base.url: http://localhost:8088
 
 offender.events:
   client:
