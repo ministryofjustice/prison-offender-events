@@ -41,7 +41,7 @@ class EventScheduler(
 
     log.info("Starting: runTestPolls()")
     try {
-      eventRetrievalService.runTestPolls(LocalDateTime.now(), true, 30)
+      eventRetrievalService.runTestPolls(LocalDateTime.now(), true, 60)
       log.info("Complete: runTestPolls()")
     } catch (e: Exception) {
       log.error("runTestPolls: Global exception handler", e)
