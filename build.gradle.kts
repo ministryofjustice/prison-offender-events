@@ -1,6 +1,6 @@
 plugins {
-  id("uk.gov.justice.hmpps.gradle-spring-boot") version "4.5.7"
-  kotlin("plugin.spring") version "1.7.20"
+  id("uk.gov.justice.hmpps.gradle-spring-boot") version "4.6.0-beta"
+  kotlin("plugin.spring") version "1.7.21"
   id("org.unbroken-dome.test-sets") version "4.0.0"
 }
 
@@ -33,7 +33,7 @@ dependencies {
 
   implementation("com.amazonaws:aws-java-sdk-sns")
 
-  implementation("uk.gov.justice.service.hmpps:hmpps-sqs-spring-boot-starter:1.1.12")
+  implementation("uk.gov.justice.service.hmpps:hmpps-sqs-spring-boot-starter:1.1.13")
 
   implementation("net.javacrumbs.shedlock:shedlock-spring:4.42.0")
   implementation("net.javacrumbs.shedlock:shedlock-provider-jdbc-template:4.42.0")
@@ -45,7 +45,7 @@ dependencies {
 
   implementation("net.sf.ehcache:ehcache")
   implementation("org.apache.commons:commons-text:1.10.0")
-  implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.13.4")
+  implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.14.0")
   implementation("com.pauldijou:jwt-core_2.11:5.0.0")
   implementation("com.google.code.gson:gson:2.10")
   implementation("com.google.guava:guava:31.1-jre")
@@ -67,8 +67,8 @@ dependencies {
   testImplementation("org.awaitility:awaitility:4.2.0")
   testImplementation("org.awaitility:awaitility-kotlin:4.2.0")
   testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-reactive:1.6.4")
-  testImplementation("org.mockito:mockito-inline:4.8.1")
-  testImplementation("io.swagger.parser.v3:swagger-parser:2.1.7")
+  testImplementation("org.mockito:mockito-inline:4.9.0")
+  testImplementation("io.swagger.parser.v3:swagger-parser:2.1.8")
 }
 
 java {
