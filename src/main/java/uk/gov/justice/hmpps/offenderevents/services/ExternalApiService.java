@@ -33,26 +33,9 @@ public class ExternalApiService {
                 .block(timeout);
     }
 
-
-    public List<OffenderEvent> getTestEvents(final LocalDateTime fromDateTime, final LocalDateTime toDateTime, final boolean useEnq) {
-        final var uri = getTestEventUriBuilder(fromDateTime, toDateTime, useEnq).build().toString();
-        return oauth2WebClient.get()
-                .uri(uri)
-                .retrieve()
-                .bodyToMono(new ParameterizedTypeReference<List<OffenderEvent>>() {})
-                .block(timeout);
-    }
-
     private UriComponentsBuilder getEventUriBuilder(final LocalDateTime fromDateTime, final LocalDateTime toDateTime) {
         return UriComponentsBuilder.fromUriString("/api/events")
                 .queryParam("sortBy", "TIMESTAMP_ASC")
-                .queryParam("from", fromDateTime)
-                .queryParam("to", toDateTime);
-    }
-
-    private UriComponentsBuilder getTestEventUriBuilder(final LocalDateTime fromDateTime, final LocalDateTime toDateTime, final boolean useEnq) {
-        return UriComponentsBuilder.fromUriString("/api/test-events")
-                .queryParam("useEnq", useEnq)
                 .queryParam("from", fromDateTime)
                 .queryParam("to", toDateTime);
     }
