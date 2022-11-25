@@ -14,7 +14,6 @@ import java.util.Comparator;
 
 import static java.time.temporal.ChronoUnit.MICROS;
 import static java.time.temporal.ChronoUnit.MILLIS;
-import static java.time.temporal.ChronoUnit.MINUTES;
 
 @Service
 @Slf4j
@@ -22,8 +21,6 @@ import static java.time.temporal.ChronoUnit.MINUTES;
 public class EventRetrievalService {
 
     public static final String POLL_NAME = "offenderEvents";
-    public static final String POLL_NAME_TEST = "offenderEvents-test";
-    public static final String PREVIOUS_POLL_NAME_TEST = "offenderEvents-test-previous";
 
     private final ExternalApiService externalApiService;
     private final PrisonEventsEmitter prisonEventsEmitter;
@@ -89,60 +86,5 @@ public class EventRetrievalService {
         } else {
             log.warn("Skipping Event Retrieval as start after end, start = {}, end = {}", startTime, endTime);
         }
-    }
-
-    /**
-     * For testing run a poll for the immediately ended minute, repeat 1 min later and compare:
-     * <ol>
-     *  <li>run for the latest minute (POLL_NAME_TEST.time -> now) remembering time range and count, A
-     *  <li>run for [PREVIOUS_POLL_NAME_TEST -> POLL_NAME_TEST] time range remembering time range and count, B
-     *  <li>compare count B with POLL_NAME_TEST.count - should be the same
-     *  <li>store count A in POLL_NAME_TEST.count
-     *  <li>move POLL_NAME_TEST.time to PREVIOUS_POLL_NAME_TEST.time
-     *  <li>store A end time (now) in POLL_NAME_TEST.time
-     * </ol>
-     */
-    public void runTestPolls(final LocalDateTime now, final boolean useEnq, final int testWindBackSeconds) {
-        final LocalDateTime endTimeA = now.minusSeconds(testWindBackSeconds);
-        final String pollName = String.format("%s-%s", POLL_NAME_TEST, useEnq ? "enq" : "deq");
-        final String previousPollName = String.format("%s-%s", PREVIOUS_POLL_NAME_TEST, useEnq ? "enq" : "deq");
-
-        repository.findById(pollName).ifPresentOrElse(
-                test -> {
-                    final var previousTest = repository.findById(previousPollName).orElseThrow();
-                    final var eventsA = externalApiService.getTestEvents(test.getNextStartTime(), endTimeA, useEnq);
-                    final var countA = eventsA.size();
-                    log.debug("runTestPolls(): useEnq {}, A interval {} to {}, count {}", useEnq, test.getNextStartTime(), endTimeA, countA);
-
-                    final var eventsB = externalApiService.getTestEvents(previousTest.getNextStartTime(), test.getNextStartTime(), useEnq);
-                    final var countB = eventsB.size();
-                    log.debug("runTestPolls(): useEnq {}, B interval {} to {}, count {}", useEnq, previousTest.getNextStartTime(), test.getNextStartTime(), countB);
-
-                    if (countB != test.getNumberOfRecords()) {
-                        log.warn("runTestPolls(): Found different counts using windback {}, useEnq {}, original={}, repeat={}, events {}",
-                                testWindBackSeconds, useEnq, test.getNumberOfRecords(), countB, eventsB);
-                    }
-
-                    test.setNumberOfRecords(countA);
-                    previousTest.setNextStartTime(test.getNextStartTime());
-                    test.setNextStartTime(endTimeA);
-                },
-                () -> {
-                    // First run
-                    final LocalDateTime startTimeA = endTimeA.minus(1, MINUTES);
-                    final var eventsA = externalApiService.getTestEvents(startTimeA, endTimeA, useEnq);
-                    final var countA = eventsA.size();
-
-                    repository.save(PollAudit.builder()
-                            .pollName(pollName)
-                            .nextStartTime(endTimeA)
-                            .numberOfRecords(countA)
-                            .build());
-                    repository.save(PollAudit.builder()
-                            .pollName(previousPollName)
-                            .nextStartTime(startTimeA)
-                            .build());
-                }
-        );
     }
 }

@@ -34,18 +34,4 @@ class EventScheduler(
     }
     log.info("Complete: Event Poll")
   }
-
-  @Scheduled(cron = "43 * * * * ?")
-  @SchedulerLock(name = "runTestPollsLock")
-  fun runTestPolls() {
-
-    log.info("Starting: runTestPolls()")
-    try {
-      eventRetrievalService.runTestPolls(LocalDateTime.now(), true, 60)
-      log.info("Complete: runTestPolls()")
-    } catch (e: Exception) {
-      log.error("runTestPolls: Global exception handler", e)
-      telemetryClient.trackException(e)
-    }
-  }
 }
