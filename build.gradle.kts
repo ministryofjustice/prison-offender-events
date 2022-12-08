@@ -1,6 +1,6 @@
 plugins {
-  id("uk.gov.justice.hmpps.gradle-spring-boot") version "4.7.1"
-  kotlin("plugin.spring") version "1.7.21"
+  id("uk.gov.justice.hmpps.gradle-spring-boot") version "4.7.2-beta-1"
+  kotlin("plugin.spring") version "1.7.22"
   id("org.unbroken-dome.test-sets") version "4.0.0"
 }
 
@@ -33,7 +33,7 @@ dependencies {
 
   implementation("com.amazonaws:aws-java-sdk-sns")
 
-  implementation("uk.gov.justice.service.hmpps:hmpps-sqs-spring-boot-starter:1.1.13")
+  implementation("uk.gov.justice.service.hmpps:hmpps-sqs-spring-boot-starter:1.2.0")
 
   implementation("net.javacrumbs.shedlock:shedlock-spring:4.43.0")
   implementation("net.javacrumbs.shedlock:shedlock-provider-jdbc-template:4.43.0")
