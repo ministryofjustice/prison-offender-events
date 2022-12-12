@@ -866,6 +866,101 @@ internal class HMPPSDomainEventsEmitterTest {
     }
   }
 
+  @Nested
+  internal inner class CaseNotePublishedNew {
+    private var payload: String? = null
+    private var telemetryAttributes: Map<String, String>? = null
+
+    @BeforeEach
+    fun setUp() {
+      whenever(offenderEventsProperties!!.casenotesApiBaseUrl).thenReturn("http://localhost:1234")
+      emitter.convertAndSendWhenSignificant(
+        OffenderEvent.builder()
+          .eventType("OFFENDER_CASE_NOTES-INSERTED")
+          .caseNoteType("CHAP")
+          .caseNoteSubType("FAITH")
+          .caseNoteId(-12345L)
+          .offenderIdDisplay("A1234GH")
+          .bookingId(1234L)
+          .eventDatetime(LocalDateTime.parse("2022-12-04T10:00:00"))
+          .build()
+      )
+      Mockito.verify(hmppsEventSnsClient, times(1)).publishAsync(publishRequestCaptor!!.capture())
+      payload = publishRequestCaptor.value.message
+      Mockito.verify(telemetryClient)!!
+        .trackEvent(ArgumentMatchers.any(), telemetryAttributesCaptor!!.capture(), ArgumentMatchers.isNull())
+      telemetryAttributes = telemetryAttributesCaptor.value
+    }
+
+    @Test
+    @DisplayName("will use event datetime for occurred at time")
+    fun willUseEventDatetimeForOccurredAtTime() {
+      JsonAssertions.assertThatJson(payload).node("occurredAt").isEqualTo("2022-12-04T10:00:00Z")
+    }
+
+    @Test
+    @DisplayName("will user current time as publishedAt")
+    fun willUseCurrentTimeAsPublishedAt() {
+      JsonAssertions.assertThatJson(payload)
+        .node("publishedAt")
+        .asString()
+        .satisfies(
+          Consumer { publishedAt: String? ->
+            Assertions.assertThat(OffsetDateTime.parse(publishedAt))
+              .isCloseTo(OffsetDateTime.now(), Assertions.within(10, SECONDS))
+          }
+        )
+    }
+
+    @Test
+    @DisplayName("person reference will contain offenderNumber as NOMS number")
+    fun personReferenceWillContainOffenderNumberAsNOMSNumber() {
+      JsonAssertions.assertThatJson(payload).node("personReference.identifiers").isArray.hasSize(1)
+      JsonAssertions.assertThatJson(payload).node("personReference.identifiers[0].type").isEqualTo("NOMS")
+      JsonAssertions.assertThatJson(payload).node("personReference.identifiers[0].value").isEqualTo("A1234GH")
+    }
+
+    @Test
+    @DisplayName("additional information will contain the case note type, id, raw type and subtype")
+    fun additionalInformationWillContainCaseNoteType() {
+      JsonAssertions.assertThatJson(payload).node("additionalInformation.caseNoteType").isEqualTo("CHAP-FAITH")
+      JsonAssertions.assertThatJson(payload).node("additionalInformation.caseNoteId").isEqualTo("\"-12345\"")
+      JsonAssertions.assertThatJson(payload).node("additionalInformation.type").isEqualTo("\"CHAP\"")
+      JsonAssertions.assertThatJson(payload).node("additionalInformation.subType").isEqualTo("\"FAITH\"")
+    }
+
+    @Test
+    @DisplayName("detail url will be set to the offender-case-notes endpoint")
+    fun detailUrlWillBeSetToCaseNotesService() {
+      JsonAssertions.assertThatJson(payload).node("detailUrl")
+        .isEqualTo("http://localhost:1234/case-notes/A1234GH/-12345")
+    }
+
+    @Test
+    @DisplayName("will describe the event as a case note")
+    fun willDescribeTheEventAsACaseNote() {
+      JsonAssertions.assertThatJson(payload).node("description")
+        .isEqualTo("A prison case note has been created or amended")
+    }
+
+    @Test
+    @DisplayName("will add correct fields to telemetry event")
+    fun willAddNomsNumberToTelemetryEvent() {
+      Assertions.assertThat(telemetryAttributes).containsEntry("nomsNumber", "A1234GH")
+      Assertions.assertThat(telemetryAttributes).containsEntry("occurredAt", "2022-12-04T10:00:00Z")
+      Assertions.assertThat(telemetryAttributes).containsEntry("caseNoteId", "-12345")
+      Assertions.assertThat(telemetryAttributes).containsEntry("caseNoteType", "CHAP-FAITH")
+      Assertions.assertThat(telemetryAttributes).containsEntry("type", "CHAP")
+      Assertions.assertThat(telemetryAttributes).containsEntry("subType", "FAITH")
+    }
+
+    @Test
+    @DisplayName("will contain no other telemetry properties")
+    fun willContainNoOtherTelemetryProperties() {
+      Assertions.assertThat(telemetryAttributes).containsOnlyKeys("eventType", "nomsNumber", "occurredAt", "caseNoteId", "caseNoteType", "type", "subType")
+    }
+  }
+
   @Suppress("unused")
   private fun eventMap(): Stream<Arguments> {
     return Stream.of(

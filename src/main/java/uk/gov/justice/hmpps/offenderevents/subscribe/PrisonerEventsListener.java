@@ -41,8 +41,8 @@ public class PrisonerEventsListener {
         final var sqsMessage = objectMapper.readValue(message, SQSMessage.class);
         final var publishedAt = OffsetDateTime.parse(sqsMessage.MessageAttributes().publishedAt().Value());
         if (publishedAt.isBefore(OffsetDateTime.now().minus(totalDelay))) {
-            log.debug("Received message {} published at {}", sqsMessage.MessageId(), publishedAt);
             final var event = objectMapper.readValue(sqsMessage.Message(), OffenderEvent.class);
+            log.debug("Received message {} type {} published at {}", sqsMessage.MessageId(), event.getEventType(), publishedAt);
             eventsEmitter.convertAndSendWhenSignificant(event);
         } else {
             hmppsQueueService.findByQueueId("prisoneventqueue").getSqsClient()
