@@ -14,6 +14,7 @@ import uk.gov.justice.hmpps.sqs.HmppsQueueService;
 
 import java.time.Duration;
 import java.time.OffsetDateTime;
+import java.util.List;
 
 @Service
 @Slf4j
@@ -23,6 +24,8 @@ public class PrisonerEventsListener {
     private final HmppsQueueService hmppsQueueService;
     private final Duration totalDelay;
     private final Duration delay;
+
+    private static final List<String> DELAYED_EVENT_TYPES = List.of("OFFENDER_MOVEMENT-RECEPTION", "OFFENDER_MOVEMENT-DISCHARGE", "BOOKING_NUMBER-CHANGED");
 
     public PrisonerEventsListener(ObjectMapper objectMapper,
                                   HMPPSDomainEventsEmitter eventsEmitter,
@@ -40,8 +43,8 @@ public class PrisonerEventsListener {
     public void onPrisonerEvent(String message, SQSTextMessage rawMessage) throws JsonProcessingException {
         final var sqsMessage = objectMapper.readValue(message, SQSMessage.class);
         final var publishedAt = OffsetDateTime.parse(sqsMessage.MessageAttributes().publishedAt().Value());
-        if (publishedAt.isBefore(OffsetDateTime.now().minus(totalDelay))) {
-            final var event = objectMapper.readValue(sqsMessage.Message(), OffenderEvent.class);
+        final var event = objectMapper.readValue(sqsMessage.Message(), OffenderEvent.class);
+        if (!DELAYED_EVENT_TYPES.contains(event.getEventType()) || publishedAt.isBefore(OffsetDateTime.now().minus(totalDelay))) {
             log.debug("Received message {} type {} published at {}", sqsMessage.MessageId(), event.getEventType(), publishedAt);
             eventsEmitter.convertAndSendWhenSignificant(event);
         } else {
@@ -52,7 +55,6 @@ public class PrisonerEventsListener {
                     .withDelaySeconds((int) delay.toSeconds()));
         }
     }
-
 }
 
 record SQSMessage(String Message, String MessageId, MessageAttributes MessageAttributes) {

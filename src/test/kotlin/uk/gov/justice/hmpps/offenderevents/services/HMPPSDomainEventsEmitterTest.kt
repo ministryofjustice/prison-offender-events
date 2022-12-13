@@ -862,7 +862,7 @@ internal class HMPPSDomainEventsEmitterTest {
     @Test
     @DisplayName("will contain no other telemetry properties")
     fun willContainNoOtherTelemetryProperties() {
-      Assertions.assertThat(telemetryAttributes).containsOnlyKeys("eventType", "nomsNumber", "occurredAt", "caseNoteId", "caseNoteType")
+      Assertions.assertThat(telemetryAttributes).containsOnlyKeys("eventType", "nomsNumber", "occurredAt", "publishedAt", "caseNoteId", "caseNoteType")
     }
   }
 
@@ -957,7 +957,7 @@ internal class HMPPSDomainEventsEmitterTest {
     @Test
     @DisplayName("will contain no other telemetry properties")
     fun willContainNoOtherTelemetryProperties() {
-      Assertions.assertThat(telemetryAttributes).containsOnlyKeys("eventType", "nomsNumber", "occurredAt", "caseNoteId", "caseNoteType", "type", "subType")
+      Assertions.assertThat(telemetryAttributes).containsOnlyKeys("eventType", "nomsNumber", "occurredAt", "publishedAt", "caseNoteId", "caseNoteType", "type", "subType")
     }
   }
 

@@ -39,6 +39,7 @@ public class HmppsDomainEvent {
         final var elements = new HashMap<>(Map.of(
             "eventType", eventType,
             "occurredAt", occurredAt,
+            "publishedAt", publishedAt,
             "nomsNumber", personReference.nomsNumber()
         ));
         elements.putAll(additionalInformation);
