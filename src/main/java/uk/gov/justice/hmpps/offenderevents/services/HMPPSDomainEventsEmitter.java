@@ -149,6 +149,7 @@ public class HMPPSDomainEventsEmitter {
             .withAdditionalInformation("details", receivedReason.details())
             .withAdditionalInformation("currentLocation", receivedReason.currentLocation().name())
             .withAdditionalInformation("prisonId", receivedReason.prisonId())
+            .withAdditionalInformation("nomisMovementReasonCode", receivedReason.nomisMovementReason().code())
             .withAdditionalInformation("currentPrisonStatus", receivedReason.currentPrisonStatus().name()));
     }
 
@@ -201,6 +202,7 @@ public class HMPPSDomainEventsEmitter {
             .withAdditionalInformation("details", releaseReason.details())
             .withAdditionalInformation("currentLocation", releaseReason.currentLocation().name())
             .withAdditionalInformation("prisonId", releaseReason.prisonId())
+            .withAdditionalInformation("nomisMovementReasonCode", releaseReason.nomisMovementReason().code())
             .withAdditionalInformation("currentPrisonStatus", releaseReason.currentPrisonStatus().name()));
     }
 

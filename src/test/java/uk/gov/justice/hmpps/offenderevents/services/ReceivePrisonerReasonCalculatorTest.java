@@ -112,10 +112,15 @@ class ReceivePrisonerReasonCalculatorTest {
             .isEqualTo(ProbableCause.RECALL);
         assertThat(calculator.calculateMostLikelyReasonForPrisonerReceive("A1234GH").reason())
             .isEqualTo(Reason.ADMISSION);
+        assertThat(calculator.calculateMostLikelyReasonForPrisonerReceive("A1234GH").nomisMovementReason().code())
+            .isEqualTo("L");
+
 
         when(prisonApiService.getPrisonerDetails(any())).thenReturn(prisonerDetails("RECALL", true, "ADM", "INT"));
         assertThat(calculator.calculateMostLikelyReasonForPrisonerReceive("A1234GH").reason())
             .isEqualTo(Reason.TRANSFERRED);
+        assertThat(calculator.calculateMostLikelyReasonForPrisonerReceive("A1234GH").nomisMovementReason().code())
+            .isEqualTo("INT");
 
     }
 
@@ -127,10 +132,14 @@ class ReceivePrisonerReasonCalculatorTest {
             .isEqualTo(ProbableCause.RECALL);
         assertThat(calculator.calculateMostLikelyReasonForPrisonerReceive("A1234GH").reason())
             .isEqualTo(Reason.ADMISSION);
+        assertThat(calculator.calculateMostLikelyReasonForPrisonerReceive("A1234GH").nomisMovementReason().code())
+            .isEqualTo("L");
 
         when(prisonApiService.getPrisonerDetails(any())).thenReturn(prisonerDetails("RECALL", true, "ADM", "TRNCRT"));
         assertThat(calculator.calculateMostLikelyReasonForPrisonerReceive("A1234GH").reason())
             .isEqualTo(Reason.TRANSFERRED);
+        assertThat(calculator.calculateMostLikelyReasonForPrisonerReceive("A1234GH").nomisMovementReason().code())
+            .isEqualTo("TRNCRT");
     }
 
     @Test
@@ -141,10 +150,14 @@ class ReceivePrisonerReasonCalculatorTest {
             .isEqualTo(ProbableCause.RECALL);
         assertThat(calculator.calculateMostLikelyReasonForPrisonerReceive("A1234GH").reason())
             .isEqualTo(Reason.ADMISSION);
+        assertThat(calculator.calculateMostLikelyReasonForPrisonerReceive("A1234GH").nomisMovementReason().code())
+            .isEqualTo("L");
 
         when(prisonApiService.getPrisonerDetails(any())).thenReturn(prisonerDetails("RECALL", true, "ADM", "TRNTAP"));
         assertThat(calculator.calculateMostLikelyReasonForPrisonerReceive("A1234GH").reason())
             .isEqualTo(Reason.TRANSFERRED);
+        assertThat(calculator.calculateMostLikelyReasonForPrisonerReceive("A1234GH").nomisMovementReason().code())
+            .isEqualTo("TRNTAP");
     }
 
     @Test
@@ -155,12 +168,16 @@ class ReceivePrisonerReasonCalculatorTest {
             .isEqualTo(ProbableCause.CONVICTED);
         assertThat(calculator.calculateMostLikelyReasonForPrisonerReceive("A1234GH").reason())
             .isEqualTo(Reason.ADMISSION);
+        assertThat(calculator.calculateMostLikelyReasonForPrisonerReceive("A1234GH").nomisMovementReason().code())
+            .isEqualTo("V");
 
         when(prisonApiService.getPrisonerDetails(any())).thenReturn(prisonerDetails("SENTENCED", false, "ADM", "L"));
         assertThat(calculator.calculateMostLikelyReasonForPrisonerReceive("A1234GH").probableCause())
             .isEqualTo(ProbableCause.RECALL);
         assertThat(calculator.calculateMostLikelyReasonForPrisonerReceive("A1234GH").reason())
             .isEqualTo(Reason.ADMISSION);
+        assertThat(calculator.calculateMostLikelyReasonForPrisonerReceive("A1234GH").nomisMovementReason().code())
+            .isEqualTo("L");
     }
 
     @Test
@@ -171,12 +188,16 @@ class ReceivePrisonerReasonCalculatorTest {
             .isEqualTo(ProbableCause.CONVICTED);
         assertThat(calculator.calculateMostLikelyReasonForPrisonerReceive("A1234GH").reason())
             .isEqualTo(Reason.ADMISSION);
+        assertThat(calculator.calculateMostLikelyReasonForPrisonerReceive("A1234GH").nomisMovementReason().code())
+            .isEqualTo("V");
 
         when(prisonApiService.getPrisonerDetails(any())).thenReturn(prisonerDetails("SENTENCED", false, "ADM", "Y"));
         assertThat(calculator.calculateMostLikelyReasonForPrisonerReceive("A1234GH").probableCause())
             .isEqualTo(ProbableCause.RECALL);
         assertThat(calculator.calculateMostLikelyReasonForPrisonerReceive("A1234GH").reason())
             .isEqualTo(Reason.ADMISSION);
+        assertThat(calculator.calculateMostLikelyReasonForPrisonerReceive("A1234GH").nomisMovementReason().code())
+            .isEqualTo("Y");
     }
 
     @Test
@@ -187,13 +208,16 @@ class ReceivePrisonerReasonCalculatorTest {
             .isEqualTo(ProbableCause.CONVICTED);
         assertThat(calculator.calculateMostLikelyReasonForPrisonerReceive("A1234GH").reason())
             .isEqualTo(Reason.ADMISSION);
+        assertThat(calculator.calculateMostLikelyReasonForPrisonerReceive("A1234GH").nomisMovementReason().code())
+            .isEqualTo("V");
 
         when(prisonApiService.getPrisonerDetails(any())).thenReturn(prisonerDetails("SENTENCED", false, "ADM", "B"));
         assertThat(calculator.calculateMostLikelyReasonForPrisonerReceive("A1234GH").probableCause())
             .isEqualTo(ProbableCause.RECALL);
         assertThat(calculator.calculateMostLikelyReasonForPrisonerReceive("A1234GH").reason())
             .isEqualTo(Reason.ADMISSION);
-
+        assertThat(calculator.calculateMostLikelyReasonForPrisonerReceive("A1234GH").nomisMovementReason().code())
+            .isEqualTo("B");
 
     }
 
@@ -206,6 +230,8 @@ class ReceivePrisonerReasonCalculatorTest {
             .isEqualTo(ProbableCause.CONVICTED);
         assertThat(calculator.calculateMostLikelyReasonForPrisonerReceive("A1234GH").reason())
             .isEqualTo(Reason.ADMISSION);
+        assertThat(calculator.calculateMostLikelyReasonForPrisonerReceive("A1234GH").nomisMovementReason().code())
+            .isEqualTo("V");
 
         when(communityApiService.getRecalls(any()))
             .thenReturn(Optional.of(List.of()));
@@ -215,6 +241,8 @@ class ReceivePrisonerReasonCalculatorTest {
             .isEqualTo(ProbableCause.REMAND);
         assertThat(calculator.calculateMostLikelyReasonForPrisonerReceive("A1234GH").reason())
             .isEqualTo(Reason.ADMISSION);
+        assertThat(calculator.calculateMostLikelyReasonForPrisonerReceive("A1234GH").nomisMovementReason().code())
+            .isEqualTo("N");
     }
 
     @Test
