@@ -37,6 +37,7 @@ import uk.gov.justice.hmpps.offenderevents.services.CurrentPrisonStatus.UNDER_PR
 import uk.gov.justice.hmpps.offenderevents.services.ReceivePrisonerReasonCalculator.ProbableCause
 import uk.gov.justice.hmpps.offenderevents.services.ReceivePrisonerReasonCalculator.ReceiveReason
 import uk.gov.justice.hmpps.offenderevents.services.ReceivePrisonerReasonCalculator.Source.PRISON
+import uk.gov.justice.hmpps.offenderevents.services.ReleasePrisonerReasonCalculator.MovementReason
 import uk.gov.justice.hmpps.offenderevents.services.ReleasePrisonerReasonCalculator.Reason
 import uk.gov.justice.hmpps.offenderevents.services.ReleasePrisonerReasonCalculator.Reason.TEMPORARY_ABSENCE_RELEASE
 import uk.gov.justice.hmpps.offenderevents.services.ReleasePrisonerReasonCalculator.ReleaseReason
@@ -114,7 +115,8 @@ internal class HMPPSDomainEventsEmitterTest {
           PRISON,
           IN_PRISON,
           UNDER_PRISON_CARE,
-          "MDI"
+          "MDI",
+          ReceivePrisonerReasonCalculator.MovementReason("N")
         )
       )
     Mockito.`when`(releasePrisonerReasonCalculator!!.calculateReasonForRelease(ArgumentMatchers.any()))
@@ -123,7 +125,8 @@ internal class HMPPSDomainEventsEmitterTest {
           TEMPORARY_ABSENCE_RELEASE,
           OUTSIDE_PRISON,
           NOT_UNDER_PRISON_CARE,
-          "MDI"
+          "MDI",
+          MovementReason("N")
         )
       )
     emitter.convertAndSendWhenSignificant(
@@ -201,7 +204,8 @@ internal class HMPPSDomainEventsEmitterTest {
             "some details",
             IN_PRISON,
             UNDER_PRISON_CARE,
-            "MDI"
+            "MDI",
+            ReceivePrisonerReasonCalculator.MovementReason("N")
           )
         )
       emitter.convertAndSendWhenSignificant(
@@ -271,6 +275,13 @@ internal class HMPPSDomainEventsEmitterTest {
     }
 
     @Test
+    @DisplayName("will pass through the nomis movement reason code")
+    fun willPassThroughNOMISReasonCode() {
+      JsonAssertions.assertThatJson(payload).node("additionalInformation.nomisMovementReasonCode")
+        .isEqualTo("N")
+    }
+
+    @Test
     @DisplayName("will describe the prisoners current location and status")
     fun willDescribeThePrisonersCurrentLocation() {
       JsonAssertions.assertThatJson(payload).node("additionalInformation.currentLocation").isEqualTo("IN_PRISON")
@@ -337,7 +348,8 @@ internal class HMPPSDomainEventsEmitterTest {
             "some details",
             OUTSIDE_PRISON,
             NOT_UNDER_PRISON_CARE,
-            "MDI"
+            "MDI",
+            ReceivePrisonerReasonCalculator.MovementReason("N")
           )
         )
       emitter.convertAndSendWhenSignificant(
@@ -399,7 +411,8 @@ internal class HMPPSDomainEventsEmitterTest {
             "some details",
             OUTSIDE_PRISON,
             NOT_UNDER_PRISON_CARE,
-            "MDI"
+            "MDI",
+            MovementReason("N")
           )
         )
       emitter.convertAndSendWhenSignificant(
@@ -453,6 +466,13 @@ internal class HMPPSDomainEventsEmitterTest {
     fun willIndicateTheReasonForAPrisonersExit() {
       JsonAssertions.assertThatJson(payload).node("additionalInformation.reason")
         .isEqualTo("TEMPORARY_ABSENCE_RELEASE")
+    }
+
+    @Test
+    @DisplayName("will pass through the nomis movement reason code")
+    fun willPassThroughNOMISReasonCode() {
+      JsonAssertions.assertThatJson(payload).node("additionalInformation.nomisMovementReasonCode")
+        .isEqualTo("N")
     }
 
     @Test
@@ -521,7 +541,8 @@ internal class HMPPSDomainEventsEmitterTest {
         .thenReturn(
           ReleaseReason(
             Reason.UNKNOWN, "some details", IN_PRISON,
-            UNDER_PRISON_CARE, "MDI"
+            UNDER_PRISON_CARE, "MDI", MovementReason("N")
+
           )
         )
       emitter.convertAndSendWhenSignificant(

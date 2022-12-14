@@ -63,6 +63,7 @@ class ReleasePrisonerReasonCalculatorTest {
         final var reason = calculator.calculateReasonForRelease("A1234GF");
 
         assertThat(reason.reason()).isEqualTo(Reason.RELEASED_TO_HOSPITAL);
+        assertThat(reason.nomisMovementReason().code()).isEqualTo("HP");
     }
 
     @Test
@@ -86,6 +87,7 @@ class ReleasePrisonerReasonCalculatorTest {
 
         assertThat(reason.reason()).isEqualTo(Reason.RELEASED);
         assertThat(reason.details()).isEqualTo("Movement reason code YY");
+        assertThat(reason.nomisMovementReason().code()).isEqualTo("YY");
 
     }
 
