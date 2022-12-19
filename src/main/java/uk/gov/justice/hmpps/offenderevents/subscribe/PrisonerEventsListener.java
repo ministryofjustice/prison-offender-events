@@ -25,7 +25,7 @@ public class PrisonerEventsListener {
     private final Duration totalDelay;
     private final Duration delay;
 
-    private static final List<String> DELAYED_EVENT_TYPES = List.of("OFFENDER_MOVEMENT-RECEPTION", "OFFENDER_MOVEMENT-DISCHARGE", "BOOKING_NUMBER-CHANGED");
+    private static final List<String> DELAYED_EVENT_TYPES = List.of("OFFENDER_MOVEMENT-RECEPTION", "OFFENDER_MOVEMENT-DISCHARGE");
 
     public PrisonerEventsListener(ObjectMapper objectMapper,
                                   HMPPSDomainEventsEmitter eventsEmitter,

@@ -899,7 +899,7 @@ internal class HMPPSDomainEventsEmitterTest {
         OffenderEvent.builder()
           .eventType("OFFENDER_CASE_NOTES-INSERTED")
           .caseNoteType("CHAP")
-          .caseNoteSubType("FAITH")
+          .caseNoteSubType("MAIL ROOM")
           .caseNoteId(-12345L)
           .offenderIdDisplay("A1234GH")
           .bookingId(1234L)
@@ -944,10 +944,10 @@ internal class HMPPSDomainEventsEmitterTest {
     @Test
     @DisplayName("additional information will contain the case note type, id, raw type and subtype")
     fun additionalInformationWillContainCaseNoteType() {
-      JsonAssertions.assertThatJson(payload).node("additionalInformation.caseNoteType").isEqualTo("CHAP-FAITH")
+      JsonAssertions.assertThatJson(payload).node("additionalInformation.caseNoteType").isEqualTo("CHAP-MAIL")
       JsonAssertions.assertThatJson(payload).node("additionalInformation.caseNoteId").isEqualTo("\"-12345\"")
       JsonAssertions.assertThatJson(payload).node("additionalInformation.type").isEqualTo("\"CHAP\"")
-      JsonAssertions.assertThatJson(payload).node("additionalInformation.subType").isEqualTo("\"FAITH\"")
+      JsonAssertions.assertThatJson(payload).node("additionalInformation.subType").isEqualTo("\"MAIL ROOM\"")
     }
 
     @Test
@@ -970,9 +970,9 @@ internal class HMPPSDomainEventsEmitterTest {
       Assertions.assertThat(telemetryAttributes).containsEntry("nomsNumber", "A1234GH")
       Assertions.assertThat(telemetryAttributes).containsEntry("occurredAt", "2022-12-04T10:00:00Z")
       Assertions.assertThat(telemetryAttributes).containsEntry("caseNoteId", "-12345")
-      Assertions.assertThat(telemetryAttributes).containsEntry("caseNoteType", "CHAP-FAITH")
+      Assertions.assertThat(telemetryAttributes).containsEntry("caseNoteType", "CHAP-MAIL")
       Assertions.assertThat(telemetryAttributes).containsEntry("type", "CHAP")
-      Assertions.assertThat(telemetryAttributes).containsEntry("subType", "FAITH")
+      Assertions.assertThat(telemetryAttributes).containsEntry("subType", "MAIL ROOM")
     }
 
     @Test
@@ -982,7 +982,6 @@ internal class HMPPSDomainEventsEmitterTest {
     }
   }
 
-  @Suppress("unused")
   private fun eventMap(): Stream<Arguments> {
     return Stream.of(
       Arguments.of("OFFENDER_MOVEMENT-DISCHARGE", "prison-offender-events.prisoner.released"),
@@ -990,7 +989,6 @@ internal class HMPPSDomainEventsEmitterTest {
     )
   }
 
-  @Suppress("unused")
   private fun bookingChangedEventMap(): Stream<Arguments> {
     return Stream.of(
       Arguments.of("BOOKING_NUMBER-CHANGED", "prison-offender-events.prisoner.merged")
