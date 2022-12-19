@@ -230,7 +230,7 @@ public class HMPPSDomainEventsEmitter {
                 .personReference(new PersonReference(event.getOffenderIdDisplay()))
                 .build()
                 .withAdditionalInformation("caseNoteId", event.getCaseNoteId().toString())
-                .withAdditionalInformation("caseNoteType", String.format("%s-%s",event.getCaseNoteType(),event.getCaseNoteSubType()))
+                .withAdditionalInformation("caseNoteType", String.format("%s-%s",event.getCaseNoteType(),event.getCaseNoteSubType().split("\\W")[0]))
                 .withAdditionalInformation("type", event.getCaseNoteType())
                 .withAdditionalInformation("subType", event.getCaseNoteSubType()));
         }
