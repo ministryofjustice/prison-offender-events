@@ -1,6 +1,6 @@
 plugins {
-  id("uk.gov.justice.hmpps.gradle-spring-boot") version "4.7.4"
-  kotlin("plugin.spring") version "1.7.22"
+  id("uk.gov.justice.hmpps.gradle-spring-boot") version "4.8.0"
+  kotlin("plugin.spring") version "1.8.0"
   id("org.unbroken-dome.test-sets") version "4.0.0"
 }
 
@@ -50,10 +50,10 @@ dependencies {
   implementation("com.google.code.gson:gson:2.10")
   implementation("com.google.guava:guava:31.1-jre")
 
-  implementation("org.springdoc:springdoc-openapi-ui:1.6.13")
-  implementation("org.springdoc:springdoc-openapi-data-rest:1.6.13")
-  implementation("org.springdoc:springdoc-openapi-kotlin:1.6.13")
-  implementation("org.springdoc:springdoc-openapi-security:1.6.13")
+  implementation("org.springdoc:springdoc-openapi-ui:1.6.14")
+  implementation("org.springdoc:springdoc-openapi-data-rest:1.6.14")
+  implementation("org.springdoc:springdoc-openapi-kotlin:1.6.14")
+  implementation("org.springdoc:springdoc-openapi-security:1.6.14")
 
   testAnnotationProcessor("org.springframework.boot:spring-boot-configuration-processor")
   testAnnotationProcessor("org.projectlombok:lombok:1.18.24")
@@ -67,7 +67,7 @@ dependencies {
   testImplementation("org.awaitility:awaitility:4.2.0")
   testImplementation("org.awaitility:awaitility-kotlin:4.2.0")
   testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-reactive:1.6.4")
-  testImplementation("org.mockito:mockito-inline:4.9.0")
+  testImplementation("org.mockito:mockito-inline:4.11.0")
   testImplementation("io.swagger.parser.v3:swagger-parser:2.1.9")
 }
 
