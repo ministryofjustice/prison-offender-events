@@ -1,8 +1,5 @@
 package uk.gov.justice.hmpps.offenderevents.services
 
-import com.amazonaws.services.sns.AmazonSNSAsync
-import com.amazonaws.services.sns.model.MessageAttributeValue
-import com.amazonaws.services.sns.model.PublishRequest
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.microsoft.applicationinsights.TelemetryClient
 import net.javacrumbs.jsonunit.assertj.JsonAssertions.assertThatJson
@@ -31,6 +28,9 @@ import org.mockito.kotlin.times
 import org.mockito.kotlin.verifyNoInteractions
 import org.mockito.kotlin.whenever
 import org.mockito.quality.Strictness.LENIENT
+import software.amazon.awssdk.services.sns.SnsAsyncClient
+import software.amazon.awssdk.services.sns.model.MessageAttributeValue
+import software.amazon.awssdk.services.sns.model.PublishRequest
 import uk.gov.justice.hmpps.offenderevents.config.OffenderEventsProperties
 import uk.gov.justice.hmpps.offenderevents.model.OffenderEvent
 import uk.gov.justice.hmpps.offenderevents.services.CurrentLocation.IN_PRISON
@@ -78,7 +78,7 @@ internal class HMPPSDomainEventsEmitterTest {
   private lateinit var telemetryAttributesCaptor: ArgumentCaptor<Map<String, String>>
 
   private val hmppsQueueService = mock<HmppsQueueService>()
-  private var hmppsEventSnsClient = mock<AmazonSNSAsync>()
+  private var hmppsEventSnsClient = mock<SnsAsyncClient>()
 
   @BeforeEach
   fun setUp() {
@@ -139,15 +139,15 @@ internal class HMPPSDomainEventsEmitterTest {
         .build()
     )
 
-    verify(hmppsEventSnsClient, times(1)).publishAsync(publishRequestCaptor.capture())
-    val payload = publishRequestCaptor.value.message
-    val messageAttributes = publishRequestCaptor.value.messageAttributes
+    verify(hmppsEventSnsClient, times(1)).publish(publishRequestCaptor.capture())
+    val payload = publishRequestCaptor.value.message()
+    val messageAttributes = publishRequestCaptor.value.messageAttributes()
     assertThatJson(payload).node("eventType").isEqualTo(eventType)
     assertThatJson(payload).node("version").isEqualTo(1)
     assertThat(
       messageAttributes["eventType"]
     )
-      .isEqualTo(MessageAttributeValue().withStringValue(eventType).withDataType("String"))
+      .isEqualTo(MessageAttributeValue.builder().stringValue(eventType).dataType("String").build())
     verify(telemetryClient)!!
       .trackEvent(ArgumentMatchers.eq(eventType), ArgumentMatchers.anyMap(), ArgumentMatchers.isNull())
   }
@@ -173,15 +173,15 @@ internal class HMPPSDomainEventsEmitterTest {
         .build()
     )
 
-    verify(hmppsEventSnsClient, times(1)).publishAsync(publishRequestCaptor.capture())
-    val payload = publishRequestCaptor.value.message
-    val messageAttributes = publishRequestCaptor.value.messageAttributes
+    verify(hmppsEventSnsClient, times(1)).publish(publishRequestCaptor.capture())
+    val payload = publishRequestCaptor.value.message()
+    val messageAttributes = publishRequestCaptor.value.messageAttributes()
     assertThatJson(payload).node("eventType").isEqualTo(eventType)
     assertThatJson(payload).node("version").isEqualTo(1)
     assertThat(
       messageAttributes["eventType"]
     )
-      .isEqualTo(MessageAttributeValue().withStringValue(eventType).withDataType("String"))
+      .isEqualTo(MessageAttributeValue.builder().stringValue(eventType).dataType("String").build())
     verify(telemetryClient)!!
       .trackEvent(ArgumentMatchers.eq(eventType), ArgumentMatchers.anyMap(), ArgumentMatchers.isNull())
   }
@@ -218,8 +218,8 @@ internal class HMPPSDomainEventsEmitterTest {
           .build()
       )
 
-      verify(hmppsEventSnsClient, times(1)).publishAsync(publishRequestCaptor.capture())
-      payload = publishRequestCaptor.value.message
+      verify(hmppsEventSnsClient, times(1)).publish(publishRequestCaptor.capture())
+      payload = publishRequestCaptor.value.message()
       verify(telemetryClient)!!
         .trackEvent(ArgumentMatchers.any(), telemetryAttributesCaptor.capture(), ArgumentMatchers.isNull())
       telemetryAttributes = telemetryAttributesCaptor.value
@@ -424,8 +424,8 @@ internal class HMPPSDomainEventsEmitterTest {
           .eventDatetime(LocalDateTime.parse("2020-07-04T10:42:43"))
           .build()
       )
-      verify(hmppsEventSnsClient, times(1)).publishAsync(publishRequestCaptor.capture())
-      payload = publishRequestCaptor.value.message
+      verify(hmppsEventSnsClient, times(1)).publish(publishRequestCaptor.capture())
+      payload = publishRequestCaptor.value.message()
       verify(telemetryClient)!!
         .trackEvent(ArgumentMatchers.any(), telemetryAttributesCaptor.capture(), ArgumentMatchers.isNull())
       telemetryAttributes = telemetryAttributesCaptor.value
@@ -618,8 +618,8 @@ internal class HMPPSDomainEventsEmitterTest {
           .build()
       )
 
-      verify(hmppsEventSnsClient, times(1)).publishAsync(publishRequestCaptor.capture())
-      payload = publishRequestCaptor.value.message
+      verify(hmppsEventSnsClient, times(1)).publish(publishRequestCaptor.capture())
+      payload = publishRequestCaptor.value.message()
       verify(telemetryClient)!!
         .trackEvent(ArgumentMatchers.any(), telemetryAttributesCaptor.capture(), ArgumentMatchers.isNull())
       telemetryAttributes = telemetryAttributesCaptor.value
@@ -723,8 +723,8 @@ internal class HMPPSDomainEventsEmitterTest {
           .build()
       )
 
-      verify(hmppsEventSnsClient, times(3)).publishAsync(publishRequestCaptor.capture())
-      payload = publishRequestCaptor.value.message
+      verify(hmppsEventSnsClient, times(3)).publish(publishRequestCaptor.capture())
+      payload = publishRequestCaptor.value.message()
       verify(telemetryClient, times(3))!!
         .trackEvent(ArgumentMatchers.any(), telemetryAttributesCaptor.capture(), ArgumentMatchers.isNull())
       telemetryAttributes = telemetryAttributesCaptor.value
@@ -800,8 +800,8 @@ internal class HMPPSDomainEventsEmitterTest {
           .eventDatetime(LocalDateTime.parse("2022-12-04T10:00:00"))
           .build()
       )
-      verify(hmppsEventSnsClient, times(1)).publishAsync(publishRequestCaptor.capture())
-      payload = publishRequestCaptor.value.message
+      verify(hmppsEventSnsClient, times(1)).publish(publishRequestCaptor.capture())
+      payload = publishRequestCaptor.value.message()
       verify(telemetryClient)!!
         .trackEvent(ArgumentMatchers.any(), telemetryAttributesCaptor.capture(), ArgumentMatchers.isNull())
       telemetryAttributes = telemetryAttributesCaptor.value

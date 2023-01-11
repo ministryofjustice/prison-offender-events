@@ -6,6 +6,7 @@ import org.awaitility.kotlin.untilCallTo
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.springframework.http.MediaType
+import software.amazon.awssdk.services.sqs.model.SendMessageRequest
 import uk.gov.justice.hmpps.offenderevents.resource.QueueListenerIntegrationTest
 
 class HouseKeepingIntegrationTest : QueueListenerIntegrationTest() {
@@ -18,7 +19,7 @@ class HouseKeepingIntegrationTest : QueueListenerIntegrationTest() {
   fun `housekeeping will consume a message on the dlq and return to main queue`() {
     val message = "/messages/NotUsedMessage.json".readResourceAsText()
 
-    prisonEventQueueSqsClient.sendMessage(prisonEventDlqUrl, message)
+    prisonEventQueueSqsClient.sendMessage(SendMessageRequest.builder().queueUrl(prisonEventDlqUrl).messageBody(message).build()).get()
 
     await untilCallTo { getNumberOfMessagesCurrentlyOnPrisonEventDlq() } matches { it == 1 }
 

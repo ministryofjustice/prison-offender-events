@@ -1,7 +1,5 @@
 package uk.gov.justice.hmpps.offenderevents.services;
 
-import com.amazonaws.services.sns.AmazonSNSAsync;
-import com.amazonaws.services.sns.model.PublishRequest;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.microsoft.applicationinsights.TelemetryClient;
@@ -9,6 +7,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClientResponseException;
+import software.amazon.awssdk.services.sns.SnsAsyncClient;
+import software.amazon.awssdk.services.sns.model.PublishRequest;
+import software.amazon.awssdk.services.sqs.SqsAsyncClient;
 import uk.gov.justice.hmpps.offenderevents.config.OffenderEventsProperties;
 import uk.gov.justice.hmpps.offenderevents.model.HmppsDomainEvent;
 import uk.gov.justice.hmpps.offenderevents.model.HmppsDomainEvent.PersonReference;
@@ -31,7 +32,7 @@ import static java.lang.String.format;
 @Service
 @Slf4j
 public class HMPPSDomainEventsEmitter {
-    private final AmazonSNSAsync hmppsEventsTopicSnsClient;
+    private final SnsAsyncClient hmppsEventsTopicSnsClient;
     private final String topicArn;
     private final ObjectMapper objectMapper;
     private final ReceivePrisonerReasonCalculator receivePrisonerReasonCalculator;
@@ -49,7 +50,7 @@ public class HMPPSDomainEventsEmitter {
                              final OffenderEventsProperties offenderEventsProperties) {
         HmppsTopic hmppsEventTopic = hmppsQueueService.findByTopicId("hmppseventtopic");
         this.topicArn = hmppsEventTopic.getArn();
-        this.hmppsEventsTopicSnsClient = (AmazonSNSAsync) hmppsEventTopic.getSnsClient();
+        this.hmppsEventsTopicSnsClient = hmppsEventTopic.getSnsClient();
         this.objectMapper = objectMapper;
         this.receivePrisonerReasonCalculator = receivePrisonerReasonCalculator;
         this.releasePrisonerReasonCalculator = releasePrisonerReasonCalculator;
@@ -221,8 +222,10 @@ public class HMPPSDomainEventsEmitter {
 
     public void sendEvent(final HmppsDomainEvent payload) {
         try {
-            hmppsEventsTopicSnsClient.publishAsync(new PublishRequest(topicArn, objectMapper.writeValueAsString(payload))
-                .withMessageAttributes(payload.asMetadataMap()));
+            hmppsEventsTopicSnsClient.publish(PublishRequest.builder()
+                    .topicArn(topicArn)
+                    .message(objectMapper.writeValueAsString(payload))
+                .messageAttributes(payload.asMetadataMap()).build());
         } catch (JsonProcessingException e) {
             log.error("Failed to convert payload {} to json", payload);
         }

@@ -1,8 +1,5 @@
 package uk.gov.justice.hmpps.offenderevents.e2e;
 
-import com.amazonaws.services.sns.model.MessageAttributeValue;
-import com.amazonaws.services.sns.model.PublishRequest;
-import com.amazonaws.services.sqs.model.Message;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.tomakehurst.wiremock.client.WireMock;
@@ -15,6 +12,10 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import software.amazon.awssdk.services.sns.model.PublishRequest;
+import software.amazon.awssdk.services.sqs.model.Message;
+import software.amazon.awssdk.services.sns.model.MessageAttributeValue;
+import software.amazon.awssdk.services.sqs.model.ReceiveMessageRequest;
 import uk.gov.justice.hmpps.offenderevents.resource.QueueListenerIntegrationTest;
 import uk.gov.justice.hmpps.offenderevents.services.wiremock.CommunityApiExtension;
 import uk.gov.justice.hmpps.offenderevents.services.wiremock.HMPPSAuthExtension;
@@ -25,6 +26,7 @@ import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
+import java.util.concurrent.ExecutionException;
 import java.util.Map;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.anyUrl;
@@ -47,23 +49,27 @@ public class HMPPSDomainEventsTest extends QueueListenerIntegrationTest {
         purgeQueues();
     }
 
-    private List<String> geMessagesCurrentlyOnTestQueue() {
-        final var messageResult = getPrisonEventTestQueueSqsClient().receiveMessage(getPrisonEventTestQueueUrl());
+    private List<String> geMessagesCurrentlyOnTestQueue() throws ExecutionException, InterruptedException {
+        final var messageResult = getPrisonEventTestQueueSqsClient().receiveMessage(
+            ReceiveMessageRequest.builder().queueUrl(getPrisonEventTestQueueUrl()).build()
+        ).get();
         return messageResult
-            .getMessages()
+            .messages()
             .stream()
-            .map(Message::getBody)
+            .map(Message::body)
             .map(this::toSQSMessage)
             .map(SQSMessage::Message)
             .toList();
     }
 
-    private List<String> geMessagesCurrentlyOnHMPPSTestQueue() {
-        final var messageResult = getPrisonEventTestQueueSqsClient().receiveMessage(getHmppsEventTestQueueUrl());
+    private List<String> geMessagesCurrentlyOnHMPPSTestQueue() throws ExecutionException, InterruptedException {
+        final var messageResult = getPrisonEventTestQueueSqsClient().receiveMessage(
+            ReceiveMessageRequest.builder().queueUrl(getHmppsEventTestQueueUrl()).build()
+        ).get();
         return messageResult
-            .getMessages()
+            .messages()
             .stream()
-            .map(Message::getBody)
+            .map(Message::body)
             .map(this::toSQSMessage)
             .map(SQSMessage::Message)
             .toList();
@@ -82,14 +88,13 @@ public class HMPPSDomainEventsTest extends QueueListenerIntegrationTest {
 
     private void sendToTopic(String eventType, String payload) {
         final var attributes = Map.of(
-            "eventType", new MessageAttributeValue().withDataType("String").withStringValue(eventType),
-            "publishedAt", new MessageAttributeValue().withDataType("String").withStringValue("2021-06-08T14:41:14Z"
+            "eventType", MessageAttributeValue.builder().dataType("String").stringValue(eventType).build(),
+            "publishedAt", MessageAttributeValue.builder().dataType("String").stringValue("2021-06-08T14:41:14Z").build()
                 //LocalDateTime.now().format(DateTimeFormatter.ISO_INSTANT)
-            )
         );
 
-        getPrisonEventTopicSnsClient().publish(new PublishRequest(getPrisonEventTopicArn(), payload)
-            .withMessageAttributes(attributes));
+        getPrisonEventTopicSnsClient().publish(PublishRequest.builder().topicArn(getPrisonEventTopicArn()).message(payload)
+            .messageAttributes(attributes).build());
     }
 
     @Nested
@@ -125,7 +130,7 @@ public class HMPPSDomainEventsTest extends QueueListenerIntegrationTest {
 
             @Test
             @DisplayName("will publish OFFENDER_MOVEMENT-RECEPTION prison event")
-            void willPublishPrisonEvent() {
+            void willPublishPrisonEvent() throws ExecutionException, InterruptedException {
                 await().until(() -> getNumberOfMessagesCurrentlyOnPrisonEventTestQueue() == 1);
                 final var prisonEventMessages = geMessagesCurrentlyOnTestQueue();
                 assertThat(prisonEventMessages)
@@ -137,7 +142,7 @@ public class HMPPSDomainEventsTest extends QueueListenerIntegrationTest {
 
             @Test
             @DisplayName("will publish prison-offender-events.prisoner.received HMPPS domain event without asking community-api")
-            void willPublishHMPPSDomainEvent() {
+            void willPublishHMPPSDomainEvent() throws ExecutionException, InterruptedException {
                 await().until(() -> getNumberOfMessagesCurrentlyOnHMPPSEventTestQueue() == 1);
                 final var hmppsEventMessages = geMessagesCurrentlyOnHMPPSTestQueue();
                 assertThat(hmppsEventMessages).singleElement().satisfies(event -> {
@@ -170,7 +175,7 @@ public class HMPPSDomainEventsTest extends QueueListenerIntegrationTest {
 
             @Test
             @DisplayName("will publish prison-offender-events.prisoner.received HMPPS domain event by asking community-api")
-            void willPublishHMPPSDomainEvent() {
+            void willPublishHMPPSDomainEvent() throws ExecutionException, InterruptedException {
                 CommunityApiExtension.server.stubForNoRecall("A5194DY");
 
                 await().until(() -> getNumberOfMessagesCurrentlyOnHMPPSEventTestQueue() == 1);
@@ -188,7 +193,7 @@ public class HMPPSDomainEventsTest extends QueueListenerIntegrationTest {
 
             @Test
             @DisplayName("will publish a recalled  prison-offender-events.prisoner.received HMPPS domain event when community-api indicates a recall")
-            void willPublishRecallHMPPSDomainEvent() {
+            void willPublishRecallHMPPSDomainEvent() throws ExecutionException, InterruptedException {
                 CommunityApiExtension.server.stubForRecall("A5194DY");
                 PrisonApiExtension.server.stubMovements("A5194DY", List.of(new MovementFragment("IN", LocalDateTime.now())));
 
@@ -240,7 +245,7 @@ public class HMPPSDomainEventsTest extends QueueListenerIntegrationTest {
 
             @Test
             @DisplayName("will publish OFFENDER_MOVEMENT-DISCHARGE prison event")
-            void willPublishPrisonEvent() {
+            void willPublishPrisonEvent() throws ExecutionException, InterruptedException {
                 await().until(() -> getNumberOfMessagesCurrentlyOnPrisonEventTestQueue() == 1);
                 final var prisonEventMessages = geMessagesCurrentlyOnTestQueue();
                 assertThat(prisonEventMessages)
@@ -252,7 +257,7 @@ public class HMPPSDomainEventsTest extends QueueListenerIntegrationTest {
 
             @Test
             @DisplayName("will publish prison-offender-events.prisoner.released HMPPS domain event")
-            void willPublishHMPPSDomainEvent() {
+            void willPublishHMPPSDomainEvent() throws ExecutionException, InterruptedException {
                 await().until(() -> getNumberOfMessagesCurrentlyOnHMPPSEventTestQueue() == 1);
                 final var hmppsEventMessages = geMessagesCurrentlyOnHMPPSTestQueue();
                 assertThat(hmppsEventMessages).singleElement().satisfies(event -> {
@@ -284,7 +289,7 @@ public class HMPPSDomainEventsTest extends QueueListenerIntegrationTest {
 
             @Test
             @DisplayName("will publish prison-offender-events.prisoner.release HMPPS domain event")
-            void willPublishHMPPSDomainEvent() {
+            void willPublishHMPPSDomainEvent() throws ExecutionException, InterruptedException {
                 await().until(() -> getNumberOfMessagesCurrentlyOnHMPPSEventTestQueue() == 1);
                 final var hmppsEventMessages = geMessagesCurrentlyOnHMPPSTestQueue();
                 assertThat(hmppsEventMessages).singleElement().satisfies(event -> {
@@ -334,7 +339,7 @@ public class HMPPSDomainEventsTest extends QueueListenerIntegrationTest {
 
             @Test
             @DisplayName("will publish BOOKING_NUMBER-CHANGED prison event")
-            void willPublishPrisonEvent() {
+            void willPublishPrisonEvent() throws ExecutionException, InterruptedException {
                 await().until(() -> getNumberOfMessagesCurrentlyOnPrisonEventTestQueue() == 1);
                 final var prisonEventMessages = geMessagesCurrentlyOnTestQueue();
                 assertThat(prisonEventMessages)
@@ -346,7 +351,7 @@ public class HMPPSDomainEventsTest extends QueueListenerIntegrationTest {
 
             @Test
             @DisplayName("will publish prison-offender-events.prisoner.merged HMPPS domain event")
-            void willPublishHMPPSDomainEvent() {
+            void willPublishHMPPSDomainEvent() throws ExecutionException, InterruptedException {
                 await().until(() -> getNumberOfMessagesCurrentlyOnHMPPSEventTestQueue() == 1);
                 final var hmppsEventMessages = geMessagesCurrentlyOnHMPPSTestQueue();
                 assertThat(hmppsEventMessages).singleElement().satisfies(event -> {
@@ -421,7 +426,7 @@ public class HMPPSDomainEventsTest extends QueueListenerIntegrationTest {
 
         @Test
         @DisplayName("will publish prison.case-note.published HMPPS domain event")
-        void willPublishHMPPSDomainEvent() {
+        void willPublishHMPPSDomainEvent() throws ExecutionException, InterruptedException {
             await().until(() -> getNumberOfMessagesCurrentlyOnHMPPSEventTestQueue() == 1);
             final var hmppsEventMessages = geMessagesCurrentlyOnHMPPSTestQueue();
             assertThat(hmppsEventMessages).singleElement().satisfies(event -> {

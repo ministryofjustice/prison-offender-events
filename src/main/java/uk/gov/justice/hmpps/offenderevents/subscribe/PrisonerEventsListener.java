@@ -1,13 +1,13 @@
 package uk.gov.justice.hmpps.offenderevents.subscribe;
 
-import com.amazon.sqs.javamessaging.message.SQSTextMessage;
-import com.amazonaws.services.sqs.model.SendMessageRequest;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.awspring.cloud.sqs.annotation.SqsListener;
+import io.awspring.cloud.sqs.listener.QueueAttributes;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.jms.annotation.JmsListener;
 import org.springframework.stereotype.Service;
+import software.amazon.awssdk.services.sqs.model.SendMessageRequest;
 import uk.gov.justice.hmpps.offenderevents.model.OffenderEvent;
 import uk.gov.justice.hmpps.offenderevents.services.HMPPSDomainEventsEmitter;
 import uk.gov.justice.hmpps.sqs.HmppsQueueService;
@@ -39,8 +39,8 @@ public class PrisonerEventsListener {
         this.delay = delay;
     }
 
-    @JmsListener(destination = "prisoneventqueue", containerFactory = "hmppsQueueContainerFactoryProxy")
-    public void onPrisonerEvent(String message, SQSTextMessage rawMessage) throws JsonProcessingException {
+    @SqsListener(queueNames = "prisoneventqueue", factory = "hmppsQueueContainerFactoryProxy", maxInflightMessagesPerQueue = "1", maxMessagesPerPoll = "1")
+    public void onPrisonerEvent(String message, QueueAttributes attributes) throws JsonProcessingException {
         final var sqsMessage = objectMapper.readValue(message, SQSMessage.class);
         final var publishedAt = OffsetDateTime.parse(sqsMessage.MessageAttributes().publishedAt().Value());
         final var event = objectMapper.readValue(sqsMessage.Message(), OffenderEvent.class);
@@ -49,10 +49,12 @@ public class PrisonerEventsListener {
             eventsEmitter.convertAndSendWhenSignificant(event);
         } else {
             hmppsQueueService.findByQueueId("prisoneventqueue").getSqsClient()
-                .sendMessage(new SendMessageRequest()
-                    .withQueueUrl(rawMessage.getQueueUrl())
-                    .withMessageBody(message)
-                    .withDelaySeconds((int) delay.toSeconds()));
+                .sendMessage(SendMessageRequest.builder()
+                    .queueUrl(attributes.getQueueUrl())
+                    .messageBody(message)
+                    .delaySeconds((int) delay.toSeconds())
+                    .build()
+                );
         }
     }
 }

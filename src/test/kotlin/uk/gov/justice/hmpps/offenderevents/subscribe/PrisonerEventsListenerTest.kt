@@ -1,11 +1,8 @@
 package uk.gov.justice.hmpps.offenderevents.subscribe
 
-import com.amazon.sqs.javamessaging.message.SQSTextMessage
-import com.amazonaws.services.sqs.AmazonSQSAsync
-import com.amazonaws.services.sqs.model.SendMessageRequest
 import com.fasterxml.jackson.databind.ObjectMapper
-import lombok.SneakyThrows
-import org.assertj.core.api.AssertionsForClassTypes.assertThat
+import io.awspring.cloud.sqs.listener.QueueAttributes
+import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Nested
@@ -18,6 +15,8 @@ import org.mockito.kotlin.verify
 import org.mockito.kotlin.whenever
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.json.JsonTest
+import software.amazon.awssdk.services.sqs.SqsAsyncClient
+import software.amazon.awssdk.services.sqs.model.SendMessageRequest
 import uk.gov.justice.hmpps.offenderevents.model.OffenderEvent
 import uk.gov.justice.hmpps.offenderevents.services.HMPPSDomainEventsEmitter
 import uk.gov.justice.hmpps.sqs.HmppsQueue
@@ -43,7 +42,7 @@ internal class PrisonerEventsListenerTest {
 
   private lateinit var listener: PrisonerEventsListener
 
-  private val message: SQSTextMessage = mock()
+  private val message: QueueAttributes = mock()
 
   @BeforeEach
   fun setUp() {
@@ -53,7 +52,6 @@ internal class PrisonerEventsListenerTest {
 
   @Nested
   internal inner class MessageOlderThanFortyFiveMinutes {
-    @SneakyThrows
     @Test
     @DisplayName("Will pass offender event to events emitter")
     fun willPassOffenderEventToEventsEmitter() {
@@ -63,7 +61,6 @@ internal class PrisonerEventsListenerTest {
       assertThat(offenderEventArgumentCaptor.value.offenderIdDisplay).isEqualTo("A5194DY")
     }
 
-    @SneakyThrows
     @Test
     @DisplayName("will process message if published more than 45 minutes ago")
     fun willProcessMessageIfPublishedMoreThan45MinutesAgo() {
@@ -83,13 +80,12 @@ internal class PrisonerEventsListenerTest {
   @Nested
   internal inner class MessageYoungerThanFortyFiveMinutes {
     private var receptionMessageBody: String? = null
-    private val prisonEventQueueSqsClient = mock<AmazonSQSAsync>()
-    private val prisonEventQueueSqsDlqClient = mock<AmazonSQSAsync>()
+    private val prisonEventQueueSqsClient = mock<SqsAsyncClient>()
+    private val prisonEventQueueSqsDlqClient = mock<SqsAsyncClient>()
 
     @BeforeEach
-    @SneakyThrows
     fun setUp() {
-      Mockito.`when`(message.queueUrl).thenReturn("https://aws.queue/my-queue")
+      whenever(message.queueUrl).thenReturn("https://aws.queue/my-queue")
       whenever(hmppsQueueService.findByQueueId("prisoneventqueue")).thenReturn(
         HmppsQueue(
           "prisoneventqueue", prisonEventQueueSqsClient, "prison-event-queue",
@@ -123,34 +119,33 @@ internal class PrisonerEventsListenerTest {
     @DisplayName("will set visibility on message to 15 minutes")
     fun willSetVisibilityOnMessageTo15Minutes() {
       verify(prisonEventQueueSqsClient).sendMessage(sendMessageRequestArgumentCaptor.capture())
-      assertThat(sendMessageRequestArgumentCaptor.value.delaySeconds).isEqualTo(15 * 60)
+      assertThat(sendMessageRequestArgumentCaptor.value.delaySeconds()).isEqualTo(15 * 60)
     }
 
     @Test
     @DisplayName("will resend message back to queue it came from")
     fun willResendMessageBackToQueueItCameFrom() {
       verify(prisonEventQueueSqsClient).sendMessage(sendMessageRequestArgumentCaptor.capture())
-      assertThat(sendMessageRequestArgumentCaptor.value.queueUrl).isEqualTo("https://aws.queue/my-queue")
+      assertThat(sendMessageRequestArgumentCaptor.value.queueUrl()).isEqualTo("https://aws.queue/my-queue")
     }
 
     @Test
     @DisplayName("message will be sent untouched")
     fun messageWillBeSentUntouched() {
       verify(prisonEventQueueSqsClient).sendMessage(sendMessageRequestArgumentCaptor.capture())
-      assertThat(sendMessageRequestArgumentCaptor.value.messageBody).isEqualTo(receptionMessageBody)
+      assertThat(sendMessageRequestArgumentCaptor.value.messageBody()).isEqualTo(receptionMessageBody)
     }
   }
 
   @Nested
   internal inner class CaseNotesMessage {
     private var caseNoteMessageBody: String? = null
-    private val prisonEventQueueSqsClient = mock<AmazonSQSAsync>()
-    private val prisonEventQueueSqsDlqClient = mock<AmazonSQSAsync>()
+    private val prisonEventQueueSqsClient = mock<SqsAsyncClient>()
+    private val prisonEventQueueSqsDlqClient = mock<SqsAsyncClient>()
 
     @BeforeEach
-    @SneakyThrows
     fun setUp() {
-      Mockito.`when`(message.queueUrl).thenReturn("https://aws.queue/my-queue")
+      whenever(message.queueUrl).thenReturn("https://aws.queue/my-queue")
       whenever(hmppsQueueService.findByQueueId("prisoneventqueue")).thenReturn(
         HmppsQueue(
           "prisoneventqueue", prisonEventQueueSqsClient, "prison-event-queue",
