@@ -1,10 +1,13 @@
 package uk.gov.justice.hmpps.offenderevents.e2e;
 
+import com.amazonaws.services.sns.model.MessageAttributeValue;
+import com.amazonaws.services.sns.model.PublishRequest;
 import com.amazonaws.services.sqs.model.Message;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.tomakehurst.wiremock.client.WireMock;
 import junit.framework.AssertionFailedError;
+import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -22,6 +25,7 @@ import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
+import java.util.Map;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.anyUrl;
 import static com.github.tomakehurst.wiremock.client.WireMock.getRequestedFor;
@@ -32,6 +36,7 @@ import static org.awaitility.Awaitility.await;
 
 @ExtendWith({PrisonApiExtension.class, CommunityApiExtension.class, HMPPSAuthExtension.class})
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+@Slf4j
 public class HMPPSDomainEventsTest extends QueueListenerIntegrationTest {
 
     @Autowired
@@ -39,14 +44,8 @@ public class HMPPSDomainEventsTest extends QueueListenerIntegrationTest {
 
     @BeforeEach
     void setUp() {
-
-        PrisonApiExtension.server.stubFirstPollWithOffenderEvents("""
-            []
-            """);
-
         purgeQueues();
     }
-
 
     private List<String> geMessagesCurrentlyOnTestQueue() {
         final var messageResult = getPrisonEventTestQueueSqsClient().receiveMessage(getPrisonEventTestQueueUrl());
@@ -58,7 +57,6 @@ public class HMPPSDomainEventsTest extends QueueListenerIntegrationTest {
             .map(SQSMessage::Message)
             .toList();
     }
-
 
     private List<String> geMessagesCurrentlyOnHMPPSTestQueue() {
         final var messageResult = getPrisonEventTestQueueSqsClient().receiveMessage(getHmppsEventTestQueueUrl());
@@ -82,22 +80,33 @@ public class HMPPSDomainEventsTest extends QueueListenerIntegrationTest {
     record SQSMessage(String Message) {
     }
 
+    private void sendToTopic(String eventType, String payload) {
+        final var attributes = Map.of(
+            "eventType", new MessageAttributeValue().withDataType("String").withStringValue(eventType),
+            "publishedAt", new MessageAttributeValue().withDataType("String").withStringValue("2021-06-08T14:41:14Z"
+                //LocalDateTime.now().format(DateTimeFormatter.ISO_INSTANT)
+            )
+        );
+
+        getPrisonEventTopicSnsClient().publish(new PublishRequest(getPrisonEventTopicArn(), payload)
+            .withMessageAttributes(attributes));
+    }
+
     @Nested
     class ReceivePrisoner {
         @BeforeEach
         void setUp() {
-            PrisonApiExtension.server.stubFirstPollWithOffenderEvents("""
-                [
-                    {
-                        "eventType":"OFFENDER_MOVEMENT-RECEPTION",
-                        "eventDatetime":"2021-06-08T14:41:11.526762",
-                        "offenderIdDisplay":"A5194DY",
-                        "bookingId":1201234,
-                        "movementSeq":11,
-                        "nomisEventType":"OFF_RECEP_OASYS"
+            sendToTopic("OFFENDER_MOVEMENT-RECEPTION", """
+                {
+                     "eventType":"OFFENDER_MOVEMENT-RECEPTION",
+                    "eventDatetime":"2021-06-08T14:41:11.526762",
+                    "offenderIdDisplay":"A5194DY",
+                    "bookingId":1201234,
+                    "movementSeq":11,
+                    "nomisEventType":"OFF_RECEP_OASYS"
                     }
-                ]
-                """);
+                """
+            );
         }
 
         @Nested
@@ -202,18 +211,17 @@ public class HMPPSDomainEventsTest extends QueueListenerIntegrationTest {
     class ReleasePrisoner {
         @BeforeEach
         void setUp() {
-            PrisonApiExtension.server.stubFirstPollWithOffenderEvents("""
-                [
-                    {
-                        "eventType":"OFFENDER_MOVEMENT-DISCHARGE",
-                        "eventDatetime":"2021-02-08T14:41:11.526762",
-                        "offenderIdDisplay":"A5194DY",
-                        "bookingId":1201234,
-                        "movementSeq":11,
-                        "nomisEventType":"OFF_DISCH_OASYS"
+            sendToTopic("OFFENDER_MOVEMENT-DISCHARGE", """
+                {
+                    "eventType":"OFFENDER_MOVEMENT-DISCHARGE",
+                    "eventDatetime":"2021-02-08T14:41:11.526762",
+                    "offenderIdDisplay":"A5194DY",
+                    "bookingId":1201234,
+                    "movementSeq":11,
+                    "nomisEventType":"OFF_DISCH_OASYS"
                     }
-                ]
-                """);
+                """
+            );
         }
 
         @Nested
@@ -297,17 +305,16 @@ public class HMPPSDomainEventsTest extends QueueListenerIntegrationTest {
     class MergePrisoner {
         @BeforeEach
         void setUp() {
-            PrisonApiExtension.server.stubFirstPollWithOffenderEvents("""
-                [
-                    {
-                        "eventType":"BOOKING_NUMBER-CHANGED",
-                        "eventDatetime":"2021-02-08T14:41:11.526762",
-                        "bookingId":1201234,
-                        "previousBookingNumber": "38430A",
-                        "nomisEventType":"BOOK_UPD_OASYS"
+            sendToTopic("BOOKING_NUMBER-CHANGED", """
+                {
+                    "eventType":"BOOKING_NUMBER-CHANGED",
+                    "eventDatetime":"2021-02-08T14:41:11.526762",
+                    "bookingId":1201234,
+                    "previousBookingNumber": "38430A",
+                    "nomisEventType":"BOOK_UPD_OASYS"
                     }
-                ]
-                """);
+                """
+            );
         }
 
         @Nested
@@ -360,20 +367,14 @@ public class HMPPSDomainEventsTest extends QueueListenerIntegrationTest {
     class NonExistentOffenders {
         @BeforeEach
         void setUp() {
-            PrisonApiExtension.server.stubFirstPollWithOffenderEvents("""
-                [
-                     {
-                        "eventType":"OFFENDER_MOVEMENT-RECEPTION",
-                        "eventDatetime":"2021-06-08T14:41:11.526762",
-                        "offenderIdDisplay":"NONEXISTENT"
-                    },
-                    {
-                        "eventType":"OFFENDER_MOVEMENT-DISCHARGE",
-                        "eventDatetime":"2021-02-08T14:41:11.526762",
-                        "offenderIdDisplay":"NONEXISTENT"
-                    }
-                ]
+
+            sendToTopic("OFFENDER_MOVEMENT-RECEPTION", """
+                    { "eventType": "OFFENDER_MOVEMENT-RECEPTION", "offenderIdDisplay": "NONEXISTENT" }
                 """);
+            sendToTopic("OFFENDER_MOVEMENT-DISCHARGE", """
+                    { "eventType": "OFFENDER_MOVEMENT-DISCHARGE", "offenderIdDisplay": "NONEXISTENT" }
+                """);
+
             PrisonApiExtension.server.stubPrisonerDetails404("NONEXISTENT");
         }
 
@@ -386,6 +387,8 @@ public class HMPPSDomainEventsTest extends QueueListenerIntegrationTest {
             await().until(() -> getNumberOfMessagesCurrentlyOnPrisonEventQueue() == 0);
             // Check that no hmpps event messages were generated from them
             assertThat(getNumberOfMessagesCurrentlyOnHMPPSEventTestQueue()).isEqualTo(0);
+
+            PrisonApiExtension.server.verifyPrisonerDetails404("NONEXISTENT");
         }
     }
 
@@ -393,24 +396,27 @@ public class HMPPSDomainEventsTest extends QueueListenerIntegrationTest {
     class CaseNote {
         @BeforeEach
         void setUp() {
-            PrisonApiExtension.server.stubFirstPollWithOffenderEvents("""
-                [
+            sendToTopic("OFFENDER_CASE_NOTES-INSERTED", """
                     {
                         "eventType": "ALERT-ACTIVE",
                         "eventDatetime": "2022-11-02T00:39:05.0709360Z",
                         "caseNoteId": 1301234,
                         "rootOffenderId": 1259340,
                         "offenderIdDisplay": "A1234AM",
-                        "agencyLocationId": "PVI"
+                        "agencyLocationId": "PVI",
+                        "caseNoteType": "ALERT",
+                        "caseNoteSubType": "ACTIVE"
                     }
-                ]
-                """);
+                """
+            );
         }
 
         @Test
         @DisplayName("will not publish prison event")
         void willNotPublishPrisonEvent() {
-            assertThat(getNumberOfMessagesCurrentlyOnPrisonEventTestQueue()).isEqualTo(0);
+            // Only the one original message sent by the test
+            // assertThat(getNumberOfMessagesCurrentlyOnPrisonEventTestQueue()).isEqualTo(1);
+            await().until(() -> getNumberOfMessagesCurrentlyOnPrisonEventTestQueue() == 1);
         }
 
         @Test
@@ -431,5 +437,4 @@ public class HMPPSDomainEventsTest extends QueueListenerIntegrationTest {
             });
         }
     }
-
 }

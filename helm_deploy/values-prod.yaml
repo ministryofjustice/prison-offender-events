@@ -10,7 +10,6 @@ generic-service:
     COMMUNITY_API_BASE_URL: "https://community-api.probation.service.justice.gov.uk"
     OAUTH_API_BASE_URL: "https://sign-in.hmpps.service.justice.gov.uk/auth"
     CASENOTES_API_BASE_URL: "https://offender-case-notes.service.justice.gov.uk"
-    WIND_BACK_SECONDS: "400"
     APPLICATIONINSIGHTS_CONFIGURATION_FILE: applicationinsights.json
     APPLICATION_LISTENER_TOTALDELAYDURATION: "PT45M"
     APPLICATION_LISTENER_DELAYDURATION: "PT10M"

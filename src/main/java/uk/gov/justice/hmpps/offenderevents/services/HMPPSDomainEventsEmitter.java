@@ -61,7 +61,7 @@ public class HMPPSDomainEventsEmitter {
     public void convertAndSendWhenSignificant(OffenderEvent event) {
         final List<HmppsDomainEvent> hmppsEvents =
             event.getCaseNoteId() != null ? toCaseNotePublished(event).stream().toList()
-            : switch (event.getEventType()) {
+                : switch (event.getEventType()) {
                 case "OFFENDER_MOVEMENT-RECEPTION" -> toPrisonerReceived(event).stream().toList();
                 case "OFFENDER_MOVEMENT-DISCHARGE" -> toPrisonerReleased(event).stream().toList();
                 case "BOOKING_NUMBER-CHANGED" -> toMergedOffenderNumbers(event);
@@ -72,20 +72,6 @@ public class HMPPSDomainEventsEmitter {
             sendEvent(hmppsDomainEvent);
             telemetryClient.trackEvent(hmppsDomainEvent.getEventType(), hmppsDomainEvent.asTelemetryMap(), null);
         });
-    }
-
-    /**
-     * <p>Check whether an OffenderEvent should be converted and sent to the Domain Events topic only (instead of to the
-     * Offender Events topic).
-     * <p>Note: This is currently only true for "case note" events.  OFFENDER_MOVEMENT-RECEPTION/DISCHARGE and
-     * BOOKING_NUMBER-CHANGED events are sent to both topics.
-     *
-     * @param event the OffenderEvent to check
-     * @return true if the event should be sent to the Domain Events topic only, false if it should be sent to the
-     * Offender Events topic.
-     */
-    public boolean isDomainEventOnly(OffenderEvent event) {
-        return event.getCaseNoteId() != null;
     }
 
     private Map<String, String> asTelemetryMap(OffenderEvent event, PrisonerMovementReason reason, String reasonDescription) {
@@ -207,33 +193,19 @@ public class HMPPSDomainEventsEmitter {
     }
 
     private Optional<HmppsDomainEvent> toCaseNotePublished(OffenderEvent event) {
-        if (event.getCaseNoteSubType() == null) {
-            // Existing case note from poll
-            return Optional.of(HmppsDomainEvent.builder()
-                .eventType("prison.case-note.published")
-                .description("A prison case note has been created or amended")
-                .detailUrl(String.format("%s/case-notes/%s/%d", offenderEventsProperties.getCasenotesApiBaseUrl(), event.getOffenderIdDisplay(), event.getCaseNoteId()))
-                .occurredAt(toOccurredAt(event))
-                .publishedAt(OffsetDateTime.now().toString())
-                .personReference(new PersonReference(event.getOffenderIdDisplay()))
-                .build()
-                .withAdditionalInformation("caseNoteId", event.getCaseNoteId().toString())
-                .withAdditionalInformation("caseNoteType", event.getEventType()));
-        } else {
-            // New case note from JMS
-            return Optional.of(HmppsDomainEvent.builder()
-                .eventType("prison.case-note.published.new") // SHADOW existing events initially
-                .description("A prison case note has been created or amended")
-                .detailUrl(String.format("%s/case-notes/%s/%d", offenderEventsProperties.getCasenotesApiBaseUrl(), event.getOffenderIdDisplay(), event.getCaseNoteId()))
-                .occurredAt(toOccurredAt(event))
-                .publishedAt(OffsetDateTime.now().toString())
-                .personReference(new PersonReference(event.getOffenderIdDisplay()))
-                .build()
-                .withAdditionalInformation("caseNoteId", event.getCaseNoteId().toString())
-                .withAdditionalInformation("caseNoteType", String.format("%s-%s",event.getCaseNoteType(),event.getCaseNoteSubType().split("\\W")[0]))
-                .withAdditionalInformation("type", event.getCaseNoteType())
-                .withAdditionalInformation("subType", event.getCaseNoteSubType()));
-        }
+        return Optional.of(HmppsDomainEvent.builder()
+            .eventType("prison.case-note.published")
+            .description("A prison case note has been created or amended")
+            .detailUrl(String.format("%s/case-notes/%s/%d", offenderEventsProperties.getCasenotesApiBaseUrl(), event.getOffenderIdDisplay(), event.getCaseNoteId()))
+            .occurredAt(toOccurredAt(event))
+            .publishedAt(OffsetDateTime.now().toString())
+            .personReference(new PersonReference(event.getOffenderIdDisplay()))
+            .build()
+            .withAdditionalInformation("caseNoteId", event.getCaseNoteId().toString())
+            .withAdditionalInformation("caseNoteType", String.format("%s-%s", event.getCaseNoteType(), event.getCaseNoteSubType().split("\\W")[0]))
+            .withAdditionalInformation("type", event.getCaseNoteType())
+            .withAdditionalInformation("subType", event.getCaseNoteSubType()));
+
     }
 
     private String toOccurredAt(OffenderEvent event) {
