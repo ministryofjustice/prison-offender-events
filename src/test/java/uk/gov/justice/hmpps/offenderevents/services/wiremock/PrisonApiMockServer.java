@@ -6,14 +6,14 @@ import com.github.tomakehurst.wiremock.client.WireMock;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
-import java.util.UUID;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 import static com.github.tomakehurst.wiremock.client.WireMock.get;
+import static com.github.tomakehurst.wiremock.client.WireMock.getRequestedFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.post;
-import static com.github.tomakehurst.wiremock.stubbing.Scenario.STARTED;
+import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
 
 public class PrisonApiMockServer extends WireMockServer {
     PrisonApiMockServer() {
@@ -40,6 +40,10 @@ public class PrisonApiMockServer extends WireMockServer {
                     .withStatus(404)
             )
         );
+    }
+
+    public void verifyPrisonerDetails404(String offenderNumber) {
+        verify(getRequestedFor(urlEqualTo(String.format("/api/offenders/%s", offenderNumber))));
     }
 
     public void stubBasicPrisonerDetails(String offenderNumber, Long bookingId) {
@@ -96,7 +100,6 @@ public class PrisonApiMockServer extends WireMockServer {
                 """, offenderNumber, createDateTime, directionCode.equals("IN") ? "ADM" : "REL", directionCode, movementDate, movementTime);
         };
 
-
         stubFor(
             post("/api/movements/offenders?latestOnly=false&allBookings=true").willReturn(
                 aResponse()
@@ -108,33 +111,6 @@ public class PrisonApiMockServer extends WireMockServer {
                         """, movements.stream().map(asJson).collect(Collectors.joining(","))))
                     .withStatus(200)
             )
-        );
-    }
-
-    public void stubFirstPollWithOffenderEvents(String events) {
-        final var scenarioName = UUID.randomUUID().toString();
-        stubFor(
-            get(WireMock.urlPathEqualTo("/api/events"))
-                .inScenario(scenarioName)
-                .whenScenarioStateIs(STARTED)
-                .willReturn(
-                    aResponse()
-                        .withHeader("Content-Type", "application/json")
-                        .withBody(events)
-                        .withStatus(200)
-                )
-                .willSetStateTo("Subsequent poll")
-        );
-        stubFor(
-            get(WireMock.urlPathEqualTo("/api/events"))
-                .inScenario(scenarioName)
-                .whenScenarioStateIs("Subsequent poll")
-                .willReturn(
-                    aResponse()
-                        .withHeader("Content-Type", "application/json")
-                        .withBody("[]")
-                        .withStatus(200)
-                )
         );
     }
 

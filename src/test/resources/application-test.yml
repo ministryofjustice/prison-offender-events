@@ -20,11 +20,6 @@ application:
   listener:
     totalDelayDuration: PT0S
     delayDuration: PT0S
-  events:
-    poll:
-      frequency: 1000
-      initialDelay: 0
-      lockAtLeastFor: PT1S
 
 hmpps.sqs:
   provider: localstack
@@ -33,12 +28,12 @@ hmpps.sqs:
       queueName: ${random.uuid}
       dlqName: ${random.uuid}
       subscribeTopicId: prisoneventtopic
-      subscribeFilter: '{"eventType":[ "OFFENDER_MOVEMENT-RECEPTION", "OFFENDER_MOVEMENT-DISCHARGE", "BOOKING_NUMBER-CHANGED" ] }'
+      subscribeFilter: '{"eventType":[ "OFFENDER_MOVEMENT-RECEPTION", "OFFENDER_MOVEMENT-DISCHARGE", "BOOKING_NUMBER-CHANGED", "OFFENDER_CASE_NOTES-INSERTED", "OFFENDER_CASE_NOTES-UPDATED", "OFFENDER_CASE_NOTES-DELETED" ] }'
     prisoneventtestqueue:
       queueName: ${random.uuid}
       dlqName: ${random.uuid}
       subscribeTopicId: prisoneventtopic
-      subscribeFilter: '{"eventType":[ "OFFENDER_MOVEMENT-RECEPTION", "OFFENDER_MOVEMENT-DISCHARGE", "BOOKING_NUMBER-CHANGED" ] }'
+      subscribeFilter: '{"eventType":[ "OFFENDER_MOVEMENT-RECEPTION", "OFFENDER_MOVEMENT-DISCHARGE", "BOOKING_NUMBER-CHANGED", "OFFENDER_CASE_NOTES-INSERTED", "OFFENDER_CASE_NOTES-UPDATED", "OFFENDER_CASE_NOTES-DELETED" ] }'
     hmppseventtestqueue:
       queueName: ${random.uuid}
       dlqName: ${random.uuid}

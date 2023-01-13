@@ -18,12 +18,6 @@ class HealthCheckTest : QueueListenerIntegrationTest() {
   @BeforeEach
   fun setUp() {
     stubHealthPing(200)
-
-    PrisonApiExtension.server.stubFirstPollWithOffenderEvents(
-      """
-     []
-    """
-    )
     purgeQueues()
   }
 

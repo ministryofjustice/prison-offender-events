@@ -120,12 +120,3 @@ application:
   listener:
     totalDelayDuration: PT10M
     delayDuration: PT2M
-
-  events:
-    max:
-      range:
-        minutes: 20
-    poll:
-      frequency: 60000
-      initialDelay: 2000
-      lockAtLeastFor: PT10S
