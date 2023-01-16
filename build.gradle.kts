@@ -15,16 +15,9 @@ testSets {
 dependencies {
   annotationProcessor("org.springframework.boot:spring-boot-configuration-processor")
   annotationProcessor("org.projectlombok:lombok:1.18.24")
-
-  runtimeOnly("com.h2database:h2:2.1.214")
-  runtimeOnly("org.flywaydb:flyway-core")
-  runtimeOnly("org.postgresql:postgresql:42.5.1")
-
   compileOnly("org.projectlombok:lombok:1.18.24")
 
   implementation("org.springframework.boot:spring-boot-starter-actuator")
-  implementation("org.springframework.boot:spring-boot-starter-cache")
-  implementation("org.springframework.boot:spring-boot-starter-data-jpa")
 
   implementation("org.springframework.boot:spring-boot-starter-security")
   implementation("org.springframework.boot:spring-boot-starter-oauth2-client")
@@ -35,15 +28,8 @@ dependencies {
 
   implementation("uk.gov.justice.service.hmpps:hmpps-sqs-spring-boot-starter:1.2.0")
 
-  implementation("net.javacrumbs.shedlock:shedlock-spring:5.1.0")
-  implementation("net.javacrumbs.shedlock:shedlock-provider-jdbc-template:5.1.0")
-
-  implementation("javax.activation:activation:1.1.1")
-  implementation("javax.transaction:javax.transaction-api:1.3")
-
   implementation("io.jsonwebtoken:jjwt:0.9.1")
 
-  implementation("net.sf.ehcache:ehcache")
   implementation("org.apache.commons:commons-text:1.10.0")
   implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.14.1")
   implementation("com.pauldijou:jwt-core_2.11:5.0.0")

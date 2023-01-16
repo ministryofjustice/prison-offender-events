@@ -11,35 +11,6 @@ spring:
     serialization:
       WRITE_DATES_AS_TIMESTAMPS: false
 
-  jpa:
-    show-sql: false
-    generate-ddl: false
-    hibernate:
-      ddl-auto: none
-    open-in-view: false
-
-  flyway:
-    enabled: true
-    baselineOnMigrate: true
-    schemas: OFFENDER_EVENTS
-    locations: classpath:/db/migration/h2,classpath:/db/migration/common
-    url: 'jdbc:h2:mem:prison-offender-events-db;MODE=PostgreSQL;DB_CLOSE_DELAY=-1'
-    user: sa
-    password: ''
-    placeholders:
-      database_password: dummy
-
-  datasource:
-    # This reopens the H2 database prepared by flyway with default schema and user OFFENDER_EVENTS
-    url: 'jdbc:h2:mem:prison-offender-events-db;MODE=PostgreSQL;SCHEMA=OFFENDER_EVENTS;IFEXISTS=TRUE'
-    username: offender_events
-    password: dummy
-
-    hikari:
-      pool-name: OffenderEvents-CP
-      connectionTimeout: 1000
-      validationTimeout:  500
-
   security:
     oauth2:
       resourceserver:
@@ -62,9 +33,6 @@ spring:
         provider:
           hmpps-auth:
             token-uri: ${oauth.api.base.url}/oauth/token
-  sql:
-    init:
-      continue-on-error: false
 
 server:
   port: 8080
@@ -74,6 +42,8 @@ server:
     remoteip:
       remote-ip-header: x-forwarded-for
       protocol_header: x-forwarded-proto
+
+  shutdown: graceful
 
 logging:
   level:
