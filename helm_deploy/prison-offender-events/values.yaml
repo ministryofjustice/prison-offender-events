@@ -25,7 +25,7 @@ generic-service:
   env:
     JAVA_OPTS: "-Xmx512m"
     AWS_REGION: "eu-west-2"
-    SPRING_PROFILES_ACTIVE: "postgres,sns"
+    SPRING_PROFILES_ACTIVE: "sns"
     APPLICATIONINSIGHTS_CONNECTION_STRING: "InstrumentationKey=$(APPINSIGHTS_INSTRUMENTATIONKEY);IngestionEndpoint=https://northeurope-0.in.applicationinsights.azure.com/;LiveEndpoint=https://northeurope.livediagnostics.monitor.azure.com/"
 
   # Pre-existing kubernetes secrets to load as environment variables in the deployment.
@@ -38,12 +38,6 @@ generic-service:
       APPINSIGHTS_INSTRUMENTATIONKEY: "APPINSIGHTS_INSTRUMENTATIONKEY"
       OFFENDER_EVENTS_CLIENT_SECRET: "OFFENDER_EVENTS_CLIENT_SECRET"
       OFFENDER_EVENTS_CLIENT_ID: "OFFENDER_EVENTS_CLIENT_ID"
-    dps-rds-instance-output:
-      DATABASE_PASSWORD: "offender_events_password"
-      SUPERUSER_USERNAME: "database_username"
-      SUPERUSER_PASSWORD: "database_password"
-      DATABASE_NAME: "database_name"
-      DATABASE_ENDPOINT: "rds_instance_endpoint"
     offender-events-topic:
       HMPPS_SQS_TOPICS_PRISONEVENTTOPIC_ACCESS_KEY_ID: "access_key_id"
       HMPPS_SQS_TOPICS_PRISONEVENTTOPIC_SECRET_ACCESS_KEY: "secret_access_key"

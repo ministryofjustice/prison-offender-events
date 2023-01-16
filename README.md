@@ -4,9 +4,9 @@ Publishes Events about prison offender changes to Pub / Sub Topics
 [![API docs](https://img.shields.io/badge/API_docs_(needs_VPN)-view-85EA2D.svg?logo=swagger)](https://offender-events-dev.prison.service.justice.gov.uk/swagger-ui.html)
 
 
-## Running localstack and database
+## Running localstack
 ```bash
-TMPDIR=/private$TMPDIR docker-compose up localstack prison-offender-events-db
+TMPDIR=/private$TMPDIR docker-compose up localstack
 ```
 
 ## Creating the Topic and Queue

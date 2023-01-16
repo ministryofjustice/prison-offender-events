@@ -46,17 +46,9 @@
         <appender-ref ref="logAppender"/>
     </logger>
 
-    <logger name="com.zaxxer.hikari" additivity="false" level="INFO">
-        <appender-ref ref="logAppender"/>
-    </logger>
-
     <logger name="org.apache.catalina" additivity="false" level="INFO">
         <appender-ref ref="logAppender"/>
         <appender-ref ref="consoleAppender"/>
-    </logger>
-
-    <logger name="org.flywaydb" additivity="false" level="INFO">
-        <appender-ref ref="logAppender"/>
     </logger>
 
     <root level="INFO">

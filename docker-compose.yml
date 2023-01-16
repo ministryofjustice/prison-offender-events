@@ -6,7 +6,6 @@ services:
       - hmpps
     container_name: prison-offender-events
     depends_on:
-      - prison-offender-events-db
       - localstack
       - prison-api
     ports:
@@ -15,15 +14,11 @@ services:
       test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
     environment:
       - SERVER_PORT=8080
-      - DATABASE_ENDPOINT=prison-offender-events-db/prison-offender-events-db
-      - SPRING_DATASOURCE_URL=jdbc:postgresql://prison-offender-events-db/prison-offender-events-db
-      - DATABASE_USERNAME=offender-events
-      - DATABASE_PASSWORD=offender-events
       - SUPERUSER_USERNAME=admin
       - SUPERUSER_PASSWORD=admin_password
       - PRISON_API_BASE_URL=http://prison-api:8080
       - OAUTH_API_BASE_URL=http://oauth:8080/auth
-      - SPRING_PROFILES_ACTIVE=postgres,localstack,dev
+      - SPRING_PROFILES_ACTIVE=localstack,dev
 
   prison-api:
     image: quay.io/hmpps/prison-api:latest
@@ -75,19 +70,6 @@ services:
     volumes:
       - "${TMPDIR:-/tmp/localstack}:/tmp/localstack"
       - "/var/run/docker.sock:/var/run/docker.sock"
-
-  prison-offender-events-db:
-    image: postgres
-    networks:
-      - hmpps
-    container_name: prison-offender-events-db
-    restart: always
-    ports:
-      - "5432:5432"
-    environment:
-      - POSTGRES_PASSWORD=admin_password
-      - POSTGRES_USER=admin
-      - POSTGRES_DB=prison-offender-events-db
 
 networks:
   hmpps:

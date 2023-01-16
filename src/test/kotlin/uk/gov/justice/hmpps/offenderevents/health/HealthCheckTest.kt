@@ -126,16 +126,6 @@ class HealthCheckTest : QueueListenerIntegrationTest() {
       .jsonPath("status").isEqualTo("UP")
   }
 
-  @Test
-  fun `db reports ok`() {
-    webTestClient.get()
-      .uri("/health/db")
-      .exchange()
-      .expectStatus().isOk
-      .expectBody()
-      .jsonPath("status").isEqualTo("UP")
-  }
-
   fun stubHealthPing(status: Int) {
     HMPPSAuthExtension.server.stubHealthPing(status)
     PrisonApiExtension.server.stubHealthPing(status)

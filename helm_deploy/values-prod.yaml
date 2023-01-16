@@ -27,6 +27,3 @@ generic-prometheus-alerts:
   # Note: the topics dont have nice names, so just supply the name as a key, and a nice name as a value.
   snsAlertsTopicNames:
     cloud-platform-Digital-Prison-Services-160f3055cc4e04c4105ee85f2ed1fccb: "offender-events"
-
-  rdsAlertsDatabases:
-    cloud-platform-f571ef4833323931: "prison offender events"
