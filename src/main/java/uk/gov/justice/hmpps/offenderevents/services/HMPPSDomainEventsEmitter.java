@@ -193,6 +193,13 @@ public class HMPPSDomainEventsEmitter {
     }
 
     private Optional<HmppsDomainEvent> toCaseNotePublished(OffenderEvent event) {
+        // SDI-594: If there is no offender id then this means that the case note has actually been removed instead
+        // This means that we can ignore this event - will be handled by the offender deletion event instead.
+        if (event.getOffenderIdDisplay() == null) {
+            log.warn("Ignoring case note published event for case note {} as offender id display is null", event.getCaseNoteId());
+            return Optional.empty();
+        }
+
         return Optional.of(HmppsDomainEvent.builder()
             .eventType("prison.case-note.published")
             .description("A prison case note has been created or amended")
