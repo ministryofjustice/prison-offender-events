@@ -885,6 +885,34 @@ internal class HMPPSDomainEventsEmitterTest {
     }
   }
 
+  @Nested
+  internal inner class CaseNotePublishedForDeletedOffender {
+    @BeforeEach
+    fun setUp() {
+      emitter.convertAndSendWhenSignificant(
+        OffenderEvent.builder()
+          .eventType("OFFENDER_CASE_NOTES-INSERTED")
+          .caseNoteType("CHAP")
+          .caseNoteSubType("MAIL ROOM")
+          .caseNoteId(-12345L)
+          .offenderIdDisplay(null)
+          .bookingId(1234L)
+          .eventDatetime(LocalDateTime.parse("2022-12-04T10:00:00"))
+          .build()
+      )
+    }
+
+    @Test
+    fun `will not publish an event to the sns client`() {
+      verifyNoInteractions(hmppsEventSnsClient)
+    }
+
+    @Test
+    fun `will not create a telemetry event`() {
+      verifyNoInteractions(telemetryClient)
+    }
+  }
+
   private fun eventMap() = listOf(
     Arguments.of("OFFENDER_MOVEMENT-DISCHARGE", "prison-offender-events.prisoner.released"),
     Arguments.of("OFFENDER_MOVEMENT-RECEPTION", "prison-offender-events.prisoner.received")
