@@ -1,5 +1,5 @@
 plugins {
-  id("uk.gov.justice.hmpps.gradle-spring-boot") version "4.8.1"
+  id("uk.gov.justice.hmpps.gradle-spring-boot") version "4.8.2-beta"
   kotlin("plugin.spring") version "1.8.0"
   id("org.unbroken-dome.test-sets") version "4.0.0"
 }
@@ -31,7 +31,7 @@ dependencies {
   implementation("io.jsonwebtoken:jjwt:0.9.1")
 
   implementation("org.apache.commons:commons-text:1.10.0")
-  implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.14.1")
+  implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.14.2")
   implementation("com.pauldijou:jwt-core_2.11:5.0.0")
   implementation("com.google.code.gson:gson:2.10.1")
   implementation("com.google.guava:guava:31.1-jre")
@@ -49,12 +49,12 @@ dependencies {
   testImplementation("io.github.http-builder-ng:http-builder-ng-apache:1.0.4")
   testImplementation("com.github.tomakehurst:wiremock-standalone:2.27.2")
   testImplementation("junit:junit:4.13.2")
-  testImplementation("net.javacrumbs.json-unit:json-unit-assertj:2.36.0")
+  testImplementation("net.javacrumbs.json-unit:json-unit-assertj:2.36.1")
   testImplementation("org.awaitility:awaitility:4.2.0")
   testImplementation("org.awaitility:awaitility-kotlin:4.2.0")
   testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-reactive:1.6.4")
-  testImplementation("org.mockito:mockito-inline:4.11.0")
-  testImplementation("io.swagger.parser.v3:swagger-parser:2.1.10")
+  testImplementation("org.mockito:mockito-inline:5.1.1")
+  testImplementation("io.swagger.parser.v3:swagger-parser:2.1.11")
 }
 
 java {
