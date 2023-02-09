@@ -1,6 +1,6 @@
 plugins {
-  id("uk.gov.justice.hmpps.gradle-spring-boot") version "4.8.2-beta"
-  kotlin("plugin.spring") version "1.8.0"
+  id("uk.gov.justice.hmpps.gradle-spring-boot") version "4.8.3"
+  kotlin("plugin.spring") version "1.8.10"
   id("org.unbroken-dome.test-sets") version "4.0.0"
 }
 
@@ -14,8 +14,8 @@ testSets {
 
 dependencies {
   annotationProcessor("org.springframework.boot:spring-boot-configuration-processor")
-  annotationProcessor("org.projectlombok:lombok:1.18.24")
-  compileOnly("org.projectlombok:lombok:1.18.24")
+  annotationProcessor("org.projectlombok:lombok:1.18.26")
+  compileOnly("org.projectlombok:lombok:1.18.26")
 
   implementation("org.springframework.boot:spring-boot-starter-actuator")
 
@@ -42,8 +42,8 @@ dependencies {
   implementation("org.springdoc:springdoc-openapi-security:1.6.14")
 
   testAnnotationProcessor("org.springframework.boot:spring-boot-configuration-processor")
-  testAnnotationProcessor("org.projectlombok:lombok:1.18.24")
-  testCompileOnly("org.projectlombok:lombok:1.18.24")
+  testAnnotationProcessor("org.projectlombok:lombok:1.18.26")
+  testCompileOnly("org.projectlombok:lombok:1.18.26")
   testImplementation("org.springframework.security:spring-security-test")
   testImplementation("com.tngtech.java:junit-dataprovider:1.13.1")
   testImplementation("io.github.http-builder-ng:http-builder-ng-apache:1.0.4")
