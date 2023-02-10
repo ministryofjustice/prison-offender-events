@@ -3,6 +3,8 @@ package uk.gov.justice.hmpps.offenderevents.subscribe;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.awspring.cloud.sqs.annotation.SqsListener;
+import io.opentelemetry.api.trace.SpanKind;
+import io.opentelemetry.instrumentation.annotations.WithSpan;
 import io.awspring.cloud.sqs.listener.QueueAttributes;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -39,7 +41,8 @@ public class PrisonerEventsListener {
         this.delay = delay;
     }
 
-    @SqsListener(queueNames = "prisoneventqueue", factory = "hmppsQueueContainerFactoryProxy", maxInflightMessagesPerQueue = "1", maxMessagesPerPoll = "1")
+    @SqsListener(queueNames = "prisoneventqueue", factory = "hmppsQueueContainerFactoryProxy")
+    @WithSpan(value = "Digital-Prison-Services-dev-prisoner_offender_events_queue", kind = SpanKind.SERVER)
     public void onPrisonerEvent(String message, QueueAttributes attributes) throws JsonProcessingException {
         final var sqsMessage = objectMapper.readValue(message, SQSMessage.class);
         final var publishedAt = OffsetDateTime.parse(sqsMessage.MessageAttributes().publishedAt().Value());
