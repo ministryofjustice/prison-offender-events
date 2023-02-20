@@ -1,6 +1,5 @@
 package uk.gov.justice.hmpps.offenderevents.resource
 
-import com.amazonaws.services.sqs.model.PurgeQueueRequest
 import org.awaitility.kotlin.await
 import org.awaitility.kotlin.matches
 import org.awaitility.kotlin.untilCallTo
@@ -10,6 +9,8 @@ import org.junit.jupiter.api.TestInstance
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.MethodSource
 import org.springframework.http.MediaType
+import software.amazon.awssdk.services.sqs.model.PurgeQueueRequest
+import software.amazon.awssdk.services.sqs.model.SendMessageRequest
 
 class QueueResourceTest : QueueListenerIntegrationTest() {
 
@@ -73,11 +74,11 @@ class QueueResourceTest : QueueListenerIntegrationTest() {
       "details": "{ \"offenderId\": \"99\"}"
     }
   """
-    prisonEventQueueSqsClient.purgeQueue(PurgeQueueRequest(prisonEventQueueUrl))
-    prisonEventSqsDlqClient.purgeQueue(PurgeQueueRequest(prisonEventDlqUrl))
+    prisonEventQueueSqsClient.purgeQueue(PurgeQueueRequest.builder().queueUrl(prisonEventQueueUrl).build()).get()
+    prisonEventSqsDlqClient.purgeQueue(PurgeQueueRequest.builder().queueUrl(prisonEventDlqUrl).build()).get()
 
     await untilCallTo { getNumberOfMessagesCurrentlyOnPrisonEventDlq() } matches { it == 0 }
-    prisonEventSqsDlqClient.sendMessage(prisonEventDlqUrl, message)
+    prisonEventSqsDlqClient.sendMessage(SendMessageRequest.builder().queueUrl(prisonEventDlqUrl).messageBody(message).build()).get()
     await untilCallTo { getNumberOfMessagesCurrentlyOnPrisonEventDlq() } matches { it == 1 }
 
     webTestClient.put()

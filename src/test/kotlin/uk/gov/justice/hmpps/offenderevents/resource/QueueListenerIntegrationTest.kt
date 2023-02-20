@@ -1,14 +1,13 @@
 package uk.gov.justice.hmpps.offenderevents.resource
 
-import com.amazonaws.services.sqs.AmazonSQS
-import com.amazonaws.services.sqs.model.PurgeQueueRequest
 import org.awaitility.kotlin.await
-import org.slf4j.Logger
-import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
+import software.amazon.awssdk.services.sqs.SqsAsyncClient
+import software.amazon.awssdk.services.sqs.model.PurgeQueueRequest
 import uk.gov.justice.hmpps.sqs.HmppsQueue
 import uk.gov.justice.hmpps.sqs.HmppsQueueService
 import uk.gov.justice.hmpps.sqs.HmppsTopic
+import uk.gov.justice.hmpps.sqs.countAllMessagesOnQueue
 
 abstract class QueueListenerIntegrationTest : IntegrationTestBase() {
 
@@ -24,7 +23,7 @@ abstract class QueueListenerIntegrationTest : IntegrationTestBase() {
   internal val prisonEventQueueName by lazy { prisonEventQueue.queueName }
   internal val prisonEventQueueUrl by lazy { prisonEventQueue.queueUrl }
 
-  internal val prisonEventSqsDlqClient by lazy { prisonEventQueue.sqsDlqClient as AmazonSQS }
+  internal val prisonEventSqsDlqClient by lazy { prisonEventQueue.sqsDlqClient as SqsAsyncClient }
   internal val prisonEventDlqName by lazy { prisonEventQueue.dlqName as String }
   internal val prisonEventDlqUrl by lazy { prisonEventQueue.dlqUrl as String }
 
@@ -38,31 +37,18 @@ abstract class QueueListenerIntegrationTest : IntegrationTestBase() {
   protected val prisonEventTopicArn by lazy { prisonEventTopic.arn }
 
   fun purgeQueues() {
-    prisonEventQueueSqsClient.purgeQueue(PurgeQueueRequest(prisonEventQueueUrl))
+    prisonEventQueueSqsClient.purgeQueue(PurgeQueueRequest.builder().queueUrl(prisonEventQueueUrl).build()).get()
     await.until { getNumberOfMessagesCurrentlyOnPrisonEventQueue() == 0 }
-    prisonEventQueueSqsClient.purgeQueue(PurgeQueueRequest(prisonEventDlqUrl))
+    prisonEventQueueSqsClient.purgeQueue(PurgeQueueRequest.builder().queueUrl(prisonEventDlqUrl).build()).get()
     await.until { getNumberOfMessagesCurrentlyOnPrisonEventDlq() == 0 }
-    prisonEventTestQueueSqsClient.purgeQueue(PurgeQueueRequest(prisonEventTestQueueUrl))
+    prisonEventTestQueueSqsClient.purgeQueue(PurgeQueueRequest.builder().queueUrl(prisonEventTestQueueUrl).build()).get()
     await.until { getNumberOfMessagesCurrentlyOnPrisonEventTestQueue() == 0 }
-    hmppsEventTestQueueSqsClient.purgeQueue(PurgeQueueRequest(hmppsEventTestQueueUrl))
+    hmppsEventTestQueueSqsClient.purgeQueue(PurgeQueueRequest.builder().queueUrl(hmppsEventTestQueueUrl).build()).get()
     await.until { getNumberOfMessagesCurrentlyOnHMPPSEventTestQueue() == 0 }
   }
 
-  fun getNumberOfMessagesCurrentlyOnPrisonEventQueue(): Int = prisonEventQueueSqsClient.numMessages(prisonEventQueueUrl)
-  fun getNumberOfMessagesCurrentlyOnPrisonEventDlq(): Int = prisonEventSqsDlqClient.numMessages(prisonEventDlqUrl)
-  fun getNumberOfMessagesCurrentlyOnPrisonEventTestQueue(): Int = prisonEventTestQueueSqsClient.numMessages(prisonEventTestQueueUrl)
-  fun getNumberOfMessagesCurrentlyOnHMPPSEventTestQueue(): Int = hmppsEventTestQueueSqsClient.numMessages(hmppsEventTestQueueUrl)
-
-  companion object {
-    val log: Logger = LoggerFactory.getLogger(this::class.java)
-  }
-}
-
-fun AmazonSQS.numMessages(url: String): Int {
-  val queueAttributes = getQueueAttributes(url, listOf("ApproximateNumberOfMessages", "ApproximateNumberOfMessagesNotVisible"))
-  val visible = queueAttributes.attributes["ApproximateNumberOfMessages"]!!.toInt()
-  val notVisible = queueAttributes.attributes["ApproximateNumberOfMessagesNotVisible"]!!.toInt()
-  val number = visible + notVisible
-  QueueListenerIntegrationTest.log.trace("Messages on {} queue: visible = {} notVisible = {} ", url, visible, notVisible)
-  return number
+  fun getNumberOfMessagesCurrentlyOnPrisonEventQueue(): Int = prisonEventQueueSqsClient.countAllMessagesOnQueue(prisonEventQueueUrl).get()
+  fun getNumberOfMessagesCurrentlyOnPrisonEventDlq(): Int = prisonEventSqsDlqClient.countAllMessagesOnQueue(prisonEventDlqUrl).get()
+  fun getNumberOfMessagesCurrentlyOnPrisonEventTestQueue(): Int = prisonEventTestQueueSqsClient.countAllMessagesOnQueue(prisonEventTestQueueUrl).get()
+  fun getNumberOfMessagesCurrentlyOnHMPPSEventTestQueue(): Int = hmppsEventTestQueueSqsClient.countAllMessagesOnQueue(hmppsEventTestQueueUrl).get()
 }

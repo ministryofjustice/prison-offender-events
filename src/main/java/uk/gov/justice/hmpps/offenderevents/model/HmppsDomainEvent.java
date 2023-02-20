@@ -1,11 +1,11 @@
 package uk.gov.justice.hmpps.offenderevents.model;
 
-import com.amazonaws.services.sns.model.MessageAttributeValue;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import software.amazon.awssdk.services.sns.model.MessageAttributeValue;
 
 import java.util.HashMap;
 import java.util.List;
@@ -48,10 +48,10 @@ public class HmppsDomainEvent {
 
     public Map<String, MessageAttributeValue> asMetadataMap() {
         final var attributes = new HashMap<>(Map.of(
-            "eventType", new MessageAttributeValue().withDataType("String").withStringValue(eventType)
+            "eventType", MessageAttributeValue.builder().dataType("String").stringValue(eventType).build()
         ));
         if (additionalInformation.containsKey("caseNoteType")) attributes.put(
-            "caseNoteType", new MessageAttributeValue().withDataType("String").withStringValue(additionalInformation.get("caseNoteType"))
+            "caseNoteType", MessageAttributeValue.builder().dataType("String").stringValue(additionalInformation.get("caseNoteType")).build()
         );
         return attributes;
     }
