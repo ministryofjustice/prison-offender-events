@@ -56,7 +56,7 @@ internal class CommunityApiServiceTest {
         server.verify(
           WireMock
             .getRequestedFor(WireMock.urlEqualTo("/secure/offenders/nomsNumber/A7841DY/convictions/active/nsis/recall"))
-            .withHeader("Authorization", equalTo("Bearer ABCDE"))
+            .withHeader("Authorization", equalTo("Bearer ABCDE")),
         )
       }
 

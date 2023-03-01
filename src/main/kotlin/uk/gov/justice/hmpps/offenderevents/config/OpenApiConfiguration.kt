@@ -27,12 +27,12 @@ class OpenApiConfiguration(buildProperties: BuildProperties) {
         Server().url("https://offender-events-preprod.hmpps.service.justice.gov.uk").description("PreProd"),
         Server().url("https://offender-events.hmpps.service.justice.gov.uk").description("Prod"),
         Server().url("http://localhost:8080").description("Local"),
-      )
+      ),
     )
     .info(
       Info().title("Prison Offender Events").version(version).description(
-        javaClass.getResource("/swagger-description.html")!!.readText()
-      ).contact(Contact().name("HMPPS Digital Studio").email("feedback@digital.justice.gov.uk"))
+        javaClass.getResource("/swagger-description.html")!!.readText(),
+      ).contact(Contact().name("HMPPS Digital Studio").email("feedback@digital.justice.gov.uk")),
     )
     .components(
       Components().addSecuritySchemes(
@@ -42,8 +42,8 @@ class OpenApiConfiguration(buildProperties: BuildProperties) {
           .scheme("bearer")
           .bearerFormat("JWT")
           .`in`(SecurityScheme.In.HEADER)
-          .name("Authorization")
-      )
+          .name("Authorization"),
+      ),
     )
     .addSecurityItem(SecurityRequirement().addList("bearer-jwt", listOf("read", "write")))
 
@@ -60,7 +60,7 @@ class OpenApiConfiguration(buildProperties: BuildProperties) {
               .example("2021-07-05T10:35:17")
               .pattern("^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}$")
               .description(propertySchema.description)
-              .required(propertySchema.required)
+              .required(propertySchema.required),
           )
         }
       }

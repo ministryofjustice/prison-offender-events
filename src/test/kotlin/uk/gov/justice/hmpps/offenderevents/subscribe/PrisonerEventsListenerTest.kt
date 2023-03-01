@@ -72,7 +72,7 @@ internal class PrisonerEventsListenerTest {
       listener.onPrisonerEvent(createMessage("OFFENDER_MOVEMENT-RECEPTION", fortyFiveMinutesAgo), message)
 
       verify(eventsEmitter).convertAndSendWhenSignificant(
-        offenderEventArgumentCaptor.capture()
+        offenderEventArgumentCaptor.capture(),
       )
     }
   }
@@ -88,9 +88,12 @@ internal class PrisonerEventsListenerTest {
       whenever(message.queueUrl).thenReturn("https://aws.queue/my-queue")
       whenever(hmppsQueueService.findByQueueId("prisoneventqueue")).thenReturn(
         HmppsQueue(
-          "prisoneventqueue", prisonEventQueueSqsClient, "prison-event-queue",
-          prisonEventQueueSqsDlqClient, "prison-event-dlq"
-        )
+          "prisoneventqueue",
+          prisonEventQueueSqsClient,
+          "prison-event-queue",
+          prisonEventQueueSqsDlqClient,
+          "prison-event-dlq",
+        ),
       )
 
       val fortyFourMinutesAgo = OffsetDateTime
@@ -148,9 +151,12 @@ internal class PrisonerEventsListenerTest {
       whenever(message.queueUrl).thenReturn("https://aws.queue/my-queue")
       whenever(hmppsQueueService.findByQueueId("prisoneventqueue")).thenReturn(
         HmppsQueue(
-          "prisoneventqueue", prisonEventQueueSqsClient, "prison-event-queue",
-          prisonEventQueueSqsDlqClient, "prison-event-dlq"
-        )
+          "prisoneventqueue",
+          prisonEventQueueSqsClient,
+          "prison-event-queue",
+          prisonEventQueueSqsDlqClient,
+          "prison-event-dlq",
+        ),
       )
 
       val oneMinuteAgo = OffsetDateTime

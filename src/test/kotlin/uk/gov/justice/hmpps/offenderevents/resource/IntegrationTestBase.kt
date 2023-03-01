@@ -21,6 +21,6 @@ abstract class IntegrationTestBase {
 
   internal fun setAuthorisation(
     user: String = "hmpps-offender-events-client",
-    roles: List<String> = listOf()
+    roles: List<String> = listOf(),
   ): (HttpHeaders) -> Unit = jwtAuthHelper.setAuthorisation(user, roles)
 }

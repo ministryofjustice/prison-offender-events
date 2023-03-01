@@ -46,7 +46,7 @@ internal class PrisonApiServiceTest {
         "ADM",
         "HP",
         "INACTIVE OUT",
-        "MDI"
+        "MDI",
       )
     }
 
@@ -56,7 +56,7 @@ internal class PrisonApiServiceTest {
       service.getPrisonerDetails("A7841DY")
       server.verify(
         WireMock.getRequestedFor(WireMock.urlEqualTo("/api/offenders/A7841DY"))
-          .withHeader("Authorization", equalTo("Bearer ABCDE"))
+          .withHeader("Authorization", equalTo("Bearer ABCDE")),
       )
     }
 
@@ -105,7 +105,7 @@ internal class PrisonApiServiceTest {
         "ADM",
         "HP",
         "INACTIVE OUT",
-        "MDI"
+        "MDI",
       )
       assertThat(service.getPrisonerDetails("A7841DY").currentLocation()).isEqualTo(OUTSIDE_PRISON)
       server.stubPrisonerDetails(
@@ -115,7 +115,7 @@ internal class PrisonApiServiceTest {
         "ADM",
         "HP",
         "ACTIVE IN",
-        "MDI"
+        "MDI",
       )
       assertThat(service.getPrisonerDetails("A7841DY").currentLocation()).isEqualTo(IN_PRISON)
       server.stubPrisonerDetails(
@@ -125,7 +125,7 @@ internal class PrisonApiServiceTest {
         "ADM",
         "HP",
         "BACON",
-        "MDI"
+        "MDI",
       )
       assertThat(service.getPrisonerDetails("A7841DY").currentLocation()).isNull()
       server.stubPrisonerDetails(
@@ -135,7 +135,7 @@ internal class PrisonApiServiceTest {
         "ADM",
         "HP",
         "INACTIVE TRN",
-        "MDI"
+        "MDI",
       )
       assertThat(service.getPrisonerDetails("A7841DY").currentLocation()).isEqualTo(BEING_TRANSFERRED)
     }
@@ -150,7 +150,7 @@ internal class PrisonApiServiceTest {
         "ADM",
         "HP",
         "INACTIVE OUT",
-        "MDI"
+        "MDI",
       )
       assertThat(service.getPrisonerDetails("A7841DY").currentPrisonStatus()).isEqualTo(NOT_UNDER_PRISON_CARE)
       server.stubPrisonerDetails(
@@ -160,7 +160,7 @@ internal class PrisonApiServiceTest {
         "ADM",
         "HP",
         "ACTIVE IN",
-        "MDI"
+        "MDI",
       )
       assertThat(service.getPrisonerDetails("A7841DY").currentPrisonStatus()).isEqualTo(UNDER_PRISON_CARE)
       server.stubPrisonerDetails(
@@ -170,7 +170,7 @@ internal class PrisonApiServiceTest {
         "ADM",
         "HP",
         "BACON",
-        "MDI"
+        "MDI",
       )
       assertThat(service.getPrisonerDetails("A7841DY").currentPrisonStatus()).isNull()
     }
@@ -182,7 +182,7 @@ internal class PrisonApiServiceTest {
     fun setUp() {
       server.stubBasicPrisonerDetails(
         "A7841DY",
-        1200835L
+        1200835L,
       )
     }
 
@@ -192,7 +192,7 @@ internal class PrisonApiServiceTest {
       service.getPrisonerNumberForBookingId(1200835L)
       server.verify(
         WireMock.getRequestedFor(WireMock.urlEqualTo("/api/bookings/1200835?basicInfo=true&extraInfo=false"))
-          .withHeader("Authorization", equalTo("Bearer ABCDE"))
+          .withHeader("Authorization", equalTo("Bearer ABCDE")),
       )
     }
 
@@ -211,7 +211,7 @@ internal class PrisonApiServiceTest {
     fun setUp() {
       server.stubPrisonerIdentifiers(
         "A5841DY",
-        1200835L
+        1200835L,
       )
     }
 
@@ -221,7 +221,7 @@ internal class PrisonApiServiceTest {
       service.getIdentifiersByBookingId(1200835L)
       server.verify(
         WireMock.getRequestedFor(WireMock.urlEqualTo("/api/bookings/1200835/identifiers?type=MERGED"))
-          .withHeader("Authorization", equalTo("Bearer ABCDE"))
+          .withHeader("Authorization", equalTo("Bearer ABCDE")),
       )
     }
 
@@ -243,8 +243,8 @@ internal class PrisonApiServiceTest {
         "A7841DY",
         listOf(
           MovementFragment("IN", LocalDateTime.parse("2020-07-19T10:00:40")),
-          MovementFragment("OUT", LocalDateTime.parse("2020-07-20T11:00:40"))
-        )
+          MovementFragment("OUT", LocalDateTime.parse("2020-07-20T11:00:40")),
+        ),
       )
     }
 
