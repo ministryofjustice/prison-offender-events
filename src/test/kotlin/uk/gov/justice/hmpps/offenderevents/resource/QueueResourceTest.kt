@@ -33,6 +33,7 @@ class QueueResourceTest : QueueListenerIntegrationTest() {
         .expectStatus().isUnauthorized
     }
   }
+
   @Test
   fun `should fail if no token`() {
     webTestClient.put()

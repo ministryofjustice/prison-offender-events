@@ -27,18 +27,18 @@ class SmokeTestConfiguration(@Value("\${smoketest.endpoint.url}") private val sm
     .apply(
       ServletOAuth2AuthorizedClientExchangeFilterFunction(authorizedClientManager).also {
         it.setDefaultClientRegistrationId("smoketest-service")
-      }.oauth2Configuration()
+      }.oauth2Configuration(),
     )
     .build()
 
   @Bean
   fun authorizedClientManager(
     clientRegistrationRepository: ClientRegistrationRepository,
-    oAuth2AuthorizedClientService: OAuth2AuthorizedClientService
+    oAuth2AuthorizedClientService: OAuth2AuthorizedClientService,
   ): OAuth2AuthorizedClientManager =
     AuthorizedClientServiceOAuth2AuthorizedClientManager(
       clientRegistrationRepository,
-      oAuth2AuthorizedClientService
+      oAuth2AuthorizedClientService,
     ).apply {
       setAuthorizedClientProvider(OAuth2AuthorizedClientProviderBuilder.builder().clientCredentials().build())
     }

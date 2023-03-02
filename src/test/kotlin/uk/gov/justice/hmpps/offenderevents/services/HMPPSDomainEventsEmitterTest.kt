@@ -93,7 +93,7 @@ internal class HMPPSDomainEventsEmitterTest {
       releasePrisonerReasonCalculator,
       mergeRecordDiscriminator,
       telemetryClient,
-      offenderEventsProperties
+      offenderEventsProperties,
     )
   }
 
@@ -118,8 +118,8 @@ internal class HMPPSDomainEventsEmitterTest {
           IN_PRISON,
           UNDER_PRISON_CARE,
           "MDI",
-          ReceivePrisonerReasonCalculator.MovementReason("N")
-        )
+          ReceivePrisonerReasonCalculator.MovementReason("N"),
+        ),
       )
     whenever(releasePrisonerReasonCalculator.calculateReasonForRelease(ArgumentMatchers.any()))
       .thenReturn(
@@ -128,15 +128,15 @@ internal class HMPPSDomainEventsEmitterTest {
           OUTSIDE_PRISON,
           NOT_UNDER_PRISON_CARE,
           "MDI",
-          MovementReason("N")
-        )
+          MovementReason("N"),
+        ),
       )
     emitter.convertAndSendWhenSignificant(
       OffenderEvent.builder()
         .eventType(prisonEventType)
         .offenderIdDisplay("A1234GH")
         .eventDatetime(LocalDateTime.now())
-        .build()
+        .build(),
     )
 
     verify(hmppsEventSnsClient, times(1)).publish(publishRequestCaptor.capture())
@@ -145,7 +145,7 @@ internal class HMPPSDomainEventsEmitterTest {
     assertThatJson(payload).node("eventType").isEqualTo(eventType)
     assertThatJson(payload).node("version").isEqualTo(1)
     assertThat(
-      messageAttributes["eventType"]
+      messageAttributes["eventType"],
     )
       .isEqualTo(MessageAttributeValue.builder().stringValue(eventType).dataType("String").build())
     verify(telemetryClient)!!
@@ -160,8 +160,8 @@ internal class HMPPSDomainEventsEmitterTest {
     whenever(mergeRecordDiscriminator.identifyMergedPrisoner(ArgumentMatchers.eq(43124234L)))
       .thenReturn(
         listOf(
-          MergeRecordDiscriminator.MergeOutcome("A1234GH", "A1233GP")
-        )
+          MergeRecordDiscriminator.MergeOutcome("A1234GH", "A1233GP"),
+        ),
       )
 
     emitter.convertAndSendWhenSignificant(
@@ -170,7 +170,7 @@ internal class HMPPSDomainEventsEmitterTest {
         .offenderIdDisplay("A1234GH")
         .bookingId(43124234L)
         .eventDatetime(LocalDateTime.now())
-        .build()
+        .build(),
     )
 
     verify(hmppsEventSnsClient, times(1)).publish(publishRequestCaptor.capture())
@@ -179,7 +179,7 @@ internal class HMPPSDomainEventsEmitterTest {
     assertThatJson(payload).node("eventType").isEqualTo(eventType)
     assertThatJson(payload).node("version").isEqualTo(1)
     assertThat(
-      messageAttributes["eventType"]
+      messageAttributes["eventType"],
     )
       .isEqualTo(MessageAttributeValue.builder().stringValue(eventType).dataType("String").build())
     verify(telemetryClient)!!
@@ -195,8 +195,8 @@ internal class HMPPSDomainEventsEmitterTest {
     fun setUp() {
       whenever(
         receivePrisonerReasonCalculator.calculateMostLikelyReasonForPrisonerReceive(
-          ArgumentMatchers.any()
-        )
+          ArgumentMatchers.any(),
+        ),
       )
         .thenReturn(
           ReceiveReason(
@@ -207,15 +207,15 @@ internal class HMPPSDomainEventsEmitterTest {
             IN_PRISON,
             UNDER_PRISON_CARE,
             "MDI",
-            ReceivePrisonerReasonCalculator.MovementReason("N")
-          )
+            ReceivePrisonerReasonCalculator.MovementReason("N"),
+          ),
         )
       emitter.convertAndSendWhenSignificant(
         OffenderEvent.builder()
           .eventType("OFFENDER_MOVEMENT-RECEPTION")
           .offenderIdDisplay("A1234GH")
           .eventDatetime(LocalDateTime.parse("2020-12-04T10:42:43"))
-          .build()
+          .build(),
       )
 
       verify(hmppsEventSnsClient, times(1)).publish(publishRequestCaptor.capture())
@@ -241,7 +241,7 @@ internal class HMPPSDomainEventsEmitterTest {
           Consumer { publishedAt: String? ->
             assertThat(OffsetDateTime.parse(publishedAt))
               .isCloseTo(OffsetDateTime.now(), Assertions.within(10, SECONDS))
-          }
+          },
         )
     }
 
@@ -351,15 +351,15 @@ internal class HMPPSDomainEventsEmitterTest {
             OUTSIDE_PRISON,
             NOT_UNDER_PRISON_CARE,
             "MDI",
-            ReceivePrisonerReasonCalculator.MovementReason("N")
-          )
+            ReceivePrisonerReasonCalculator.MovementReason("N"),
+          ),
         )
       emitter.convertAndSendWhenSignificant(
         OffenderEvent.builder()
           .eventType("OFFENDER_MOVEMENT-RECEPTION")
           .offenderIdDisplay("A1234GH")
           .eventDatetime(LocalDateTime.parse("2020-12-04T10:42:43"))
-          .build()
+          .build(),
       )
       Mockito.verifyNoInteractions(hmppsEventSnsClient)
       verify(telemetryClient)!!
@@ -414,15 +414,15 @@ internal class HMPPSDomainEventsEmitterTest {
             OUTSIDE_PRISON,
             NOT_UNDER_PRISON_CARE,
             "MDI",
-            MovementReason("N")
-          )
+            MovementReason("N"),
+          ),
         )
       emitter.convertAndSendWhenSignificant(
         OffenderEvent.builder()
           .eventType("OFFENDER_MOVEMENT-DISCHARGE")
           .offenderIdDisplay("A1234GH")
           .eventDatetime(LocalDateTime.parse("2020-07-04T10:42:43"))
-          .build()
+          .build(),
       )
       verify(hmppsEventSnsClient, times(1)).publish(publishRequestCaptor.capture())
       payload = publishRequestCaptor.value.message()
@@ -447,7 +447,7 @@ internal class HMPPSDomainEventsEmitterTest {
           Consumer { publishedAt: String? ->
             assertThat(OffsetDateTime.parse(publishedAt))
               .isCloseTo(OffsetDateTime.now(), Assertions.within(10, SECONDS))
-          }
+          },
         )
     }
 
@@ -542,17 +542,21 @@ internal class HMPPSDomainEventsEmitterTest {
       whenever(releasePrisonerReasonCalculator.calculateReasonForRelease(ArgumentMatchers.any()))
         .thenReturn(
           ReleaseReason(
-            Reason.UNKNOWN, "some details", IN_PRISON,
-            UNDER_PRISON_CARE, "MDI", MovementReason("N")
+            Reason.UNKNOWN,
+            "some details",
+            IN_PRISON,
+            UNDER_PRISON_CARE,
+            "MDI",
+            MovementReason("N"),
 
-          )
+          ),
         )
       emitter.convertAndSendWhenSignificant(
         OffenderEvent.builder()
           .eventType("OFFENDER_MOVEMENT-DISCHARGE")
           .offenderIdDisplay("A1234GH")
           .eventDatetime(LocalDateTime.parse("2020-12-04T10:42:43"))
-          .build()
+          .build(),
       )
       Mockito.verifyNoInteractions(hmppsEventSnsClient)
       verify(telemetryClient)
@@ -601,13 +605,13 @@ internal class HMPPSDomainEventsEmitterTest {
     fun setUp() {
       whenever(
         mergeRecordDiscriminator.identifyMergedPrisoner(
-          ArgumentMatchers.any()
-        )
+          ArgumentMatchers.any(),
+        ),
       )
         .thenReturn(
           listOf(
-            MergeRecordDiscriminator.MergeOutcome("A1234GH", "A1233GP")
-          )
+            MergeRecordDiscriminator.MergeOutcome("A1234GH", "A1233GP"),
+          ),
         )
 
       emitter.convertAndSendWhenSignificant(
@@ -615,7 +619,7 @@ internal class HMPPSDomainEventsEmitterTest {
           .eventType("BOOKING_NUMBER-CHANGED")
           .bookingId(43124234L)
           .eventDatetime(LocalDateTime.parse("2020-12-04T10:42:43"))
-          .build()
+          .build(),
       )
 
       verify(hmppsEventSnsClient, times(1)).publish(publishRequestCaptor.capture())
@@ -641,7 +645,7 @@ internal class HMPPSDomainEventsEmitterTest {
           Consumer { publishedAt: String? ->
             assertThat(OffsetDateTime.parse(publishedAt))
               .isCloseTo(OffsetDateTime.now(), Assertions.within(10, SECONDS))
-          }
+          },
         )
     }
 
@@ -704,15 +708,15 @@ internal class HMPPSDomainEventsEmitterTest {
     fun setUp() {
       whenever(
         mergeRecordDiscriminator.identifyMergedPrisoner(
-          ArgumentMatchers.any()
-        )
+          ArgumentMatchers.any(),
+        ),
       )
         .thenReturn(
           listOf(
             MergeRecordDiscriminator.MergeOutcome("A1234GH", "A1233GP"),
             MergeRecordDiscriminator.MergeOutcome("A1238GH", "A1233GP"),
-            MergeRecordDiscriminator.MergeOutcome("A1239GH", "A1233GP")
-          )
+            MergeRecordDiscriminator.MergeOutcome("A1239GH", "A1233GP"),
+          ),
         )
 
       emitter.convertAndSendWhenSignificant(
@@ -720,7 +724,7 @@ internal class HMPPSDomainEventsEmitterTest {
           .eventType("BOOKING_NUMBER-CHANGED")
           .bookingId(43124234L)
           .eventDatetime(LocalDateTime.parse("2020-12-04T10:42:43"))
-          .build()
+          .build(),
       )
 
       verify(hmppsEventSnsClient, times(3)).publish(publishRequestCaptor.capture())
@@ -746,7 +750,7 @@ internal class HMPPSDomainEventsEmitterTest {
           Consumer { publishedAt: String? ->
             assertThat(OffsetDateTime.parse(publishedAt))
               .isCloseTo(OffsetDateTime.now(), Assertions.within(10, SECONDS))
-          }
+          },
         )
     }
 
@@ -798,7 +802,7 @@ internal class HMPPSDomainEventsEmitterTest {
           .offenderIdDisplay("A1234GH")
           .bookingId(1234L)
           .eventDatetime(LocalDateTime.parse("2022-12-04T10:00:00"))
-          .build()
+          .build(),
       )
       verify(hmppsEventSnsClient, times(1)).publish(publishRequestCaptor.capture())
       payload = publishRequestCaptor.value.message()
@@ -823,7 +827,7 @@ internal class HMPPSDomainEventsEmitterTest {
           Consumer { publishedAt: String? ->
             assertThat(OffsetDateTime.parse(publishedAt))
               .isCloseTo(OffsetDateTime.now(), Assertions.within(10, SECONDS))
-          }
+          },
         )
     }
 
@@ -880,7 +884,7 @@ internal class HMPPSDomainEventsEmitterTest {
         "caseNoteId",
         "caseNoteType",
         "type",
-        "subType"
+        "subType",
       )
     }
   }
@@ -898,7 +902,7 @@ internal class HMPPSDomainEventsEmitterTest {
           .offenderIdDisplay(null)
           .bookingId(1234L)
           .eventDatetime(LocalDateTime.parse("2022-12-04T10:00:00"))
-          .build()
+          .build(),
       )
     }
 
@@ -915,10 +919,10 @@ internal class HMPPSDomainEventsEmitterTest {
 
   private fun eventMap() = listOf(
     Arguments.of("OFFENDER_MOVEMENT-DISCHARGE", "prison-offender-events.prisoner.released"),
-    Arguments.of("OFFENDER_MOVEMENT-RECEPTION", "prison-offender-events.prisoner.received")
+    Arguments.of("OFFENDER_MOVEMENT-RECEPTION", "prison-offender-events.prisoner.received"),
   )
 
   private fun bookingChangedEventMap() = listOf(
-    Arguments.of("BOOKING_NUMBER-CHANGED", "prison-offender-events.prisoner.merged")
+    Arguments.of("BOOKING_NUMBER-CHANGED", "prison-offender-events.prisoner.merged"),
   )
 }

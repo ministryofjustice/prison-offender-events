@@ -26,7 +26,7 @@ class ResourceServerConfiguration {
           "/health/**", "/info", "/ping",
           "/prometheus/**",
           "/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html",
-          "/queue-admin/retry-all-dlqs"
+          "/queue-admin/retry-all-dlqs",
         ).forEach { authorize(it, permitAll) }
         authorize(anyRequest, authenticated)
       }
