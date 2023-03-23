@@ -29,9 +29,11 @@ public class HmppsDomainEvent {
     private Map<String, String> additionalInformation = new HashMap<>();
 
     public HmppsDomainEvent withAdditionalInformation(String key, String value) {
-        if (value != null) {
-            additionalInformation.put(key, value);
-        }
+        if (value != null)  additionalInformation.put(key, value);
+        return this;
+    }
+    public HmppsDomainEvent withAdditionalInformation(String key, Number value) {
+        if (value != null)  additionalInformation.put(key, value.toString());
         return this;
     }
 

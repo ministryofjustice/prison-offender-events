@@ -9,7 +9,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClientResponseException;
 import software.amazon.awssdk.services.sns.SnsAsyncClient;
 import software.amazon.awssdk.services.sns.model.PublishRequest;
-import software.amazon.awssdk.services.sqs.SqsAsyncClient;
 import uk.gov.justice.hmpps.offenderevents.config.OffenderEventsProperties;
 import uk.gov.justice.hmpps.offenderevents.model.HmppsDomainEvent;
 import uk.gov.justice.hmpps.offenderevents.model.HmppsDomainEvent.PersonReference;
@@ -66,6 +65,7 @@ public class HMPPSDomainEventsEmitter {
                 case "OFFENDER_MOVEMENT-RECEPTION" -> toPrisonerReceived(event).stream().toList();
                 case "OFFENDER_MOVEMENT-DISCHARGE" -> toPrisonerReleased(event).stream().toList();
                 case "BOOKING_NUMBER-CHANGED" -> toMergedOffenderNumbers(event);
+                case "BED_ASSIGNMENT_HISTORY-INSERTED" -> toCellMove(event).stream().toList();
                 default -> Collections.emptyList();
             };
 
@@ -73,6 +73,19 @@ public class HMPPSDomainEventsEmitter {
             sendEvent(hmppsDomainEvent);
             telemetryClient.trackEvent(hmppsDomainEvent.getEventType(), hmppsDomainEvent.asTelemetryMap(), null);
         });
+    }
+
+    private Optional<HmppsDomainEvent> toCellMove(final OffenderEvent event) {
+        return Optional.of(HmppsDomainEvent.builder()
+            .eventType("prison-offender-events.prisoner.cell.move")
+            .description("A prisoner has been moved to a different cell")
+            .occurredAt(toOccurredAt(event))
+            .publishedAt(OffsetDateTime.now().toString())
+            .personReference(new PersonReference(event.getOffenderIdDisplay()))
+            .build()
+            .withAdditionalInformation("nomsNumber", event.getOffenderIdDisplay())
+            .withAdditionalInformation("livingUnitId", event.getLivingUnitId())
+            .withAdditionalInformation("bedAssignmentSeq", event.getBedAssignmentSeq()));
     }
 
     private Map<String, String> asTelemetryMap(OffenderEvent event, PrisonerMovementReason reason, String reasonDescription) {

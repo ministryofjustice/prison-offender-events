@@ -17,6 +17,8 @@ import org.junit.jupiter.params.provider.Arguments
 import org.junit.jupiter.params.provider.MethodSource
 import org.mockito.ArgumentCaptor
 import org.mockito.ArgumentMatchers
+import org.mockito.ArgumentMatchers.any
+import org.mockito.ArgumentMatchers.isNull
 import org.mockito.Captor
 import org.mockito.Mock
 import org.mockito.Mockito
@@ -109,7 +111,7 @@ internal class HMPPSDomainEventsEmitterTest {
   @DisplayName("Will send to topic for these events")
   @MockitoSettings(strictness = LENIENT)
   fun willSendToTopicForTheseEvents(prisonEventType: String, eventType: String) {
-    whenever(receivePrisonerReasonCalculator.calculateMostLikelyReasonForPrisonerReceive(ArgumentMatchers.any()))
+    whenever(receivePrisonerReasonCalculator.calculateMostLikelyReasonForPrisonerReceive(any()))
       .thenReturn(
         ReceiveReason(
           ReceivePrisonerReasonCalculator.Reason.ADMISSION,
@@ -121,7 +123,7 @@ internal class HMPPSDomainEventsEmitterTest {
           ReceivePrisonerReasonCalculator.MovementReason("N"),
         ),
       )
-    whenever(releasePrisonerReasonCalculator.calculateReasonForRelease(ArgumentMatchers.any()))
+    whenever(releasePrisonerReasonCalculator.calculateReasonForRelease(any()))
       .thenReturn(
         ReleaseReason(
           TEMPORARY_ABSENCE_RELEASE,
@@ -149,7 +151,7 @@ internal class HMPPSDomainEventsEmitterTest {
     )
       .isEqualTo(MessageAttributeValue.builder().stringValue(eventType).dataType("String").build())
     verify(telemetryClient)!!
-      .trackEvent(ArgumentMatchers.eq(eventType), ArgumentMatchers.anyMap(), ArgumentMatchers.isNull())
+      .trackEvent(ArgumentMatchers.eq(eventType), ArgumentMatchers.anyMap(), isNull())
   }
 
   @ParameterizedTest
@@ -183,7 +185,7 @@ internal class HMPPSDomainEventsEmitterTest {
     )
       .isEqualTo(MessageAttributeValue.builder().stringValue(eventType).dataType("String").build())
     verify(telemetryClient)!!
-      .trackEvent(ArgumentMatchers.eq(eventType), ArgumentMatchers.anyMap(), ArgumentMatchers.isNull())
+      .trackEvent(ArgumentMatchers.eq(eventType), ArgumentMatchers.anyMap(), isNull())
   }
 
   @Nested
@@ -195,7 +197,7 @@ internal class HMPPSDomainEventsEmitterTest {
     fun setUp() {
       whenever(
         receivePrisonerReasonCalculator.calculateMostLikelyReasonForPrisonerReceive(
-          ArgumentMatchers.any(),
+          any(),
         ),
       )
         .thenReturn(
@@ -221,7 +223,7 @@ internal class HMPPSDomainEventsEmitterTest {
       verify(hmppsEventSnsClient, times(1)).publish(publishRequestCaptor.capture())
       payload = publishRequestCaptor.value.message()
       verify(telemetryClient)!!
-        .trackEvent(ArgumentMatchers.any(), telemetryAttributesCaptor.capture(), ArgumentMatchers.isNull())
+        .trackEvent(any(), telemetryAttributesCaptor.capture(), isNull())
       telemetryAttributes = telemetryAttributesCaptor.value
     }
 
@@ -341,7 +343,7 @@ internal class HMPPSDomainEventsEmitterTest {
 
     @BeforeEach
     fun setUp() {
-      whenever(receivePrisonerReasonCalculator.calculateMostLikelyReasonForPrisonerReceive(ArgumentMatchers.any()))
+      whenever(receivePrisonerReasonCalculator.calculateMostLikelyReasonForPrisonerReceive(any()))
         .thenReturn(
           ReceiveReason(
             ReceivePrisonerReasonCalculator.Reason.ADMISSION,
@@ -363,7 +365,7 @@ internal class HMPPSDomainEventsEmitterTest {
       )
       Mockito.verifyNoInteractions(hmppsEventSnsClient)
       verify(telemetryClient)!!
-        .trackEvent(ArgumentMatchers.any(), telemetryAttributesCaptor.capture(), ArgumentMatchers.isNull())
+        .trackEvent(any(), telemetryAttributesCaptor.capture(), isNull())
       telemetryAttributes = telemetryAttributesCaptor.value
     }
 
@@ -406,7 +408,7 @@ internal class HMPPSDomainEventsEmitterTest {
 
     @BeforeEach
     fun setUp() {
-      whenever(releasePrisonerReasonCalculator.calculateReasonForRelease(ArgumentMatchers.any()))
+      whenever(releasePrisonerReasonCalculator.calculateReasonForRelease(any()))
         .thenReturn(
           ReleaseReason(
             TEMPORARY_ABSENCE_RELEASE,
@@ -427,7 +429,7 @@ internal class HMPPSDomainEventsEmitterTest {
       verify(hmppsEventSnsClient, times(1)).publish(publishRequestCaptor.capture())
       payload = publishRequestCaptor.value.message()
       verify(telemetryClient)!!
-        .trackEvent(ArgumentMatchers.any(), telemetryAttributesCaptor.capture(), ArgumentMatchers.isNull())
+        .trackEvent(any(), telemetryAttributesCaptor.capture(), isNull())
       telemetryAttributes = telemetryAttributesCaptor.value
     }
 
@@ -539,7 +541,7 @@ internal class HMPPSDomainEventsEmitterTest {
 
     @BeforeEach
     fun setUp() {
-      whenever(releasePrisonerReasonCalculator.calculateReasonForRelease(ArgumentMatchers.any()))
+      whenever(releasePrisonerReasonCalculator.calculateReasonForRelease(any()))
         .thenReturn(
           ReleaseReason(
             Reason.UNKNOWN,
@@ -560,7 +562,7 @@ internal class HMPPSDomainEventsEmitterTest {
       )
       Mockito.verifyNoInteractions(hmppsEventSnsClient)
       verify(telemetryClient)
-        ?.trackEvent(ArgumentMatchers.any(), telemetryAttributesCaptor.capture(), ArgumentMatchers.isNull())
+        ?.trackEvent(any(), telemetryAttributesCaptor.capture(), isNull())
       telemetryAttributes = telemetryAttributesCaptor.value
     }
 
@@ -605,7 +607,7 @@ internal class HMPPSDomainEventsEmitterTest {
     fun setUp() {
       whenever(
         mergeRecordDiscriminator.identifyMergedPrisoner(
-          ArgumentMatchers.any(),
+          any(),
         ),
       )
         .thenReturn(
@@ -625,7 +627,7 @@ internal class HMPPSDomainEventsEmitterTest {
       verify(hmppsEventSnsClient, times(1)).publish(publishRequestCaptor.capture())
       payload = publishRequestCaptor.value.message()
       verify(telemetryClient)!!
-        .trackEvent(ArgumentMatchers.any(), telemetryAttributesCaptor.capture(), ArgumentMatchers.isNull())
+        .trackEvent(any(), telemetryAttributesCaptor.capture(), isNull())
       telemetryAttributes = telemetryAttributesCaptor.value
     }
 
@@ -708,7 +710,7 @@ internal class HMPPSDomainEventsEmitterTest {
     fun setUp() {
       whenever(
         mergeRecordDiscriminator.identifyMergedPrisoner(
-          ArgumentMatchers.any(),
+          any(),
         ),
       )
         .thenReturn(
@@ -730,7 +732,7 @@ internal class HMPPSDomainEventsEmitterTest {
       verify(hmppsEventSnsClient, times(3)).publish(publishRequestCaptor.capture())
       payload = publishRequestCaptor.value.message()
       verify(telemetryClient, times(3))!!
-        .trackEvent(ArgumentMatchers.any(), telemetryAttributesCaptor.capture(), ArgumentMatchers.isNull())
+        .trackEvent(any(), telemetryAttributesCaptor.capture(), isNull())
       telemetryAttributes = telemetryAttributesCaptor.value
     }
 
@@ -807,7 +809,7 @@ internal class HMPPSDomainEventsEmitterTest {
       verify(hmppsEventSnsClient, times(1)).publish(publishRequestCaptor.capture())
       payload = publishRequestCaptor.value.message()
       verify(telemetryClient)!!
-        .trackEvent(ArgumentMatchers.any(), telemetryAttributesCaptor.capture(), ArgumentMatchers.isNull())
+        .trackEvent(any(), telemetryAttributesCaptor.capture(), isNull())
       telemetryAttributes = telemetryAttributesCaptor.value
     }
 
@@ -914,6 +916,98 @@ internal class HMPPSDomainEventsEmitterTest {
     @Test
     fun `will not create a telemetry event`() {
       verifyNoInteractions(telemetryClient)
+    }
+  }
+
+  @Nested
+  internal inner class PrisonerCellMove {
+    private var payload: String? = null
+    private var telemetryAttributes: Map<String, String>? = null
+
+    @BeforeEach
+    fun setUp() {
+      emitter.convertAndSendWhenSignificant(
+        OffenderEvent.builder()
+          .eventType("BED_ASSIGNMENT_HISTORY-INSERTED")
+          .eventDatetime(LocalDateTime.parse("2022-12-04T10:00:00"))
+          .offenderIdDisplay("A1234GH")
+          .bookingId(1234L)
+          .bedAssignmentSeq(1)
+          .livingUnitId(4012L)
+          .build(),
+      )
+      verify(hmppsEventSnsClient).publish(publishRequestCaptor.capture())
+      payload = publishRequestCaptor.value.message()
+      verify(telemetryClient).trackEvent(
+        any(),
+        telemetryAttributesCaptor.capture(),
+        isNull(),
+      )
+      telemetryAttributes = telemetryAttributesCaptor.value
+    }
+
+    @Test
+    @DisplayName("will use event datetime for occurred at time")
+    fun willUseEventDatetimeForOccurredAtTime() {
+      assertThatJson(payload).node("occurredAt").isEqualTo("2022-12-04T10:00:00Z")
+    }
+
+    @Test
+    @DisplayName("will user current time as publishedAt")
+    fun willUseCurrentTimeAsPublishedAt() {
+      assertThatJson(payload)
+        .node("publishedAt")
+        .asString()
+        .satisfies(
+          Consumer { publishedAt: String? ->
+            assertThat(OffsetDateTime.parse(publishedAt))
+              .isCloseTo(OffsetDateTime.now(), Assertions.within(10, SECONDS))
+          },
+        )
+    }
+
+    @Test
+    @DisplayName("person reference will contain offenderNumber as NOMS number")
+    fun personReferenceWillContainOffenderNumberAsNOMSNumber() {
+      assertThatJson(payload).node("personReference.identifiers").isArray.hasSize(1)
+      assertThatJson(payload).node("personReference.identifiers[0].type").isEqualTo("NOMS")
+      assertThatJson(payload).node("personReference.identifiers[0].value").isEqualTo("A1234GH")
+    }
+
+    @Test
+    @DisplayName("additional information will contain the  bed assignment and living id")
+    fun additionalInformationWillContainCaseNoteType() {
+      assertThatJson(payload).node("additionalInformation.bedAssignmentSeq").isEqualTo("\"1\"")
+      assertThatJson(payload).node("additionalInformation.livingUnitId").isEqualTo("\"4012\"")
+    }
+
+    @Test
+    @DisplayName("will describe the event as a cell move")
+    fun willDescribeTheEventAsACaseNote() {
+      assertThatJson(payload).node("description")
+        .isEqualTo("A prisoner has been moved to a different cell")
+    }
+
+    @Test
+    @DisplayName("will add correct fields to telemetry event")
+    fun willAddNomsNumberToTelemetryEvent() {
+      assertThat(telemetryAttributes).containsEntry("nomsNumber", "A1234GH")
+      assertThat(telemetryAttributes).containsEntry("occurredAt", "2022-12-04T10:00:00Z")
+      assertThat(telemetryAttributes).containsEntry("bedAssignmentSeq", "1")
+      assertThat(telemetryAttributes).containsEntry("livingUnitId", "4012")
+    }
+
+    @Test
+    @DisplayName("will contain no other telemetry properties")
+    fun willContainNoOtherTelemetryProperties() {
+      assertThat(telemetryAttributes).containsOnlyKeys(
+        "eventType",
+        "nomsNumber",
+        "occurredAt",
+        "publishedAt",
+        "bedAssignmentSeq",
+        "livingUnitId",
+      )
     }
   }
 
