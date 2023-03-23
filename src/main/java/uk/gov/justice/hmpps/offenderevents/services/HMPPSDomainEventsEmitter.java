@@ -85,7 +85,8 @@ public class HMPPSDomainEventsEmitter {
             .build()
             .withAdditionalInformation("nomsNumber", event.getOffenderIdDisplay())
             .withAdditionalInformation("livingUnitId", event.getLivingUnitId())
-            .withAdditionalInformation("bedAssignmentSeq", event.getBedAssignmentSeq()));
+            .withAdditionalInformation("bedAssignmentSeq", event.getBedAssignmentSeq())
+            .withAdditionalInformation("bookingId", event.getBookingId()));
     }
 
     private Map<String, String> asTelemetryMap(OffenderEvent event, PrisonerMovementReason reason, String reasonDescription) {
