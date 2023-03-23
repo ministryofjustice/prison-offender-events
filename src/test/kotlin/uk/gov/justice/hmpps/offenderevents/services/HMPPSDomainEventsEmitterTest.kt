@@ -979,6 +979,7 @@ internal class HMPPSDomainEventsEmitterTest {
     fun additionalInformationWillContainCaseNoteType() {
       assertThatJson(payload).node("additionalInformation.bedAssignmentSeq").isEqualTo("\"1\"")
       assertThatJson(payload).node("additionalInformation.livingUnitId").isEqualTo("\"4012\"")
+      assertThatJson(payload).node("additionalInformation.bookingId").isEqualTo("\"1234\"")
     }
 
     @Test
@@ -1007,6 +1008,7 @@ internal class HMPPSDomainEventsEmitterTest {
         "publishedAt",
         "bedAssignmentSeq",
         "livingUnitId",
+        "bookingId",
       )
     }
   }
