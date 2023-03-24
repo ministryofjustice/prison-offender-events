@@ -11,6 +11,7 @@ import org.junit.jupiter.api.extension.ExtendWith
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.autoconfigure.security.oauth2.client.servlet.OAuth2ClientAutoConfiguration
 import org.springframework.boot.autoconfigure.security.servlet.SecurityAutoConfiguration
+import org.springframework.boot.autoconfigure.web.reactive.function.client.WebClientAutoConfiguration
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.test.context.ActiveProfiles
 import uk.gov.justice.hmpps.offenderevents.config.OffenderEventsProperties
@@ -21,7 +22,7 @@ import uk.gov.justice.hmpps.offenderevents.services.wiremock.HMPPSAuthExtension
 
 @ExtendWith(CommunityApiExtension::class, HMPPSAuthExtension::class)
 @ActiveProfiles(profiles = ["test"])
-@SpringBootTest(classes = [CommunityApiService::class, WebClientConfiguration::class, OffenderEventsProperties::class, SecurityAutoConfiguration::class, OAuth2ClientAutoConfiguration::class])
+@SpringBootTest(classes = [CommunityApiService::class, WebClientConfiguration::class, OffenderEventsProperties::class, SecurityAutoConfiguration::class, OAuth2ClientAutoConfiguration::class, WebClientAutoConfiguration::class])
 internal class CommunityApiServiceTest {
   @Autowired
   private lateinit var service: CommunityApiService
