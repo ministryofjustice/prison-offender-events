@@ -44,19 +44,7 @@ enum MovementReason {
     OTHER
 }
 
-enum CurrentLocation {
-    IN_PRISON,
-    OUTSIDE_PRISON,
-    BEING_TRANSFERRED,
-}
-
-enum CurrentPrisonStatus {
-    UNDER_PRISON_CARE,
-    NOT_UNDER_PRISON_CARE
-}
-
 @Service
-@Slf4j
 public class PrisonApiService {
 
     private final WebClient webClient;
