@@ -7,9 +7,8 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
-import org.mockito.ArgumentCaptor
-import org.mockito.Captor
 import org.mockito.Mockito
+import org.mockito.kotlin.argumentCaptor
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.whenever
@@ -31,14 +30,7 @@ internal class PrisonerEventsListenerTest {
   private lateinit var objectMapper: ObjectMapper
 
   private val hmppsQueueService: HmppsQueueService = mock()
-
   private val eventsEmitter: HMPPSDomainEventsEmitter = mock()
-
-  @Captor
-  private lateinit var offenderEventArgumentCaptor: ArgumentCaptor<OffenderEvent>
-
-  @Captor
-  private lateinit var sendMessageRequestArgumentCaptor: ArgumentCaptor<SendMessageRequest>
 
   private lateinit var listener: PrisonerEventsListener
 
@@ -56,9 +48,11 @@ internal class PrisonerEventsListenerTest {
     @DisplayName("Will pass offender event to events emitter")
     fun willPassOffenderEventToEventsEmitter() {
       listener.onPrisonerEvent(createMessage("OFFENDER_MOVEMENT-RECEPTION", "2021-06-08T14:41:11.526762Z"), message)
-      verify(eventsEmitter).convertAndSendWhenSignificant(offenderEventArgumentCaptor.capture())
-      assertThat(offenderEventArgumentCaptor.value.eventType).isEqualTo("OFFENDER_MOVEMENT-RECEPTION")
-      assertThat(offenderEventArgumentCaptor.value.offenderIdDisplay).isEqualTo("A5194DY")
+      argumentCaptor<OffenderEvent>().apply {
+        verify(eventsEmitter).convertAndSendWhenSignificant(capture())
+        assertThat(firstValue.eventType).isEqualTo("OFFENDER_MOVEMENT-RECEPTION")
+        assertThat(firstValue.offenderIdDisplay).isEqualTo("A5194DY")
+      }
     }
 
     @Test
@@ -71,9 +65,9 @@ internal class PrisonerEventsListenerTest {
 
       listener.onPrisonerEvent(createMessage("OFFENDER_MOVEMENT-RECEPTION", fortyFiveMinutesAgo), message)
 
-      verify(eventsEmitter).convertAndSendWhenSignificant(
-        offenderEventArgumentCaptor.capture(),
-      )
+      argumentCaptor<OffenderEvent>().apply {
+        verify(eventsEmitter).convertAndSendWhenSignificant(capture())
+      }
     }
   }
 
@@ -115,28 +109,36 @@ internal class PrisonerEventsListenerTest {
     @Test
     @DisplayName("will resend message")
     fun willResendMessage() {
-      verify(prisonEventQueueSqsClient).sendMessage(sendMessageRequestArgumentCaptor.capture())
+      argumentCaptor<SendMessageRequest>().apply {
+        verify(prisonEventQueueSqsClient).sendMessage(capture())
+      }
     }
 
     @Test
     @DisplayName("will set visibility on message to 15 minutes")
     fun willSetVisibilityOnMessageTo15Minutes() {
-      verify(prisonEventQueueSqsClient).sendMessage(sendMessageRequestArgumentCaptor.capture())
-      assertThat(sendMessageRequestArgumentCaptor.value.delaySeconds()).isEqualTo(15 * 60)
+      argumentCaptor<SendMessageRequest>().apply {
+        verify(prisonEventQueueSqsClient).sendMessage(capture())
+        assertThat(firstValue.delaySeconds()).isEqualTo(15 * 60)
+      }
     }
 
     @Test
     @DisplayName("will resend message back to queue it came from")
     fun willResendMessageBackToQueueItCameFrom() {
-      verify(prisonEventQueueSqsClient).sendMessage(sendMessageRequestArgumentCaptor.capture())
-      assertThat(sendMessageRequestArgumentCaptor.value.queueUrl()).isEqualTo("https://aws.queue/my-queue")
+      argumentCaptor<SendMessageRequest>().apply {
+        verify(prisonEventQueueSqsClient).sendMessage(capture())
+        assertThat(firstValue.queueUrl()).isEqualTo("https://aws.queue/my-queue")
+      }
     }
 
     @Test
     @DisplayName("message will be sent untouched")
     fun messageWillBeSentUntouched() {
-      verify(prisonEventQueueSqsClient).sendMessage(sendMessageRequestArgumentCaptor.capture())
-      assertThat(sendMessageRequestArgumentCaptor.value.messageBody()).isEqualTo(receptionMessageBody)
+      argumentCaptor<SendMessageRequest>().apply {
+        verify(prisonEventQueueSqsClient).sendMessage(capture())
+        assertThat(firstValue.messageBody()).isEqualTo(receptionMessageBody)
+      }
     }
   }
 
@@ -172,7 +174,9 @@ internal class PrisonerEventsListenerTest {
     @Test
     @DisplayName("will process message")
     fun willProcessMessage() {
-      verify(eventsEmitter).convertAndSendWhenSignificant(offenderEventArgumentCaptor.capture())
+      argumentCaptor<OffenderEvent>().apply {
+        verify(eventsEmitter).convertAndSendWhenSignificant(capture())
+      }
     }
   }
 }

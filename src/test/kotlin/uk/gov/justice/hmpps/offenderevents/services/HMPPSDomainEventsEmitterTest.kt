@@ -15,16 +15,15 @@ import org.junit.jupiter.api.extension.ExtendWith
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.Arguments
 import org.junit.jupiter.params.provider.MethodSource
-import org.mockito.ArgumentCaptor
 import org.mockito.ArgumentMatchers
-import org.mockito.ArgumentMatchers.any
-import org.mockito.ArgumentMatchers.isNull
-import org.mockito.Captor
 import org.mockito.Mock
 import org.mockito.Mockito
 import org.mockito.Mockito.verify
 import org.mockito.junit.jupiter.MockitoExtension
 import org.mockito.junit.jupiter.MockitoSettings
+import org.mockito.kotlin.any
+import org.mockito.kotlin.argumentCaptor
+import org.mockito.kotlin.isNull
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.times
 import org.mockito.kotlin.verifyNoInteractions
@@ -73,12 +72,6 @@ internal class HMPPSDomainEventsEmitterTest {
   @Mock
   private lateinit var offenderEventsProperties: OffenderEventsProperties
 
-  @Captor
-  private lateinit var publishRequestCaptor: ArgumentCaptor<PublishRequest>
-
-  @Captor
-  private lateinit var telemetryAttributesCaptor: ArgumentCaptor<Map<String, String>>
-
   private val hmppsQueueService = mock<HmppsQueueService>()
   private var hmppsEventSnsClient = mock<SnsAsyncClient>()
 
@@ -114,23 +107,23 @@ internal class HMPPSDomainEventsEmitterTest {
     whenever(receivePrisonerReasonCalculator.calculateMostLikelyReasonForPrisonerReceive(any()))
       .thenReturn(
         ReceiveReason(
-          ReceivePrisonerReasonCalculator.Reason.ADMISSION,
-          ProbableCause.UNKNOWN,
-          PRISON,
-          IN_PRISON,
-          UNDER_PRISON_CARE,
-          "MDI",
-          ReceivePrisonerReasonCalculator.MovementReason("N"),
+          reason = ReceivePrisonerReasonCalculator.Reason.ADMISSION,
+          probableCause = ProbableCause.UNKNOWN,
+          source = PRISON,
+          currentLocation = IN_PRISON,
+          currentPrisonStatus = UNDER_PRISON_CARE,
+          prisonId = "MDI",
+          nomisMovementReason = ReceivePrisonerReasonCalculator.MovementReason("N"),
         ),
       )
     whenever(releasePrisonerReasonCalculator.calculateReasonForRelease(any()))
       .thenReturn(
         ReleaseReason(
-          TEMPORARY_ABSENCE_RELEASE,
-          OUTSIDE_PRISON,
-          NOT_UNDER_PRISON_CARE,
-          "MDI",
-          MovementReason("N"),
+          reason = TEMPORARY_ABSENCE_RELEASE,
+          currentLocation = OUTSIDE_PRISON,
+          currentPrisonStatus = NOT_UNDER_PRISON_CARE,
+          prisonId = "MDI",
+          nomisMovementReason = MovementReason("N"),
         ),
       )
     emitter.convertAndSendWhenSignificant(
@@ -141,17 +134,18 @@ internal class HMPPSDomainEventsEmitterTest {
         .build(),
     )
 
-    verify(hmppsEventSnsClient, times(1)).publish(publishRequestCaptor.capture())
-    val payload = publishRequestCaptor.value.message()
-    val messageAttributes = publishRequestCaptor.value.messageAttributes()
-    assertThatJson(payload).node("eventType").isEqualTo(eventType)
-    assertThatJson(payload).node("version").isEqualTo(1)
-    assertThat(
-      messageAttributes["eventType"],
-    )
-      .isEqualTo(MessageAttributeValue.builder().stringValue(eventType).dataType("String").build())
-    verify(telemetryClient)!!
-      .trackEvent(ArgumentMatchers.eq(eventType), ArgumentMatchers.anyMap(), isNull())
+    argumentCaptor<PublishRequest>().apply {
+      verify(hmppsEventSnsClient, times(1)).publish(capture())
+      val payload = firstValue.message()
+      val messageAttributes = firstValue.messageAttributes()
+      assertThatJson(payload).node("eventType").isEqualTo(eventType)
+      assertThatJson(payload).node("version").isEqualTo(1)
+      assertThat(
+        messageAttributes["eventType"],
+      )
+        .isEqualTo(MessageAttributeValue.builder().stringValue(eventType).dataType("String").build())
+      verify(telemetryClient).trackEvent(ArgumentMatchers.eq(eventType), ArgumentMatchers.anyMap(), isNull())
+    }
   }
 
   @ParameterizedTest
@@ -175,17 +169,19 @@ internal class HMPPSDomainEventsEmitterTest {
         .build(),
     )
 
-    verify(hmppsEventSnsClient, times(1)).publish(publishRequestCaptor.capture())
-    val payload = publishRequestCaptor.value.message()
-    val messageAttributes = publishRequestCaptor.value.messageAttributes()
-    assertThatJson(payload).node("eventType").isEqualTo(eventType)
-    assertThatJson(payload).node("version").isEqualTo(1)
-    assertThat(
-      messageAttributes["eventType"],
-    )
-      .isEqualTo(MessageAttributeValue.builder().stringValue(eventType).dataType("String").build())
-    verify(telemetryClient)!!
-      .trackEvent(ArgumentMatchers.eq(eventType), ArgumentMatchers.anyMap(), isNull())
+    argumentCaptor<PublishRequest>().apply {
+      verify(hmppsEventSnsClient, times(1)).publish(capture())
+      val payload = firstValue.message()
+      val messageAttributes = firstValue.messageAttributes()
+      assertThatJson(payload).node("eventType").isEqualTo(eventType)
+      assertThatJson(payload).node("version").isEqualTo(1)
+      assertThat(
+        messageAttributes["eventType"],
+      )
+        .isEqualTo(MessageAttributeValue.builder().stringValue(eventType).dataType("String").build())
+      verify(telemetryClient)
+        .trackEvent(ArgumentMatchers.eq(eventType), ArgumentMatchers.anyMap(), isNull())
+    }
   }
 
   @Nested
@@ -220,11 +216,15 @@ internal class HMPPSDomainEventsEmitterTest {
           .build(),
       )
 
-      verify(hmppsEventSnsClient, times(1)).publish(publishRequestCaptor.capture())
-      payload = publishRequestCaptor.value.message()
-      verify(telemetryClient)!!
-        .trackEvent(any(), telemetryAttributesCaptor.capture(), isNull())
-      telemetryAttributes = telemetryAttributesCaptor.value
+      argumentCaptor<PublishRequest>().apply {
+        verify(hmppsEventSnsClient, times(1)).publish(capture())
+        payload = firstValue.message()
+      }
+      argumentCaptor<Map<String, String>>().apply {
+        verify(telemetryClient)
+          .trackEvent(any(), capture(), isNull())
+        telemetryAttributes = firstValue
+      }
     }
 
     @Test
@@ -364,9 +364,12 @@ internal class HMPPSDomainEventsEmitterTest {
           .build(),
       )
       Mockito.verifyNoInteractions(hmppsEventSnsClient)
-      verify(telemetryClient)!!
-        .trackEvent(any(), telemetryAttributesCaptor.capture(), isNull())
-      telemetryAttributes = telemetryAttributesCaptor.value
+
+      argumentCaptor<Map<String, String>>().apply {
+        verify(telemetryClient)
+          .trackEvent(any(), capture(), isNull())
+        telemetryAttributes = firstValue
+      }
     }
 
     @Test
@@ -426,11 +429,14 @@ internal class HMPPSDomainEventsEmitterTest {
           .eventDatetime(LocalDateTime.parse("2020-07-04T10:42:43"))
           .build(),
       )
-      verify(hmppsEventSnsClient, times(1)).publish(publishRequestCaptor.capture())
-      payload = publishRequestCaptor.value.message()
-      verify(telemetryClient)!!
-        .trackEvent(any(), telemetryAttributesCaptor.capture(), isNull())
-      telemetryAttributes = telemetryAttributesCaptor.value
+      argumentCaptor<PublishRequest>().apply {
+        verify(hmppsEventSnsClient, times(1)).publish(capture())
+        payload = firstValue.message()
+      }
+      argumentCaptor<Map<String, String>>().apply {
+        verify(telemetryClient).trackEvent(any(), capture(), isNull())
+        telemetryAttributes = firstValue
+      }
     }
 
     @Test
@@ -561,9 +567,10 @@ internal class HMPPSDomainEventsEmitterTest {
           .build(),
       )
       Mockito.verifyNoInteractions(hmppsEventSnsClient)
-      verify(telemetryClient)
-        ?.trackEvent(any(), telemetryAttributesCaptor.capture(), isNull())
-      telemetryAttributes = telemetryAttributesCaptor.value
+      argumentCaptor<Map<String, String>>().apply {
+        verify(telemetryClient).trackEvent(any(), capture(), isNull())
+        telemetryAttributes = firstValue
+      }
     }
 
     @Test
@@ -624,11 +631,14 @@ internal class HMPPSDomainEventsEmitterTest {
           .build(),
       )
 
-      verify(hmppsEventSnsClient, times(1)).publish(publishRequestCaptor.capture())
-      payload = publishRequestCaptor.value.message()
-      verify(telemetryClient)!!
-        .trackEvent(any(), telemetryAttributesCaptor.capture(), isNull())
-      telemetryAttributes = telemetryAttributesCaptor.value
+      argumentCaptor<PublishRequest>().apply {
+        verify(hmppsEventSnsClient, times(1)).publish(capture())
+        payload = firstValue.message()
+      }
+      argumentCaptor<Map<String, String>>().apply {
+        verify(telemetryClient).trackEvent(any(), capture(), isNull())
+        telemetryAttributes = firstValue
+      }
     }
 
     @Test
@@ -729,11 +739,14 @@ internal class HMPPSDomainEventsEmitterTest {
           .build(),
       )
 
-      verify(hmppsEventSnsClient, times(3)).publish(publishRequestCaptor.capture())
-      payload = publishRequestCaptor.value.message()
-      verify(telemetryClient, times(3))!!
-        .trackEvent(any(), telemetryAttributesCaptor.capture(), isNull())
-      telemetryAttributes = telemetryAttributesCaptor.value
+      argumentCaptor<PublishRequest>().apply {
+        verify(hmppsEventSnsClient, times(3)).publish(capture())
+        payload = firstValue.message()
+      }
+      argumentCaptor<Map<String, String>>().apply {
+        verify(telemetryClient, times(3)).trackEvent(any(), capture(), isNull())
+        telemetryAttributes = firstValue
+      }
     }
 
     @Test
@@ -806,11 +819,14 @@ internal class HMPPSDomainEventsEmitterTest {
           .eventDatetime(LocalDateTime.parse("2022-12-04T10:00:00"))
           .build(),
       )
-      verify(hmppsEventSnsClient, times(1)).publish(publishRequestCaptor.capture())
-      payload = publishRequestCaptor.value.message()
-      verify(telemetryClient)!!
-        .trackEvent(any(), telemetryAttributesCaptor.capture(), isNull())
-      telemetryAttributes = telemetryAttributesCaptor.value
+      argumentCaptor<PublishRequest>().apply {
+        verify(hmppsEventSnsClient, times(1)).publish(capture())
+        payload = firstValue.message()
+      }
+      argumentCaptor<Map<String, String>>().apply {
+        verify(telemetryClient).trackEvent(any(), capture(), isNull())
+        telemetryAttributes = firstValue
+      }
     }
 
     @Test
@@ -936,14 +952,18 @@ internal class HMPPSDomainEventsEmitterTest {
           .livingUnitId(4012L)
           .build(),
       )
-      verify(hmppsEventSnsClient).publish(publishRequestCaptor.capture())
-      payload = publishRequestCaptor.value.message()
-      verify(telemetryClient).trackEvent(
-        any(),
-        telemetryAttributesCaptor.capture(),
-        isNull(),
-      )
-      telemetryAttributes = telemetryAttributesCaptor.value
+      argumentCaptor<PublishRequest>().apply {
+        verify(hmppsEventSnsClient).publish(capture())
+        payload = firstValue.message()
+      }
+      argumentCaptor<Map<String, String>>().apply {
+        verify(telemetryClient).trackEvent(
+          any(),
+          capture(),
+          isNull(),
+        )
+        telemetryAttributes = firstValue
+      }
     }
 
     @Test
