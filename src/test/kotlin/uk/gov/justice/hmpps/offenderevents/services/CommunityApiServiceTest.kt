@@ -39,7 +39,7 @@ internal class CommunityApiServiceTest {
       @Test
       @DisplayName("will return empty when")
       fun willReturnEmptyWhen() {
-        assertThat(service.getRecalls("A7841DY")).isEmpty
+        assertThat(service.getRecalls("A7841DY")).isEmpty()
       }
     }
 
@@ -64,14 +64,14 @@ internal class CommunityApiServiceTest {
       @Test
       @DisplayName("can parse the recalls")
       fun canParseRecalls() {
-        val recalls = service.getRecalls("A7841DY").orElseThrow()
+        val recalls = service.getRecalls("A7841DY")
         assertThat(recalls).hasSize(2)
       }
 
       @Test
       @DisplayName("can parse the referralDate")
       fun canParseReferralDate() {
-        val recalls = service.getRecalls("A7841DY").orElseThrow()
+        val recalls = service.getRecalls("A7841DY")
         assertThat(recalls[0].referralDate).isEqualTo("2021-05-12")
         assertThat(recalls[1].referralDate).isEqualTo("2021-05-13")
       }
@@ -79,7 +79,7 @@ internal class CommunityApiServiceTest {
       @Test
       @DisplayName("can parse the recallRejectedOrWithdrawn")
       fun canParseRecallRejectedOrWithdrawn() {
-        val recalls = service.getRecalls("A7841DY").orElseThrow()
+        val recalls = service.getRecalls("A7841DY")
         assertThat(recalls[0].recallRejectedOrWithdrawn).isTrue
         assertThat(recalls[1].recallRejectedOrWithdrawn).isFalse
       }
@@ -87,7 +87,7 @@ internal class CommunityApiServiceTest {
       @Test
       @DisplayName("can parse the outcomeRecall")
       fun canParseOutcomeRecall() {
-        val recalls = service.getRecalls("A7841DY").orElseThrow()
+        val recalls = service.getRecalls("A7841DY")
         assertThat(recalls[0].outcomeRecall).isFalse
         assertThat(recalls[1].outcomeRecall == null)
       }
