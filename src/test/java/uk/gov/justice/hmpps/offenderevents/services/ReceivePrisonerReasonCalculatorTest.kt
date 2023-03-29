@@ -10,8 +10,8 @@ import org.junit.jupiter.api.TestInstance.Lifecycle.PER_CLASS
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.Arguments
 import org.junit.jupiter.params.provider.MethodSource
-import org.mockito.ArgumentMatchers
 import org.mockito.junit.jupiter.MockitoSettings
+import org.mockito.kotlin.any
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.whenever
 import org.mockito.quality.Strictness
@@ -28,7 +28,7 @@ internal class ReceivePrisonerReasonCalculatorTest {
   @Test
   @DisplayName("probable cause is recall of both legal status RECALL and calculated recall true")
   fun reasonIsRecallIfBothLegalStatusRECALLAndCalculatedRecallTrue() {
-    whenever(prisonApiService.getPrisonerDetails(ArgumentMatchers.any()))
+    whenever(prisonApiService.getPrisonerDetails(any()))
       .thenReturn(prisonerDetails("RECALL", true))
     assertThat(calculator.calculateMostLikelyReasonForPrisonerReceive("A1234GH").probableCause)
       .isEqualTo(ProbableCause.RECALL)
@@ -39,7 +39,7 @@ internal class ReceivePrisonerReasonCalculatorTest {
   @Test
   @DisplayName("reason is recall if only calculated recall is true")
   fun reasonIsRecallIfOnlyCalculatedRecallIsTrue() {
-    whenever(prisonApiService.getPrisonerDetails(ArgumentMatchers.any()))
+    whenever(prisonApiService.getPrisonerDetails(any()))
       .thenReturn(prisonerDetails("UNKNOWN", true))
     assertThat(calculator.calculateMostLikelyReasonForPrisonerReceive("A1234GH").probableCause)
       .isEqualTo(ProbableCause.RECALL)
@@ -50,13 +50,13 @@ internal class ReceivePrisonerReasonCalculatorTest {
   @Test
   @DisplayName("TAP movement type takes precedence over recall")
   fun tAPMovementTypeTakesPrecedenceOverRecall() {
-    whenever(prisonApiService.getPrisonerDetails(ArgumentMatchers.any()))
+    whenever(prisonApiService.getPrisonerDetails(any()))
       .thenReturn(prisonerDetails("RECALL", true, "ADM"))
     assertThat(calculator.calculateMostLikelyReasonForPrisonerReceive("A1234GH").probableCause)
       .isEqualTo(ProbableCause.RECALL)
     assertThat(calculator.calculateMostLikelyReasonForPrisonerReceive("A1234GH").reason)
       .isEqualTo(ReceivePrisonerReasonCalculator.Reason.ADMISSION)
-    whenever(prisonApiService.getPrisonerDetails(ArgumentMatchers.any()))
+    whenever(prisonApiService.getPrisonerDetails(any()))
       .thenReturn(prisonerDetails("RECALL", true, "TAP"))
     assertThat(calculator.calculateMostLikelyReasonForPrisonerReceive("A1234GH").reason)
       .isEqualTo(ReceivePrisonerReasonCalculator.Reason.TEMPORARY_ABSENCE_RETURN)
@@ -65,13 +65,13 @@ internal class ReceivePrisonerReasonCalculatorTest {
   @Test
   @DisplayName("COURT movement type takes precedence over recall")
   fun courtMovementTypeTakesPrecedenceOverRecall() {
-    whenever(prisonApiService.getPrisonerDetails(ArgumentMatchers.any()))
+    whenever(prisonApiService.getPrisonerDetails(any()))
       .thenReturn(prisonerDetails("RECALL", true, "ADM"))
     assertThat(calculator.calculateMostLikelyReasonForPrisonerReceive("A1234GH").probableCause)
       .isEqualTo(ProbableCause.RECALL)
     assertThat(calculator.calculateMostLikelyReasonForPrisonerReceive("A1234GH").reason)
       .isEqualTo(ReceivePrisonerReasonCalculator.Reason.ADMISSION)
-    whenever(prisonApiService.getPrisonerDetails(ArgumentMatchers.any()))
+    whenever(prisonApiService.getPrisonerDetails(any()))
       .thenReturn(prisonerDetails("RECALL", true, "CRT"))
     assertThat(calculator.calculateMostLikelyReasonForPrisonerReceive("A1234GH").reason)
       .isEqualTo(ReceivePrisonerReasonCalculator.Reason.RETURN_FROM_COURT)
@@ -80,7 +80,7 @@ internal class ReceivePrisonerReasonCalculatorTest {
   @Test
   @DisplayName("movement reason of INT means reason is a TRANSFER")
   fun movementReasonOfINTMeansReasonIsATRANSFER() {
-    whenever(prisonApiService.getPrisonerDetails(ArgumentMatchers.any()))
+    whenever(prisonApiService.getPrisonerDetails(any()))
       .thenReturn(prisonerDetails("RECALL", true, "ADM", "L"))
     assertThat(calculator.calculateMostLikelyReasonForPrisonerReceive("A1234GH").probableCause)
       .isEqualTo(ProbableCause.RECALL)
@@ -88,7 +88,7 @@ internal class ReceivePrisonerReasonCalculatorTest {
       .isEqualTo(ReceivePrisonerReasonCalculator.Reason.ADMISSION)
     assertThat(calculator.calculateMostLikelyReasonForPrisonerReceive("A1234GH").nomisMovementReason.code)
       .isEqualTo("L")
-    whenever(prisonApiService.getPrisonerDetails(ArgumentMatchers.any()))
+    whenever(prisonApiService.getPrisonerDetails(any()))
       .thenReturn(prisonerDetails("RECALL", true, "ADM", "INT"))
     assertThat(calculator.calculateMostLikelyReasonForPrisonerReceive("A1234GH").reason)
       .isEqualTo(ReceivePrisonerReasonCalculator.Reason.TRANSFERRED)
@@ -99,7 +99,7 @@ internal class ReceivePrisonerReasonCalculatorTest {
   @Test
   @DisplayName("movement reason of TRNCRT (transfer via court) means reason is a TRANSFER")
   fun movementReasonOfTRNCRTMeansReasonIsATRANSFER() {
-    whenever(prisonApiService.getPrisonerDetails(ArgumentMatchers.any()))
+    whenever(prisonApiService.getPrisonerDetails(any()))
       .thenReturn(prisonerDetails("RECALL", true, "ADM", "L"))
     assertThat(calculator.calculateMostLikelyReasonForPrisonerReceive("A1234GH").probableCause)
       .isEqualTo(ProbableCause.RECALL)
@@ -107,7 +107,7 @@ internal class ReceivePrisonerReasonCalculatorTest {
       .isEqualTo(ReceivePrisonerReasonCalculator.Reason.ADMISSION)
     assertThat(calculator.calculateMostLikelyReasonForPrisonerReceive("A1234GH").nomisMovementReason.code)
       .isEqualTo("L")
-    whenever(prisonApiService.getPrisonerDetails(ArgumentMatchers.any()))
+    whenever(prisonApiService.getPrisonerDetails(any()))
       .thenReturn(prisonerDetails("RECALL", true, "ADM", "TRNCRT"))
     assertThat(calculator.calculateMostLikelyReasonForPrisonerReceive("A1234GH").reason)
       .isEqualTo(ReceivePrisonerReasonCalculator.Reason.TRANSFERRED)
@@ -118,7 +118,7 @@ internal class ReceivePrisonerReasonCalculatorTest {
   @Test
   @DisplayName("movement reason of TRNTAP (transfer via TAP) means reason is a TRANSFER")
   fun movementReasonOfTRNTAPMeansReasonIsATRANSFER() {
-    whenever(prisonApiService.getPrisonerDetails(ArgumentMatchers.any()))
+    whenever(prisonApiService.getPrisonerDetails(any()))
       .thenReturn(prisonerDetails("RECALL", true, "ADM", "L"))
     assertThat(calculator.calculateMostLikelyReasonForPrisonerReceive("A1234GH").probableCause)
       .isEqualTo(ProbableCause.RECALL)
@@ -126,7 +126,7 @@ internal class ReceivePrisonerReasonCalculatorTest {
       .isEqualTo(ReceivePrisonerReasonCalculator.Reason.ADMISSION)
     assertThat(calculator.calculateMostLikelyReasonForPrisonerReceive("A1234GH").nomisMovementReason.code)
       .isEqualTo("L")
-    whenever(prisonApiService.getPrisonerDetails(ArgumentMatchers.any()))
+    whenever(prisonApiService.getPrisonerDetails(any()))
       .thenReturn(prisonerDetails("RECALL", true, "ADM", "TRNTAP"))
     assertThat(calculator.calculateMostLikelyReasonForPrisonerReceive("A1234GH").reason)
       .isEqualTo(ReceivePrisonerReasonCalculator.Reason.TRANSFERRED)
@@ -137,7 +137,7 @@ internal class ReceivePrisonerReasonCalculatorTest {
   @Test
   @DisplayName("movement reason of L (Licence Revokee) means probable cause is a RECALL")
   fun movementReasonOfLMeansReasonIsARECALL() {
-    whenever(prisonApiService.getPrisonerDetails(ArgumentMatchers.any()))
+    whenever(prisonApiService.getPrisonerDetails(any()))
       .thenReturn(prisonerDetails("SENTENCED", false, "ADM", "V"))
     assertThat(calculator.calculateMostLikelyReasonForPrisonerReceive("A1234GH").probableCause)
       .isEqualTo(ProbableCause.CONVICTED)
@@ -145,7 +145,7 @@ internal class ReceivePrisonerReasonCalculatorTest {
       .isEqualTo(ReceivePrisonerReasonCalculator.Reason.ADMISSION)
     assertThat(calculator.calculateMostLikelyReasonForPrisonerReceive("A1234GH").nomisMovementReason.code)
       .isEqualTo("V")
-    whenever(prisonApiService.getPrisonerDetails(ArgumentMatchers.any()))
+    whenever(prisonApiService.getPrisonerDetails(any()))
       .thenReturn(prisonerDetails("SENTENCED", false, "ADM", "L"))
     assertThat(calculator.calculateMostLikelyReasonForPrisonerReceive("A1234GH").probableCause)
       .isEqualTo(ProbableCause.RECALL)
@@ -158,7 +158,7 @@ internal class ReceivePrisonerReasonCalculatorTest {
   @Test
   @DisplayName("movement reason of Y (Recall from Detention Training Order) means probable cause is a RECALL")
   fun movementReasonOfYMeansReasonIsARECALL() {
-    whenever(prisonApiService.getPrisonerDetails(ArgumentMatchers.any()))
+    whenever(prisonApiService.getPrisonerDetails(any()))
       .thenReturn(prisonerDetails("SENTENCED", false, "ADM", "V"))
     assertThat(calculator.calculateMostLikelyReasonForPrisonerReceive("A1234GH").probableCause)
       .isEqualTo(ProbableCause.CONVICTED)
@@ -166,7 +166,7 @@ internal class ReceivePrisonerReasonCalculatorTest {
       .isEqualTo(ReceivePrisonerReasonCalculator.Reason.ADMISSION)
     assertThat(calculator.calculateMostLikelyReasonForPrisonerReceive("A1234GH").nomisMovementReason.code)
       .isEqualTo("V")
-    whenever(prisonApiService.getPrisonerDetails(ArgumentMatchers.any()))
+    whenever(prisonApiService.getPrisonerDetails(any()))
       .thenReturn(prisonerDetails("SENTENCED", false, "ADM", "Y"))
     assertThat(calculator.calculateMostLikelyReasonForPrisonerReceive("A1234GH").probableCause)
       .isEqualTo(ProbableCause.RECALL)
@@ -179,7 +179,7 @@ internal class ReceivePrisonerReasonCalculatorTest {
   @Test
   @DisplayName("movement reason of B (HDC Recall) means probable cause is a RECALL")
   fun movementReasonOfBMeansReasonIsARECALL() {
-    whenever(prisonApiService.getPrisonerDetails(ArgumentMatchers.any()))
+    whenever(prisonApiService.getPrisonerDetails(any()))
       .thenReturn(prisonerDetails("SENTENCED", false, "ADM", "V"))
     assertThat(calculator.calculateMostLikelyReasonForPrisonerReceive("A1234GH").probableCause)
       .isEqualTo(ProbableCause.CONVICTED)
@@ -187,7 +187,7 @@ internal class ReceivePrisonerReasonCalculatorTest {
       .isEqualTo(ReceivePrisonerReasonCalculator.Reason.ADMISSION)
     assertThat(calculator.calculateMostLikelyReasonForPrisonerReceive("A1234GH").nomisMovementReason.code)
       .isEqualTo("V")
-    whenever(prisonApiService.getPrisonerDetails(ArgumentMatchers.any()))
+    whenever(prisonApiService.getPrisonerDetails(any()))
       .thenReturn(prisonerDetails("SENTENCED", false, "ADM", "B"))
     assertThat(calculator.calculateMostLikelyReasonForPrisonerReceive("A1234GH").probableCause)
       .isEqualTo(ProbableCause.RECALL)
@@ -200,7 +200,7 @@ internal class ReceivePrisonerReasonCalculatorTest {
   @Test
   @DisplayName("movement reason of N (Unconvicted Remand) means probable cause is a REMAND when no recall NSI")
   fun movementReasonOfNMeansReasonIsREMAND() {
-    whenever(prisonApiService.getPrisonerDetails(ArgumentMatchers.any()))
+    whenever(prisonApiService.getPrisonerDetails(any()))
       .thenReturn(prisonerDetails("SENTENCED", false, "ADM", "V"))
     assertThat(calculator.calculateMostLikelyReasonForPrisonerReceive("A1234GH").probableCause)
       .isEqualTo(ProbableCause.CONVICTED)
@@ -208,8 +208,8 @@ internal class ReceivePrisonerReasonCalculatorTest {
       .isEqualTo(ReceivePrisonerReasonCalculator.Reason.ADMISSION)
     assertThat(calculator.calculateMostLikelyReasonForPrisonerReceive("A1234GH").nomisMovementReason.code)
       .isEqualTo("V")
-    whenever(communityApiService.getRecalls(ArgumentMatchers.any())).thenReturn(emptyList())
-    whenever(prisonApiService.getPrisonerDetails(ArgumentMatchers.any()))
+    whenever(communityApiService.getRecalls(any())).thenReturn(emptyList())
+    whenever(prisonApiService.getPrisonerDetails(any()))
       .thenReturn(prisonerDetails("SENTENCED", false, "ADM", "N"))
     assertThat(calculator.calculateMostLikelyReasonForPrisonerReceive("A1234GH").probableCause)
       .isEqualTo(ProbableCause.REMAND)
@@ -222,22 +222,22 @@ internal class ReceivePrisonerReasonCalculatorTest {
   @Test
   @DisplayName("movement reason of N (Unconvicted Remand) means probable cause is a RECALL when there is a recall NSI")
   fun movementReasonOfNMeansReasonIsRECALLWithRecallNSI() {
-    whenever(prisonApiService.getPrisonerDetails(ArgumentMatchers.any()))
+    whenever(prisonApiService.getPrisonerDetails(any()))
       .thenReturn(prisonerDetails("SENTENCED", false, "ADM", "V"))
     assertThat(calculator.calculateMostLikelyReasonForPrisonerReceive("A1234GH").probableCause)
       .isEqualTo(ProbableCause.CONVICTED)
     assertThat(calculator.calculateMostLikelyReasonForPrisonerReceive("A1234GH").reason)
       .isEqualTo(ReceivePrisonerReasonCalculator.Reason.ADMISSION)
-    whenever(communityApiService.getRecalls(ArgumentMatchers.any()))
+    whenever(communityApiService.getRecalls(any()))
       .thenReturn(listOf(Recall(LocalDate.now(), false, null)))
-    whenever(prisonApiService.getMovements(ArgumentMatchers.any())).thenReturn(
+    whenever(prisonApiService.getMovements(any())).thenReturn(
       listOf(
         Movement("IN", LocalDate.now()),
         Movement("OUT", LocalDate.parse("2021-06-13")),
         Movement("IN", LocalDate.parse("2021-05-13")),
       ),
     )
-    whenever(prisonApiService.getPrisonerDetails(ArgumentMatchers.any()))
+    whenever(prisonApiService.getPrisonerDetails(any()))
       .thenReturn(prisonerDetails("SENTENCED", false, "ADM", "N"))
     assertThat(calculator.calculateMostLikelyReasonForPrisonerReceive("A1234GH").probableCause)
       .isEqualTo(ProbableCause.RECALL)
@@ -248,8 +248,8 @@ internal class ReceivePrisonerReasonCalculatorTest {
   @Test
   @DisplayName("probable cause is UNKNOWN when legal status is UNKNOWN and recall is false")
   fun reasonInUNKNOWNWhenLegalStatusIsUNKNOWNAndRecallIsFalse() {
-    whenever(communityApiService.getRecalls(ArgumentMatchers.any())).thenReturn(emptyList())
-    whenever(prisonApiService.getPrisonerDetails(ArgumentMatchers.any()))
+    whenever(communityApiService.getRecalls(any())).thenReturn(emptyList())
+    whenever(prisonApiService.getPrisonerDetails(any()))
       .thenReturn(prisonerDetails("UNKNOWN", false))
     assertThat(calculator.calculateMostLikelyReasonForPrisonerReceive("A1234GH").probableCause)
       .isEqualTo(ProbableCause.UNKNOWN)
@@ -260,7 +260,7 @@ internal class ReceivePrisonerReasonCalculatorTest {
   @Test
   @DisplayName("probable cause is REMAND when legal status is REMAND")
   fun reasonIsREMANDWhenLegalStatusIsREMAND() {
-    whenever(prisonApiService.getPrisonerDetails(ArgumentMatchers.any()))
+    whenever(prisonApiService.getPrisonerDetails(any()))
       .thenReturn(prisonerDetails("REMAND", false))
     assertThat(calculator.calculateMostLikelyReasonForPrisonerReceive("A1234GH").probableCause)
       .isEqualTo(ProbableCause.REMAND)
@@ -271,7 +271,7 @@ internal class ReceivePrisonerReasonCalculatorTest {
   @Test
   @DisplayName("when current status indicates not in prison then not really received")
   fun whenCurrentStatusIndicatesNotInPrisonThenNotReallyReceived() {
-    whenever(prisonApiService.getPrisonerDetails(ArgumentMatchers.any()))
+    whenever(prisonApiService.getPrisonerDetails(any()))
       .thenReturn(
         PrisonerDetails(
           LegalStatus.REMAND,
@@ -285,7 +285,7 @@ internal class ReceivePrisonerReasonCalculatorTest {
       )
     assertThat(calculator.calculateMostLikelyReasonForPrisonerReceive("A1234GH").hasPrisonerActuallyBeenReceived())
       .isTrue()
-    whenever(prisonApiService.getPrisonerDetails(ArgumentMatchers.any()))
+    whenever(prisonApiService.getPrisonerDetails(any()))
       .thenReturn(
         PrisonerDetails(
           LegalStatus.REMAND,
@@ -306,8 +306,8 @@ internal class ReceivePrisonerReasonCalculatorTest {
   @DisplayName("legal status is mapped to reason")
   @MockitoSettings(strictness = Strictness.LENIENT)
   fun legalStatusIsMappedToReason(legalStatus: LegalStatus, probableCause: ProbableCause?) {
-    whenever(communityApiService.getRecalls(ArgumentMatchers.any())).thenReturn(emptyList())
-    whenever(prisonApiService.getPrisonerDetails(ArgumentMatchers.any()))
+    whenever(communityApiService.getRecalls(any())).thenReturn(emptyList())
+    whenever(prisonApiService.getPrisonerDetails(any()))
       .thenReturn(prisonerDetails(legalStatus.name, false))
     assertThat(calculator.calculateMostLikelyReasonForPrisonerReceive("A1234GH").probableCause)
       .isEqualTo(probableCause)
@@ -316,8 +316,8 @@ internal class ReceivePrisonerReasonCalculatorTest {
   @Test
   @DisplayName("missing legal status is treated as unknown")
   fun missingLegalStatusIsTreatedAsUnknown() {
-    whenever(communityApiService.getRecalls(ArgumentMatchers.any())).thenReturn(emptyList())
-    whenever(prisonApiService.getPrisonerDetails(ArgumentMatchers.any()))
+    whenever(communityApiService.getRecalls(any())).thenReturn(emptyList())
+    whenever(prisonApiService.getPrisonerDetails(any()))
       .thenReturn(PrisonerDetails(null, false, "XXX", "XXX", "ACTIVE IN", "XXX-XXX", "MDI"))
     assertThat(calculator.calculateMostLikelyReasonForPrisonerReceive("A1234GH").probableCause)
       .isEqualTo(ProbableCause.UNKNOWN)
@@ -328,7 +328,7 @@ internal class ReceivePrisonerReasonCalculatorTest {
   @Test
   @DisplayName("can still calculate remand when legal status is empty")
   fun canStillCalculateRemandWhenLegalStatusIsEmpty() {
-    whenever(prisonApiService.getPrisonerDetails(ArgumentMatchers.any()))
+    whenever(prisonApiService.getPrisonerDetails(any()))
       .thenReturn(PrisonerDetails(null, false, "ADM", "N", "ACTIVE IN", "ADM-N", "MDI"))
     assertThat(calculator.calculateMostLikelyReasonForPrisonerReceive("A1234GH").probableCause)
       .isEqualTo(ProbableCause.REMAND)
@@ -362,7 +362,7 @@ internal class ReceivePrisonerReasonCalculatorTest {
     internal inner class WhenOffenderNotFound {
       @BeforeEach
       fun setUp() {
-        whenever(communityApiService.getRecalls(ArgumentMatchers.any())).thenReturn(emptyList())
+        whenever(communityApiService.getRecalls(any())).thenReturn(emptyList())
       }
 
       @ParameterizedTest
@@ -370,7 +370,7 @@ internal class ReceivePrisonerReasonCalculatorTest {
       @DisplayName("legal status is mapped to probable cause")
       @MockitoSettings(strictness = Strictness.LENIENT)
       fun legalStatusIsMappedToReason(legalStatus: LegalStatus, probableCause: ProbableCause?) {
-        whenever(prisonApiService.getPrisonerDetails(ArgumentMatchers.any()))
+        whenever(prisonApiService.getPrisonerDetails(any()))
           .thenReturn(prisonerDetails(legalStatus.name, false))
         assertThat(calculator.calculateMostLikelyReasonForPrisonerReceive("A1234GH").probableCause)
           .isEqualTo(probableCause)
@@ -399,7 +399,7 @@ internal class ReceivePrisonerReasonCalculatorTest {
   internal inner class WhenOffenderHasNoRecallRequest {
     @BeforeEach
     fun setUp() {
-      whenever(communityApiService.getRecalls(ArgumentMatchers.any())).thenReturn(emptyList())
+      whenever(communityApiService.getRecalls(any())).thenReturn(emptyList())
     }
 
     @ParameterizedTest
@@ -407,7 +407,7 @@ internal class ReceivePrisonerReasonCalculatorTest {
     @DisplayName("legal status is mapped to probable cause")
     @MockitoSettings(strictness = Strictness.LENIENT)
     fun legalStatusIsMappedToReason(legalStatus: LegalStatus, probableCause: ProbableCause?) {
-      whenever(prisonApiService.getPrisonerDetails(ArgumentMatchers.any()))
+      whenever(prisonApiService.getPrisonerDetails(any()))
         .thenReturn(prisonerDetails(legalStatus.name, false))
       assertThat(calculator.calculateMostLikelyReasonForPrisonerReceive("A1234GH").probableCause)
         .isEqualTo(probableCause)
@@ -435,9 +435,9 @@ internal class ReceivePrisonerReasonCalculatorTest {
   internal inner class WhenHasRecallInProgressWithNoOutcome {
     @BeforeEach
     fun setUp() {
-      whenever(communityApiService.getRecalls(ArgumentMatchers.any()))
+      whenever(communityApiService.getRecalls(any()))
         .thenReturn(listOf(Recall(LocalDate.now(), false, null)))
-      whenever(prisonApiService.getMovements(ArgumentMatchers.any()))
+      whenever(prisonApiService.getMovements(any()))
         .thenReturn(listOf(Movement("OUT", LocalDate.now().minusYears(99))))
     }
 
@@ -446,7 +446,7 @@ internal class ReceivePrisonerReasonCalculatorTest {
     @DisplayName("legal status is mapped to probable cause")
     @MockitoSettings(strictness = Strictness.LENIENT)
     fun legalStatusIsMappedToReason(legalStatus: LegalStatus, probableCause: ProbableCause?) {
-      whenever(prisonApiService.getPrisonerDetails(ArgumentMatchers.any()))
+      whenever(prisonApiService.getPrisonerDetails(any()))
         .thenReturn(prisonerDetails(legalStatus.name, false))
       assertThat(calculator.calculateMostLikelyReasonForPrisonerReceive("A1234GH").probableCause)
         .isEqualTo(probableCause)
@@ -474,7 +474,7 @@ internal class ReceivePrisonerReasonCalculatorTest {
   internal inner class WhenHasRecallRejected {
     @BeforeEach
     fun setUp() {
-      whenever(communityApiService.getRecalls(ArgumentMatchers.any()))
+      whenever(communityApiService.getRecalls(any()))
         .thenReturn(listOf(Recall(LocalDate.now(), true, null)))
     }
 
@@ -483,7 +483,7 @@ internal class ReceivePrisonerReasonCalculatorTest {
     @DisplayName("legal status is mapped to probable cause")
     @MockitoSettings(strictness = Strictness.LENIENT)
     fun legalStatusIsMappedToReason(legalStatus: LegalStatus, probableCause: ProbableCause?) {
-      whenever(prisonApiService.getPrisonerDetails(ArgumentMatchers.any()))
+      whenever(prisonApiService.getPrisonerDetails(any()))
         .thenReturn(prisonerDetails(legalStatus.name, false))
       assertThat(calculator.calculateMostLikelyReasonForPrisonerReceive("A1234GH").probableCause)
         .isEqualTo(probableCause)
@@ -494,11 +494,11 @@ internal class ReceivePrisonerReasonCalculatorTest {
     @Test
     @DisplayName("reason source will be prison")
     fun reasonSourceWillBeProbationWhenOverridden() {
-      whenever(prisonApiService.getPrisonerDetails(ArgumentMatchers.any()))
+      whenever(prisonApiService.getPrisonerDetails(any()))
         .thenReturn(prisonerDetails(LegalStatus.SENTENCED.name, false))
       assertThat(calculator.calculateMostLikelyReasonForPrisonerReceive("A1234GH").source)
         .isEqualTo(ReceivePrisonerReasonCalculator.Source.PRISON)
-      whenever(prisonApiService.getPrisonerDetails(ArgumentMatchers.any()))
+      whenever(prisonApiService.getPrisonerDetails(any()))
         .thenReturn(prisonerDetails(LegalStatus.IMMIGRATION_DETAINEE.name, false))
       assertThat(calculator.calculateMostLikelyReasonForPrisonerReceive("A1234GH").source)
         .isEqualTo(ReceivePrisonerReasonCalculator.Source.PRISON)
@@ -526,7 +526,7 @@ internal class ReceivePrisonerReasonCalculatorTest {
     fun setUp() {
       // currently this will not happen, if the outcome is not a recall then it must have been rejected in which case
       // recall would be in rejected state anyway - but tests incase community-api behavior changes
-      whenever(communityApiService.getRecalls(ArgumentMatchers.any()))
+      whenever(communityApiService.getRecalls(any()))
         .thenReturn(listOf(Recall(LocalDate.now(), false, false)))
     }
 
@@ -535,7 +535,7 @@ internal class ReceivePrisonerReasonCalculatorTest {
     @DisplayName("legal status is mapped to probable cause")
     @MockitoSettings(strictness = Strictness.LENIENT)
     fun legalStatusIsMappedToReason(legalStatus: LegalStatus, probableCause: ProbableCause?) {
-      whenever(prisonApiService.getPrisonerDetails(ArgumentMatchers.any()))
+      whenever(prisonApiService.getPrisonerDetails(any()))
         .thenReturn(prisonerDetails(legalStatus.name, false))
       assertThat(calculator.calculateMostLikelyReasonForPrisonerReceive("A1234GH").probableCause)
         .isEqualTo(probableCause)
@@ -563,9 +563,9 @@ internal class ReceivePrisonerReasonCalculatorTest {
   internal inner class WhenHasRecallOutcomeIsRecall {
     @BeforeEach
     fun setUp() {
-      whenever(communityApiService.getRecalls(ArgumentMatchers.any()))
+      whenever(communityApiService.getRecalls(any()))
         .thenReturn(listOf(Recall(LocalDate.parse("2021-06-13"), false, true)))
-      whenever(prisonApiService.getMovements(ArgumentMatchers.any()))
+      whenever(prisonApiService.getMovements(any()))
         .thenReturn(listOf(Movement("OUT", LocalDate.now().minusYears(99))))
     }
 
@@ -574,7 +574,7 @@ internal class ReceivePrisonerReasonCalculatorTest {
     @DisplayName("legal status is mapped to probable cause")
     @MockitoSettings(strictness = Strictness.LENIENT)
     fun legalStatusIsMappedToReason(legalStatus: LegalStatus, probableCause: ProbableCause?) {
-      whenever(prisonApiService.getPrisonerDetails(ArgumentMatchers.any()))
+      whenever(prisonApiService.getPrisonerDetails(any()))
         .thenReturn(prisonerDetails(legalStatus.name, false))
       assertThat(calculator.calculateMostLikelyReasonForPrisonerReceive("A1234GH").probableCause)
         .isEqualTo(probableCause)
@@ -585,11 +585,11 @@ internal class ReceivePrisonerReasonCalculatorTest {
     @Test
     @DisplayName("reason source will be probation when overridden")
     fun reasonSourceWillBeProbationWhenOverridden() {
-      whenever(prisonApiService.getPrisonerDetails(ArgumentMatchers.any()))
+      whenever(prisonApiService.getPrisonerDetails(any()))
         .thenReturn(prisonerDetails(LegalStatus.SENTENCED.name, false))
       assertThat(calculator.calculateMostLikelyReasonForPrisonerReceive("A1234GH").source)
         .isEqualTo(ReceivePrisonerReasonCalculator.Source.PROBATION)
-      whenever(prisonApiService.getPrisonerDetails(ArgumentMatchers.any()))
+      whenever(prisonApiService.getPrisonerDetails(any()))
         .thenReturn(prisonerDetails(LegalStatus.IMMIGRATION_DETAINEE.name, false))
       assertThat(calculator.calculateMostLikelyReasonForPrisonerReceive("A1234GH").source)
         .isEqualTo(ReceivePrisonerReasonCalculator.Source.PRISON)
@@ -598,11 +598,11 @@ internal class ReceivePrisonerReasonCalculatorTest {
     @Test
     @DisplayName("will add a further information message when overridden")
     fun willAddAFurtherInformationMessageWhenOverridden() {
-      whenever(prisonApiService.getPrisonerDetails(ArgumentMatchers.any()))
+      whenever(prisonApiService.getPrisonerDetails(any()))
         .thenReturn(prisonerDetails(LegalStatus.SENTENCED.name, false))
       assertThat(calculator.calculateMostLikelyReasonForPrisonerReceive("A1234GH").details)
         .isEqualTo("ACTIVE IN:ADM-K Recall referral date 2021-06-13")
-      whenever(prisonApiService.getPrisonerDetails(ArgumentMatchers.any()))
+      whenever(prisonApiService.getPrisonerDetails(any()))
         .thenReturn(prisonerDetails(LegalStatus.IMMIGRATION_DETAINEE.name, false))
       assertThat(calculator.calculateMostLikelyReasonForPrisonerReceive("A1234GH").details)
         .isEqualTo("ACTIVE IN:ADM-K")
@@ -627,9 +627,9 @@ internal class ReceivePrisonerReasonCalculatorTest {
   internal inner class WithAMultipleOutcomes {
     @BeforeEach
     fun setUp() {
-      whenever(prisonApiService.getPrisonerDetails(ArgumentMatchers.any()))
+      whenever(prisonApiService.getPrisonerDetails(any()))
         .thenReturn(prisonerDetails(LegalStatus.SENTENCED.name, false))
-      whenever(communityApiService.getRecalls(ArgumentMatchers.any()))
+      whenever(communityApiService.getRecalls(any()))
         .thenReturn(
           listOf(
             Recall(LocalDate.parse("2021-06-13"), false, true),
@@ -643,7 +643,7 @@ internal class ReceivePrisonerReasonCalculatorTest {
     internal inner class NoPreviousMovements {
       @BeforeEach
       fun setUp() {
-        whenever(prisonApiService.getMovements(ArgumentMatchers.any()))
+        whenever(prisonApiService.getMovements(any()))
           .thenReturn(listOf(Movement("IN", LocalDate.now())))
       }
 
@@ -662,7 +662,7 @@ internal class ReceivePrisonerReasonCalculatorTest {
     internal inner class NoOldishPreviousMovements {
       @BeforeEach
       fun setUp() {
-        whenever(prisonApiService.getMovements(ArgumentMatchers.any()))
+        whenever(prisonApiService.getMovements(any()))
           .thenReturn(listOf(Movement("IN", LocalDate.now().minusDays(2))))
       }
 
@@ -681,7 +681,7 @@ internal class ReceivePrisonerReasonCalculatorTest {
     internal inner class NoRecentPreviousMovements {
       @BeforeEach
       fun setUp() {
-        whenever(prisonApiService.getMovements(ArgumentMatchers.any())).thenReturn(
+        whenever(prisonApiService.getMovements(any())).thenReturn(
           listOf(
             Movement("IN", LocalDate.now()),
             Movement("OUT", LocalDate.parse("2010-06-13")),
@@ -705,7 +705,7 @@ internal class ReceivePrisonerReasonCalculatorTest {
     internal inner class PreviousBetweenRecallsMovements {
       @BeforeEach
       fun setUp() {
-        whenever(prisonApiService.getMovements(ArgumentMatchers.any())).thenReturn(
+        whenever(prisonApiService.getMovements(any())).thenReturn(
           listOf(
             Movement("IN", LocalDate.now()),
             Movement("OUT", LocalDate.parse("2021-06-13")),
@@ -729,7 +729,7 @@ internal class ReceivePrisonerReasonCalculatorTest {
     internal inner class PreviousAfterRecallsMovements {
       @BeforeEach
       fun setUp() {
-        whenever(prisonApiService.getMovements(ArgumentMatchers.any())).thenReturn(
+        whenever(prisonApiService.getMovements(any())).thenReturn(
           listOf(
             Movement("IN", LocalDate.now()),
             Movement("IN", LocalDate.parse("2021-06-13")),

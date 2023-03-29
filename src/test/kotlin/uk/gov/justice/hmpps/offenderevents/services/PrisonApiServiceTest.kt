@@ -65,7 +65,7 @@ internal class PrisonApiServiceTest {
     @DisplayName("can parse the legal status")
     fun canParseTheLegalStatus() {
       val prisonerDetails = service.getPrisonerDetails("A7841DY")
-      assertThat(prisonerDetails.legalStatus).isEqualTo(REMAND)
+      assertThat(prisonerDetails.legalStatus()).isEqualTo(REMAND)
     }
 
     @Test
@@ -232,7 +232,7 @@ internal class PrisonApiServiceTest {
       val identifiers = service.getIdentifiersByBookingId(1200835L)
       assertThat(identifiers).isNotEmpty
       assertThat(identifiers).hasSize(1)
-      assertThat(identifiers.get(0).value).isEqualTo("A5841DY")
+      assertThat(identifiers?.get(0)?.value).isEqualTo("A5841DY")
     }
   }
 

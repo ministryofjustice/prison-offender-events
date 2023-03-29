@@ -70,8 +70,8 @@ class ReleasePrisonerReasonCalculator(private val prisonApiService: PrisonApiSer
   internal data class ReleaseReason(
     val reason: Reason,
     override val details: String? = null,
-    override val currentLocation: CurrentLocation,
-    override val currentPrisonStatus: CurrentPrisonStatus,
+    override val currentLocation: CurrentLocation?,
+    override val currentPrisonStatus: CurrentPrisonStatus?,
     override val prisonId: String,
     val nomisMovementReason: MovementReason,
   ) : PrisonerMovementReason {

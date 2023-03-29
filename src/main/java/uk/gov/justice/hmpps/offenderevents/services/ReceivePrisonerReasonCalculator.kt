@@ -130,9 +130,7 @@ class ReceivePrisonerReasonCalculator(
           movement.movementDate.isAfter(referralDate) || (movement.movementDate == referralDate)
         }
         .findAny()
-      lastPrisonEntryDate.ifPresent { date: Movement? ->
-        log.debug("Last time in prison was {}", date)
-      }
+      lastPrisonEntryDate.ifPresent { log.debug("Last time in prison was {}", it) }
       lastPrisonEntryDate.isPresent
     }
     val recalls = communityApiService.getRecalls(offenderNumber)
@@ -192,8 +190,8 @@ class ReceivePrisonerReasonCalculator(
     val probableCause: ProbableCause?,
     val source: Source,
     override val details: String? = null,
-    override val currentLocation: CurrentLocation,
-    override val currentPrisonStatus: CurrentPrisonStatus,
+    override val currentLocation: CurrentLocation?,
+    override val currentPrisonStatus: CurrentPrisonStatus?,
     override val prisonId: String,
     val nomisMovementReason: MovementReason,
   ) : PrisonerMovementReason {
