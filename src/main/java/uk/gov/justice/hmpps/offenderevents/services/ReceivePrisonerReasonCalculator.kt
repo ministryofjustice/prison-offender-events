@@ -135,7 +135,7 @@ class ReceivePrisonerReasonCalculator(
       }
       lastPrisonEntryDate.isPresent
     }
-    val recalls = communityApiService.getRecalls(offenderNumber).orElse(listOf())
+    val recalls = communityApiService.getRecalls(offenderNumber)
     return recalls
       .stream()
       .filter { recall: Recall -> hasActiveOrCompletedRecall(recall) }
