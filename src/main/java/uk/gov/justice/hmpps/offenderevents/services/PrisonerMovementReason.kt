@@ -2,8 +2,8 @@ package uk.gov.justice.hmpps.offenderevents.services
 
 interface PrisonerMovementReason {
   val details: String?
-  val currentLocation: CurrentLocation
-  val currentPrisonStatus: CurrentPrisonStatus
+  val currentLocation: CurrentLocation?
+  val currentPrisonStatus: CurrentPrisonStatus?
   val prisonId: String
 }
 

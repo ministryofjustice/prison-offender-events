@@ -18,7 +18,7 @@ class MergeRecordDiscriminator(
           prisonerNumber,
         )
         val mergedOffenders = prisonApiService.getIdentifiersByBookingId(bookingId)
-        mergedOffenders.forEach { mergedNumber: BookingIdentifier ->
+        mergedOffenders?.forEach { mergedNumber: BookingIdentifier ->
           val trackingAttributes = mapOf(
             "bookingId" to bookingId.toString(),
             "mergedFrom" to mergedNumber.value,
@@ -27,8 +27,7 @@ class MergeRecordDiscriminator(
           telemetryClient.trackEvent("POEMergeEvent", trackingAttributes, null)
           log.debug("Prisoner record merged {} --> {}", mergedNumber.value, prisonerNumber)
         }
-        mergedOffenders
-          .map { mergedNumber: BookingIdentifier -> MergeOutcome(mergedNumber.value, prisonerNumber) }
+        mergedOffenders?.map { mergedNumber: BookingIdentifier -> MergeOutcome(mergedNumber.value, prisonerNumber) } ?: emptyList()
       }
       .orElse(emptyList())
 

@@ -10,7 +10,6 @@ import org.springframework.web.reactive.function.client.WebClientResponseExcepti
 import software.amazon.awssdk.services.sns.SnsAsyncClient
 import software.amazon.awssdk.services.sns.model.PublishRequest
 import uk.gov.justice.hmpps.offenderevents.config.OffenderEventsProperties
-import uk.gov.justice.hmpps.offenderevents.config.trackEvent
 import uk.gov.justice.hmpps.offenderevents.model.HmppsDomainEvent
 import uk.gov.justice.hmpps.offenderevents.model.HmppsDomainEvent.PersonReference
 import uk.gov.justice.hmpps.offenderevents.model.OffenderEvent
@@ -79,14 +78,14 @@ class HMPPSDomainEventsEmitter(
     event: OffenderEvent,
     reason: PrisonerMovementReason,
     reasonDescription: String,
-  ): Map<String, String> {
+  ): Map<String, String?> {
     val elements = mutableMapOf(
       "occurredAt" to event.eventDatetime.format(DateTimeFormatter.ISO_DATE_TIME),
       "nomsNumber" to event.offenderIdDisplay,
       "reason" to reasonDescription,
       "prisonId" to reason.prisonId,
-      "currentLocation" to reason.currentLocation.name,
-      "currentPrisonStatus" to reason.currentPrisonStatus.name,
+      "currentLocation" to reason.currentLocation?.name,
+      "currentPrisonStatus" to reason.currentPrisonStatus?.name,
     )
     reason.details?.let { elements["details"] = it }
     return elements
@@ -112,6 +111,7 @@ class HMPPSDomainEventsEmitter(
           receivedReason,
           receivedReason.reason.name,
         ),
+        null,
       )
       return null
     }
@@ -127,10 +127,10 @@ class HMPPSDomainEventsEmitter(
       .withAdditionalInformation("probableCause", receivedReason.probableCause?.name)
       .withAdditionalInformation("source", receivedReason.source.name)
       .withAdditionalInformation("details", receivedReason.details)
-      .withAdditionalInformation("currentLocation", receivedReason.currentLocation.name)
+      .withAdditionalInformation("currentLocation", receivedReason.currentLocation?.name)
       .withAdditionalInformation("prisonId", receivedReason.prisonId)
       .withAdditionalInformation("nomisMovementReasonCode", receivedReason.nomisMovementReason.code)
-      .withAdditionalInformation("currentPrisonStatus", receivedReason.currentPrisonStatus.name)
+      .withAdditionalInformation("currentPrisonStatus", receivedReason.currentPrisonStatus?.name)
   }
 
   private fun toMergedOffenderNumbers(event: OffenderEvent): List<HmppsDomainEvent> {
@@ -168,6 +168,7 @@ class HMPPSDomainEventsEmitter(
       telemetryClient.trackEvent(
         "prison-offender-events.prisoner.not-released",
         asTelemetryMap(event, releaseReason, releaseReason.reason.name),
+        null,
       )
       return null
     }
@@ -181,10 +182,10 @@ class HMPPSDomainEventsEmitter(
       .withAdditionalInformation("nomsNumber", offenderNumber)
       .withAdditionalInformation("reason", releaseReason.reason.name)
       .withAdditionalInformation("details", releaseReason.details)
-      .withAdditionalInformation("currentLocation", releaseReason.currentLocation.name)
+      .withAdditionalInformation("currentLocation", releaseReason.currentLocation?.name)
       .withAdditionalInformation("prisonId", releaseReason.prisonId)
       .withAdditionalInformation("nomisMovementReasonCode", releaseReason.nomisMovementReason.code)
-      .withAdditionalInformation("currentPrisonStatus", releaseReason.currentPrisonStatus.name)
+      .withAdditionalInformation("currentPrisonStatus", releaseReason.currentPrisonStatus?.name)
   }
 
   private fun toCaseNotePublished(event: OffenderEvent): HmppsDomainEvent? {

@@ -2,7 +2,7 @@ package uk.gov.justice.hmpps.offenderevents.services
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Test
-import org.mockito.ArgumentMatchers
+import org.mockito.kotlin.any
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.whenever
 
@@ -65,7 +65,7 @@ internal class ReleasePrisonerReasonCalculatorTest {
   @Test
   @DisplayName("when status indicates still in prison then not really released")
   fun whenStatusIndicatesStillInPrisonThenNotReallyReleased() {
-    whenever(prisonApiService.getPrisonerDetails(ArgumentMatchers.any()))
+    whenever(prisonApiService.getPrisonerDetails(any()))
       .thenReturn(
         PrisonerDetails(
           LegalStatus.REMAND,
@@ -78,7 +78,7 @@ internal class ReleasePrisonerReasonCalculatorTest {
         ),
       )
     assertThat(calculator.calculateReasonForRelease("A1234GH").hasPrisonerActuallyBeenRelease()).isTrue()
-    whenever(prisonApiService.getPrisonerDetails(ArgumentMatchers.any()))
+    whenever(prisonApiService.getPrisonerDetails(any()))
       .thenReturn(
         PrisonerDetails(
           LegalStatus.REMAND,
@@ -91,7 +91,7 @@ internal class ReleasePrisonerReasonCalculatorTest {
         ),
       )
     assertThat(calculator.calculateReasonForRelease("A1234GH").hasPrisonerActuallyBeenRelease()).isTrue()
-    whenever(prisonApiService.getPrisonerDetails(ArgumentMatchers.any()))
+    whenever(prisonApiService.getPrisonerDetails(any()))
       .thenReturn(
         PrisonerDetails(
           LegalStatus.REMAND,
