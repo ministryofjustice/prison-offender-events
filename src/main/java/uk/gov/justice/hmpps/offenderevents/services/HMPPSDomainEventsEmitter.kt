@@ -62,13 +62,13 @@ class HMPPSDomainEventsEmitter(
     )
   }
 
-  private fun toCellMove(event: OffenderEvent): HmppsDomainEvent = HmppsDomainEvent.builder()
-    .eventType("prison-offender-events.prisoner.cell.move")
-    .description("A prisoner has been moved to a different cell")
-    .occurredAt(toOccurredAt(event))
-    .publishedAt(OffsetDateTime.now().toString())
-    .personReference(PersonReference(event.offenderIdDisplay))
-    .build()
+  private fun toCellMove(event: OffenderEvent): HmppsDomainEvent = HmppsDomainEvent(
+    eventType = "prison-offender-events.prisoner.cell.move",
+    description = "A prisoner has been moved to a different cell",
+    occurredAt = toOccurredAt(event),
+    publishedAt = OffsetDateTime.now().toString(),
+    personReference = PersonReference(event.offenderIdDisplay),
+  )
     .withAdditionalInformation("nomsNumber", event.offenderIdDisplay)
     .withAdditionalInformation("livingUnitId", event.livingUnitId)
     .withAdditionalInformation("bedAssignmentSeq", event.bedAssignmentSeq)
@@ -115,13 +115,13 @@ class HMPPSDomainEventsEmitter(
       )
       return null
     }
-    return HmppsDomainEvent.builder()
-      .eventType("prison-offender-events.prisoner.received")
-      .description("A prisoner has been received into prison")
-      .occurredAt(toOccurredAt(event))
-      .publishedAt(OffsetDateTime.now().toString())
-      .personReference(PersonReference(event.offenderIdDisplay))
-      .build()
+    return HmppsDomainEvent(
+      eventType = "prison-offender-events.prisoner.received",
+      description = "A prisoner has been received into prison",
+      occurredAt = toOccurredAt(event),
+      publishedAt = OffsetDateTime.now().toString(),
+      personReference = PersonReference(event.offenderIdDisplay),
+    )
       .withAdditionalInformation("nomsNumber", offenderNumber)
       .withAdditionalInformation("reason", receivedReason.reason.name)
       .withAdditionalInformation("probableCause", receivedReason.probableCause?.name)
@@ -137,15 +137,13 @@ class HMPPSDomainEventsEmitter(
     val mergeResults = mergeRecordDiscriminator.identifyMergedPrisoner(event.bookingId)
     return mergeResults
       .map { mergeResult: MergeOutcome ->
-        HmppsDomainEvent.builder()
-          .eventType("prison-offender-events.prisoner.merged")
-          .description(
-            "A prisoner has been merged from ${mergeResult.mergedNumber} to ${mergeResult.remainingNumber}",
-          )
-          .occurredAt(toOccurredAt(event))
-          .publishedAt(OffsetDateTime.now().toString())
-          .personReference(PersonReference(mergeResult.remainingNumber))
-          .build()
+        HmppsDomainEvent(
+          eventType = "prison-offender-events.prisoner.merged",
+          description = "A prisoner has been merged from ${mergeResult.mergedNumber} to ${mergeResult.remainingNumber}",
+          occurredAt = toOccurredAt(event),
+          publishedAt = OffsetDateTime.now().toString(),
+          personReference = PersonReference(mergeResult.remainingNumber),
+        )
           .withAdditionalInformation("nomsNumber", mergeResult.remainingNumber)
           .withAdditionalInformation("removedNomsNumber", mergeResult.mergedNumber)
           .withAdditionalInformation("reason", "MERGE")
@@ -172,13 +170,13 @@ class HMPPSDomainEventsEmitter(
       )
       return null
     }
-    return HmppsDomainEvent.builder()
-      .eventType("prison-offender-events.prisoner.released")
-      .description("A prisoner has been released from prison")
-      .occurredAt(toOccurredAt(event))
-      .publishedAt(OffsetDateTime.now().toString())
-      .personReference(PersonReference(offenderNumber))
-      .build()
+    return HmppsDomainEvent(
+      eventType = "prison-offender-events.prisoner.released",
+      description = "A prisoner has been released from prison",
+      occurredAt = toOccurredAt(event),
+      publishedAt = OffsetDateTime.now().toString(),
+      personReference = PersonReference(offenderNumber),
+    )
       .withAdditionalInformation("nomsNumber", offenderNumber)
       .withAdditionalInformation("reason", releaseReason.reason.name)
       .withAdditionalInformation("details", releaseReason.details)
@@ -198,16 +196,14 @@ class HMPPSDomainEventsEmitter(
       )
       return null
     }
-    return HmppsDomainEvent.builder()
-      .eventType("prison.case-note.published")
-      .description("A prison case note has been created or amended")
-      .detailUrl(
-        "${offenderEventsProperties.casenotesApiBaseUrl}/case-notes/${event.offenderIdDisplay}/${event.caseNoteId}",
-      )
-      .occurredAt(toOccurredAt(event))
-      .publishedAt(OffsetDateTime.now().toString())
-      .personReference(PersonReference(event.offenderIdDisplay))
-      .build()
+    return HmppsDomainEvent(
+      eventType = "prison.case-note.published",
+      description = "A prison case note has been created or amended",
+      detailUrl = "${offenderEventsProperties.casenotesApiBaseUrl}/case-notes/${event.offenderIdDisplay}/${event.caseNoteId}",
+      occurredAt = toOccurredAt(event),
+      publishedAt = OffsetDateTime.now().toString(),
+      personReference = PersonReference(event.offenderIdDisplay),
+    )
       .withAdditionalInformation("caseNoteId", event.caseNoteId.toString())
       .withAdditionalInformation(
         "caseNoteType",
