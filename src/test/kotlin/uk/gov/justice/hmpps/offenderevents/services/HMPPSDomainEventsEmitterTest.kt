@@ -95,8 +95,8 @@ internal class HMPPSDomainEventsEmitterTest {
   @Test
   @DisplayName("Will do nothing for insignificant events")
   fun willDoNothingForInsignificantEvents() {
-    emitter.convertAndSendWhenSignificant(OffenderEvent.builder().eventType("BALANCE_UPDATED").build())
-    Mockito.verifyNoInteractions(hmppsEventSnsClient)
+    emitter.convertAndSendWhenSignificant(OffenderEvent(eventType = "BALANCE_UPDATED"))
+    verifyNoInteractions(hmppsEventSnsClient)
   }
 
   @ParameterizedTest
@@ -127,11 +127,11 @@ internal class HMPPSDomainEventsEmitterTest {
         ),
       )
     emitter.convertAndSendWhenSignificant(
-      OffenderEvent.builder()
-        .eventType(prisonEventType)
-        .offenderIdDisplay("A1234GH")
-        .eventDatetime(LocalDateTime.now())
-        .build(),
+      OffenderEvent(
+        eventType = prisonEventType,
+        offenderIdDisplay = "A1234GH",
+        eventDatetime = LocalDateTime.now(),
+      ),
     )
 
     argumentCaptor<PublishRequest>().apply {
@@ -161,12 +161,12 @@ internal class HMPPSDomainEventsEmitterTest {
       )
 
     emitter.convertAndSendWhenSignificant(
-      OffenderEvent.builder()
-        .eventType(prisonEventType)
-        .offenderIdDisplay("A1234GH")
-        .bookingId(43124234L)
-        .eventDatetime(LocalDateTime.now())
-        .build(),
+      OffenderEvent(
+        eventType = prisonEventType,
+        offenderIdDisplay = "A1234GH",
+        bookingId = 43124234L,
+        eventDatetime = LocalDateTime.now(),
+      ),
     )
 
     argumentCaptor<PublishRequest>().apply {
@@ -209,11 +209,11 @@ internal class HMPPSDomainEventsEmitterTest {
           ),
         )
       emitter.convertAndSendWhenSignificant(
-        OffenderEvent.builder()
-          .eventType("OFFENDER_MOVEMENT-RECEPTION")
-          .offenderIdDisplay("A1234GH")
-          .eventDatetime(LocalDateTime.parse("2020-12-04T10:42:43"))
-          .build(),
+        OffenderEvent(
+          eventType = "OFFENDER_MOVEMENT-RECEPTION",
+          offenderIdDisplay = "A1234GH",
+          eventDatetime = LocalDateTime.parse("2020-12-04T10:42:43"),
+        ),
       )
 
       argumentCaptor<PublishRequest>().apply {
@@ -357,11 +357,11 @@ internal class HMPPSDomainEventsEmitterTest {
           ),
         )
       emitter.convertAndSendWhenSignificant(
-        OffenderEvent.builder()
-          .eventType("OFFENDER_MOVEMENT-RECEPTION")
-          .offenderIdDisplay("A1234GH")
-          .eventDatetime(LocalDateTime.parse("2020-12-04T10:42:43"))
-          .build(),
+        OffenderEvent(
+          eventType = "OFFENDER_MOVEMENT-RECEPTION",
+          offenderIdDisplay = "A1234GH",
+          eventDatetime = LocalDateTime.parse("2020-12-04T10:42:43"),
+        ),
       )
       Mockito.verifyNoInteractions(hmppsEventSnsClient)
 
@@ -423,11 +423,11 @@ internal class HMPPSDomainEventsEmitterTest {
           ),
         )
       emitter.convertAndSendWhenSignificant(
-        OffenderEvent.builder()
-          .eventType("OFFENDER_MOVEMENT-DISCHARGE")
-          .offenderIdDisplay("A1234GH")
-          .eventDatetime(LocalDateTime.parse("2020-07-04T10:42:43"))
-          .build(),
+        OffenderEvent(
+          eventType = "OFFENDER_MOVEMENT-DISCHARGE",
+          offenderIdDisplay = "A1234GH",
+          eventDatetime = LocalDateTime.parse("2020-07-04T10:42:43"),
+        ),
       )
       argumentCaptor<PublishRequest>().apply {
         verify(hmppsEventSnsClient, times(1)).publish(capture())
@@ -560,11 +560,11 @@ internal class HMPPSDomainEventsEmitterTest {
           ),
         )
       emitter.convertAndSendWhenSignificant(
-        OffenderEvent.builder()
-          .eventType("OFFENDER_MOVEMENT-DISCHARGE")
-          .offenderIdDisplay("A1234GH")
-          .eventDatetime(LocalDateTime.parse("2020-12-04T10:42:43"))
-          .build(),
+        OffenderEvent(
+          eventType = "OFFENDER_MOVEMENT-DISCHARGE",
+          offenderIdDisplay = "A1234GH",
+          eventDatetime = LocalDateTime.parse("2020-12-04T10:42:43"),
+        ),
       )
       Mockito.verifyNoInteractions(hmppsEventSnsClient)
       argumentCaptor<Map<String, String>>().apply {
@@ -624,11 +624,11 @@ internal class HMPPSDomainEventsEmitterTest {
         )
 
       emitter.convertAndSendWhenSignificant(
-        OffenderEvent.builder()
-          .eventType("BOOKING_NUMBER-CHANGED")
-          .bookingId(43124234L)
-          .eventDatetime(LocalDateTime.parse("2020-12-04T10:42:43"))
-          .build(),
+        OffenderEvent(
+          eventType = "BOOKING_NUMBER-CHANGED",
+          bookingId = 43124234L,
+          eventDatetime = LocalDateTime.parse("2020-12-04T10:42:43"),
+        ),
       )
 
       argumentCaptor<PublishRequest>().apply {
@@ -732,11 +732,11 @@ internal class HMPPSDomainEventsEmitterTest {
         )
 
       emitter.convertAndSendWhenSignificant(
-        OffenderEvent.builder()
-          .eventType("BOOKING_NUMBER-CHANGED")
-          .bookingId(43124234L)
-          .eventDatetime(LocalDateTime.parse("2020-12-04T10:42:43"))
-          .build(),
+        OffenderEvent(
+          eventType = "BOOKING_NUMBER-CHANGED",
+          bookingId = 43124234L,
+          eventDatetime = LocalDateTime.parse("2020-12-04T10:42:43"),
+        ),
       )
 
       argumentCaptor<PublishRequest>().apply {
@@ -809,15 +809,15 @@ internal class HMPPSDomainEventsEmitterTest {
     fun setUp() {
       whenever(offenderEventsProperties.casenotesApiBaseUrl).thenReturn("http://localhost:1234")
       emitter.convertAndSendWhenSignificant(
-        OffenderEvent.builder()
-          .eventType("OFFENDER_CASE_NOTES-INSERTED")
-          .caseNoteType("CHAP")
-          .caseNoteSubType("MAIL ROOM")
-          .caseNoteId(-12345L)
-          .offenderIdDisplay("A1234GH")
-          .bookingId(1234L)
-          .eventDatetime(LocalDateTime.parse("2022-12-04T10:00:00"))
-          .build(),
+        OffenderEvent(
+          eventType = "OFFENDER_CASE_NOTES-INSERTED",
+          caseNoteType = "CHAP",
+          caseNoteSubType = "MAIL ROOM",
+          caseNoteId = -12345L,
+          offenderIdDisplay = "A1234GH",
+          bookingId = 1234L,
+          eventDatetime = LocalDateTime.parse("2022-12-04T10:00:00"),
+        ),
       )
       argumentCaptor<PublishRequest>().apply {
         verify(hmppsEventSnsClient, times(1)).publish(capture())
@@ -912,15 +912,15 @@ internal class HMPPSDomainEventsEmitterTest {
     @BeforeEach
     fun setUp() {
       emitter.convertAndSendWhenSignificant(
-        OffenderEvent.builder()
-          .eventType("OFFENDER_CASE_NOTES-INSERTED")
-          .caseNoteType("CHAP")
-          .caseNoteSubType("MAIL ROOM")
-          .caseNoteId(-12345L)
-          .offenderIdDisplay(null)
-          .bookingId(1234L)
-          .eventDatetime(LocalDateTime.parse("2022-12-04T10:00:00"))
-          .build(),
+        OffenderEvent(
+          eventType = "OFFENDER_CASE_NOTES-INSERTED",
+          caseNoteType = "CHAP",
+          caseNoteSubType = "MAIL ROOM",
+          caseNoteId = -12345L,
+          offenderIdDisplay = null,
+          bookingId = 1234L,
+          eventDatetime = LocalDateTime.parse("2022-12-04T10:00:00"),
+        ),
       )
     }
 
@@ -943,14 +943,14 @@ internal class HMPPSDomainEventsEmitterTest {
     @BeforeEach
     fun setUp() {
       emitter.convertAndSendWhenSignificant(
-        OffenderEvent.builder()
-          .eventType("BED_ASSIGNMENT_HISTORY-INSERTED")
-          .eventDatetime(LocalDateTime.parse("2022-12-04T10:00:00"))
-          .offenderIdDisplay("A1234GH")
-          .bookingId(1234L)
-          .bedAssignmentSeq(1)
-          .livingUnitId(4012L)
-          .build(),
+        OffenderEvent(
+          eventType = "BED_ASSIGNMENT_HISTORY-INSERTED",
+          eventDatetime = LocalDateTime.parse("2022-12-04T10:00:00"),
+          offenderIdDisplay = "A1234GH",
+          bookingId = 1234L,
+          bedAssignmentSeq = 1,
+          livingUnitId = 4012L,
+        ),
       )
       argumentCaptor<PublishRequest>().apply {
         verify(hmppsEventSnsClient).publish(capture())
