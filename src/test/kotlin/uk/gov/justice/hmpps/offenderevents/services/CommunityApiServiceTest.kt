@@ -17,7 +17,7 @@ import org.springframework.test.context.ActiveProfiles
 import uk.gov.justice.hmpps.offenderevents.config.OffenderEventsProperties
 import uk.gov.justice.hmpps.offenderevents.config.WebClientConfiguration
 import uk.gov.justice.hmpps.offenderevents.services.wiremock.CommunityApiExtension
-import uk.gov.justice.hmpps.offenderevents.services.wiremock.CommunityApiExtension.server
+import uk.gov.justice.hmpps.offenderevents.services.wiremock.CommunityApiExtension.Companion.server
 import uk.gov.justice.hmpps.offenderevents.services.wiremock.HMPPSAuthExtension
 
 @ExtendWith(CommunityApiExtension::class, HMPPSAuthExtension::class)
