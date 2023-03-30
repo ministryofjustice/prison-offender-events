@@ -67,7 +67,7 @@ class HMPPSDomainEventsEmitter(
     description = "A prisoner has been moved to a different cell",
     occurredAt = toOccurredAt(event),
     publishedAt = OffsetDateTime.now().toString(),
-    personReference = PersonReference(event.offenderIdDisplay),
+    personReference = PersonReference(event.offenderIdDisplay!!),
   )
     .withAdditionalInformation("nomsNumber", event.offenderIdDisplay)
     .withAdditionalInformation("livingUnitId", event.livingUnitId)
@@ -80,7 +80,7 @@ class HMPPSDomainEventsEmitter(
     reasonDescription: String,
   ): Map<String, String?> {
     val elements = mutableMapOf(
-      "occurredAt" to event.eventDatetime.format(DateTimeFormatter.ISO_DATE_TIME),
+      "occurredAt" to event.eventDatetime!!.format(DateTimeFormatter.ISO_DATE_TIME),
       "nomsNumber" to event.offenderIdDisplay,
       "reason" to reasonDescription,
       "prisonId" to reason.prisonId,
@@ -92,7 +92,7 @@ class HMPPSDomainEventsEmitter(
   }
 
   private fun toPrisonerReceived(event: OffenderEvent): HmppsDomainEvent? {
-    val offenderNumber = event.offenderIdDisplay
+    val offenderNumber = event.offenderIdDisplay!!
     val receivedReason: ReceiveReason = try {
       receivePrisonerReasonCalculator.calculateMostLikelyReasonForPrisonerReceive(offenderNumber)
     } catch (e: WebClientResponseException) {
@@ -134,7 +134,7 @@ class HMPPSDomainEventsEmitter(
   }
 
   private fun toMergedOffenderNumbers(event: OffenderEvent): List<HmppsDomainEvent> {
-    val mergeResults = mergeRecordDiscriminator.identifyMergedPrisoner(event.bookingId)
+    val mergeResults = mergeRecordDiscriminator.identifyMergedPrisoner(event.bookingId!!)
     return mergeResults
       .map { mergeResult: MergeOutcome ->
         HmppsDomainEvent(
@@ -151,7 +151,7 @@ class HMPPSDomainEventsEmitter(
   }
 
   private fun toPrisonerReleased(event: OffenderEvent): HmppsDomainEvent? {
-    val offenderNumber = event.offenderIdDisplay
+    val offenderNumber = event.offenderIdDisplay!!
     val releaseReason: ReleaseReason = try {
       releasePrisonerReasonCalculator.calculateReasonForRelease(offenderNumber)
     } catch (e: WebClientResponseException) {
@@ -208,7 +208,7 @@ class HMPPSDomainEventsEmitter(
       .withAdditionalInformation(
         "caseNoteType",
         "${event.caseNoteType}-${
-        event.caseNoteSubType.split("\\W".toRegex()).dropLastWhile { it.isEmpty() }
+        event.caseNoteSubType!!.split("\\W".toRegex()).dropLastWhile { it.isEmpty() }
           .toTypedArray()[0]
         }",
       )
@@ -217,7 +217,7 @@ class HMPPSDomainEventsEmitter(
   }
 
   private fun toOccurredAt(event: OffenderEvent): String =
-    event.eventDatetime.atZone(ZoneId.of("Europe/London")).toOffsetDateTime()
+    event.eventDatetime!!.atZone(ZoneId.of("Europe/London")).toOffsetDateTime()
       .format(DateTimeFormatter.ISO_OFFSET_DATE_TIME)
 
   fun sendEvent(payload: HmppsDomainEvent) {
