@@ -11,7 +11,7 @@
   "MessageAttributes": {
     "eventType": {
       "Type": "String",
-      "Value": "BOOKING_NUMBER-CHANGED"
+      "Value": "EXTERNAL_MOVEMENT_RECORD-INSERTED"
     },
     "publishedAt" : {
       "Type":"String",
