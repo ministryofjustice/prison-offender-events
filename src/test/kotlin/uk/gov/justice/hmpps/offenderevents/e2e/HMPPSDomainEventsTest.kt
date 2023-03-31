@@ -467,14 +467,14 @@ class HMPPSDomainEventsTest : QueueListenerIntegrationTest() {
       sendToTopic(
         "OFFENDER_MOVEMENT-RECEPTION",
         """
-                    { "eventType": "OFFENDER_MOVEMENT-RECEPTION", "offenderIdDisplay": "NONEXISTENT" }
+                    { "eventType": "OFFENDER_MOVEMENT-RECEPTION", "eventDatetime": "2023-03-31T13:49:16", "offenderIdDisplay": "NONEXISTENT" }
                 
         """.trimIndent(),
       )
       sendToTopic(
         "OFFENDER_MOVEMENT-DISCHARGE",
         """
-                    { "eventType": "OFFENDER_MOVEMENT-DISCHARGE", "offenderIdDisplay": "NONEXISTENT" }
+                    { "eventType": "OFFENDER_MOVEMENT-DISCHARGE", "eventDatetime": "2023-03-31T13:49:16", "offenderIdDisplay": "NONEXISTENT" }
                 
         """.trimIndent(),
       )

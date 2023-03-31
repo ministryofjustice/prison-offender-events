@@ -12,7 +12,6 @@ import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Service
 import software.amazon.awssdk.services.sqs.model.SendMessageRequest
-import uk.gov.justice.hmpps.offenderevents.model.OffenderEvent
 import uk.gov.justice.hmpps.offenderevents.services.HMPPSDomainEventsEmitter
 import uk.gov.justice.hmpps.sqs.HmppsQueueService
 import java.time.Duration
@@ -32,18 +31,15 @@ class PrisonerEventsListener(
   fun onPrisonerEvent(message: String?, attributes: QueueAttributes) {
     val sqsMessage: SQSMessage = objectMapper.readValue(message, SQSMessage::class.java)
     val publishedAt = OffsetDateTime.parse(sqsMessage.MessageAttributes.publishedAt.Value)
-    val event = objectMapper.readValue(sqsMessage.Message, OffenderEvent::class.java)
-    if (!DELAYED_EVENT_TYPES.contains(event.eventType) || publishedAt.isBefore(
-        OffsetDateTime.now().minus(totalDelay),
-      )
-    ) {
+    val eventType = sqsMessage.MessageAttributes.eventType.Value
+    if (!DELAYED_EVENT_TYPES.contains(eventType) || publishedAt.isBefore(OffsetDateTime.now().minus(totalDelay))) {
       log.debug(
         "Received message {} type {} published at {}",
         sqsMessage.MessageId,
-        event.eventType,
+        eventType,
         publishedAt,
       )
-      eventsEmitter.convertAndSendWhenSignificant(event)
+      eventsEmitter.convertAndSendWhenSignificant(eventType, sqsMessage.Message)
     } else {
       hmppsQueueService.findByQueueId("prisoneventqueue")!!.sqsClient
         .sendMessage(
@@ -63,5 +59,5 @@ class PrisonerEventsListener(
 }
 
 internal data class SQSMessage(val Message: String, val MessageId: String, val MessageAttributes: MessageAttributes)
-internal data class MessageAttributes(val publishedAt: PublishedAt)
-internal data class PublishedAt(val Value: String, val Type: String)
+internal data class MessageAttributes(val publishedAt: TypeValuePair, val eventType: TypeValuePair)
+internal data class TypeValuePair(val Value: String, val Type: String)

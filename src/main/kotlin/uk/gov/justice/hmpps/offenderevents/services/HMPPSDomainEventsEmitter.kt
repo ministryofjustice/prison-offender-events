@@ -10,15 +10,19 @@ import org.springframework.web.reactive.function.client.WebClientResponseExcepti
 import software.amazon.awssdk.services.sns.SnsAsyncClient
 import software.amazon.awssdk.services.sns.model.PublishRequest
 import uk.gov.justice.hmpps.offenderevents.config.OffenderEventsProperties
+import uk.gov.justice.hmpps.offenderevents.model.CaseNoteOffenderEvent
+import uk.gov.justice.hmpps.offenderevents.model.CellMoveOffenderEvent
 import uk.gov.justice.hmpps.offenderevents.model.HmppsDomainEvent
 import uk.gov.justice.hmpps.offenderevents.model.HmppsDomainEvent.PersonReference
 import uk.gov.justice.hmpps.offenderevents.model.OffenderEvent
+import uk.gov.justice.hmpps.offenderevents.model.PrisonerDischargedOffenderEvent
+import uk.gov.justice.hmpps.offenderevents.model.PrisonerMergedOffenderEvent
+import uk.gov.justice.hmpps.offenderevents.model.PrisonerReceivedOffenderEvent
 import uk.gov.justice.hmpps.offenderevents.services.MergeRecordDiscriminator.MergeOutcome
 import uk.gov.justice.hmpps.offenderevents.services.ReceivePrisonerReasonCalculator.ReceiveReason
 import uk.gov.justice.hmpps.offenderevents.services.ReleasePrisonerReasonCalculator.ReleaseReason
 import uk.gov.justice.hmpps.sqs.HmppsQueueService
 import java.time.OffsetDateTime
-import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import java.util.function.Consumer
 
@@ -41,19 +45,17 @@ class HMPPSDomainEventsEmitter(
     hmppsEventsTopicSnsClient = hmppsEventTopic.snsClient
   }
 
-  fun convertAndSendWhenSignificant(event: OffenderEvent) {
-    val hmppsEvents =
-      if (event.caseNoteId != null) {
-        listOfNotNull(toCaseNotePublished(event))
-      } else {
-        when (event.eventType) {
-          "OFFENDER_MOVEMENT-RECEPTION" -> listOfNotNull(toPrisonerReceived(event))
-          "OFFENDER_MOVEMENT-DISCHARGE" -> listOfNotNull(toPrisonerReleased(event))
-          "BOOKING_NUMBER-CHANGED" -> toMergedOffenderNumbers(event)
-          "BED_ASSIGNMENT_HISTORY-INSERTED" -> listOf(toCellMove(event))
-          else -> emptyList()
-        }
-      }
+  fun convertAndSendWhenSignificant(event: String, message: String) {
+    val mapping = OffenderEvent.eventMappings[event] ?: return
+    val hmppsEvents = when (val offenderEvent = objectMapper.readValue(message, mapping)) {
+      is CaseNoteOffenderEvent -> listOfNotNull(toCaseNotePublished(offenderEvent))
+      is PrisonerReceivedOffenderEvent -> listOfNotNull(toPrisonerReceived(offenderEvent))
+      is PrisonerDischargedOffenderEvent -> listOfNotNull(toPrisonerReleased(offenderEvent))
+      is PrisonerMergedOffenderEvent -> toMergedOffenderNumbers(offenderEvent)
+      is CellMoveOffenderEvent -> listOf(toCellMove(offenderEvent))
+      else -> emptyList()
+    }
+
     hmppsEvents.forEach(
       Consumer { hmppsDomainEvent: HmppsDomainEvent ->
         sendEvent(hmppsDomainEvent)
@@ -62,12 +64,12 @@ class HMPPSDomainEventsEmitter(
     )
   }
 
-  private fun toCellMove(event: OffenderEvent): HmppsDomainEvent = HmppsDomainEvent(
+  private fun toCellMove(event: CellMoveOffenderEvent): HmppsDomainEvent = HmppsDomainEvent(
     eventType = "prison-offender-events.prisoner.cell.move",
     description = "A prisoner has been moved to a different cell",
-    occurredAt = toOccurredAt(event),
+    occurredAt = event.toOccurredAt(),
     publishedAt = OffsetDateTime.now().toString(),
-    personReference = PersonReference(event.offenderIdDisplay!!),
+    personReference = PersonReference(event.offenderIdDisplay),
   )
     .withAdditionalInformation("nomsNumber", event.offenderIdDisplay)
     .withAdditionalInformation("livingUnitId", event.livingUnitId)
@@ -80,7 +82,7 @@ class HMPPSDomainEventsEmitter(
     reasonDescription: String,
   ): Map<String, String?> {
     val elements = mutableMapOf(
-      "occurredAt" to event.eventDatetime!!.format(DateTimeFormatter.ISO_DATE_TIME),
+      "occurredAt" to event.eventDatetime.format(DateTimeFormatter.ISO_DATE_TIME),
       "nomsNumber" to event.offenderIdDisplay,
       "reason" to reasonDescription,
       "prisonId" to reason.prisonId,
@@ -91,8 +93,8 @@ class HMPPSDomainEventsEmitter(
     return elements
   }
 
-  private fun toPrisonerReceived(event: OffenderEvent): HmppsDomainEvent? {
-    val offenderNumber = event.offenderIdDisplay!!
+  private fun toPrisonerReceived(event: PrisonerReceivedOffenderEvent): HmppsDomainEvent? {
+    val offenderNumber = event.offenderIdDisplay
     val receivedReason: ReceiveReason = try {
       receivePrisonerReasonCalculator.calculateMostLikelyReasonForPrisonerReceive(offenderNumber)
     } catch (e: WebClientResponseException) {
@@ -118,7 +120,7 @@ class HMPPSDomainEventsEmitter(
     return HmppsDomainEvent(
       eventType = "prison-offender-events.prisoner.received",
       description = "A prisoner has been received into prison",
-      occurredAt = toOccurredAt(event),
+      occurredAt = event.toOccurredAt(),
       publishedAt = OffsetDateTime.now().toString(),
       personReference = PersonReference(event.offenderIdDisplay),
     )
@@ -133,14 +135,14 @@ class HMPPSDomainEventsEmitter(
       .withAdditionalInformation("currentPrisonStatus", receivedReason.currentPrisonStatus?.name)
   }
 
-  private fun toMergedOffenderNumbers(event: OffenderEvent): List<HmppsDomainEvent> {
-    val mergeResults = mergeRecordDiscriminator.identifyMergedPrisoner(event.bookingId!!)
+  private fun toMergedOffenderNumbers(event: PrisonerMergedOffenderEvent): List<HmppsDomainEvent> {
+    val mergeResults = mergeRecordDiscriminator.identifyMergedPrisoner(event.bookingId)
     return mergeResults
       .map { mergeResult: MergeOutcome ->
         HmppsDomainEvent(
           eventType = "prison-offender-events.prisoner.merged",
           description = "A prisoner has been merged from ${mergeResult.mergedNumber} to ${mergeResult.remainingNumber}",
-          occurredAt = toOccurredAt(event),
+          occurredAt = event.toOccurredAt(),
           publishedAt = OffsetDateTime.now().toString(),
           personReference = PersonReference(mergeResult.remainingNumber),
         )
@@ -150,8 +152,8 @@ class HMPPSDomainEventsEmitter(
       }
   }
 
-  private fun toPrisonerReleased(event: OffenderEvent): HmppsDomainEvent? {
-    val offenderNumber = event.offenderIdDisplay!!
+  private fun toPrisonerReleased(event: PrisonerDischargedOffenderEvent): HmppsDomainEvent? {
+    val offenderNumber = event.offenderIdDisplay
     val releaseReason: ReleaseReason = try {
       releasePrisonerReasonCalculator.calculateReasonForRelease(offenderNumber)
     } catch (e: WebClientResponseException) {
@@ -173,7 +175,7 @@ class HMPPSDomainEventsEmitter(
     return HmppsDomainEvent(
       eventType = "prison-offender-events.prisoner.released",
       description = "A prisoner has been released from prison",
-      occurredAt = toOccurredAt(event),
+      occurredAt = event.toOccurredAt(),
       publishedAt = OffsetDateTime.now().toString(),
       personReference = PersonReference(offenderNumber),
     )
@@ -186,7 +188,7 @@ class HMPPSDomainEventsEmitter(
       .withAdditionalInformation("currentPrisonStatus", releaseReason.currentPrisonStatus?.name)
   }
 
-  private fun toCaseNotePublished(event: OffenderEvent): HmppsDomainEvent? {
+  private fun toCaseNotePublished(event: CaseNoteOffenderEvent): HmppsDomainEvent? {
     // SDI-594: If there is no offender id then this means that the case note has actually been removed instead
     // This means that we can ignore this event - will be handled by the offender deletion event instead.
     if (event.offenderIdDisplay == null) {
@@ -196,11 +198,12 @@ class HMPPSDomainEventsEmitter(
       )
       return null
     }
+
     return HmppsDomainEvent(
       eventType = "prison.case-note.published",
       description = "A prison case note has been created or amended",
       detailUrl = "${offenderEventsProperties.casenotesApiBaseUrl}/case-notes/${event.offenderIdDisplay}/${event.caseNoteId}",
-      occurredAt = toOccurredAt(event),
+      occurredAt = event.toOccurredAt(),
       publishedAt = OffsetDateTime.now().toString(),
       personReference = PersonReference(event.offenderIdDisplay),
     )
@@ -208,17 +211,13 @@ class HMPPSDomainEventsEmitter(
       .withAdditionalInformation(
         "caseNoteType",
         "${event.caseNoteType}-${
-        event.caseNoteSubType!!.split("\\W".toRegex()).dropLastWhile { it.isEmpty() }
+        event.caseNoteSubType.split("\\W".toRegex()).dropLastWhile { it.isEmpty() }
           .toTypedArray()[0]
         }",
       )
       .withAdditionalInformation("type", event.caseNoteType)
       .withAdditionalInformation("subType", event.caseNoteSubType)
   }
-
-  private fun toOccurredAt(event: OffenderEvent): String =
-    event.eventDatetime!!.atZone(ZoneId.of("Europe/London")).toOffsetDateTime()
-      .format(DateTimeFormatter.ISO_OFFSET_DATE_TIME)
 
   fun sendEvent(payload: HmppsDomainEvent) {
     try {
