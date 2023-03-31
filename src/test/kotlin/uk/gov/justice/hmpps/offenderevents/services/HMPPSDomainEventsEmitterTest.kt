@@ -1,9 +1,6 @@
 package uk.gov.justice.hmpps.offenderevents.services
 
-import com.fasterxml.jackson.databind.DeserializationFeature
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
-import com.fasterxml.jackson.module.kotlin.KotlinModule
 import com.microsoft.applicationinsights.TelemetryClient
 import net.javacrumbs.jsonunit.assertj.JsonAssertions.assertThatJson
 import org.assertj.core.api.Assertions
@@ -27,6 +24,9 @@ import org.mockito.kotlin.times
 import org.mockito.kotlin.verifyNoInteractions
 import org.mockito.kotlin.whenever
 import org.mockito.quality.Strictness.LENIENT
+import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.boot.autoconfigure.jackson.JacksonAutoConfiguration
+import org.springframework.boot.test.context.SpringBootTest
 import software.amazon.awssdk.services.sns.SnsAsyncClient
 import software.amazon.awssdk.services.sns.model.MessageAttributeValue
 import software.amazon.awssdk.services.sns.model.PublishRequest
@@ -49,8 +49,12 @@ import java.time.OffsetDateTime
 import java.time.temporal.ChronoUnit.SECONDS
 import java.util.function.Consumer
 
+@SpringBootTest(classes = [JacksonAutoConfiguration::class])
 internal class HMPPSDomainEventsEmitterTest {
   private lateinit var emitter: HMPPSDomainEventsEmitter
+
+  @Autowired
+  private lateinit var objectMapper: ObjectMapper
 
   private val receivePrisonerReasonCalculator: ReceivePrisonerReasonCalculator = mock()
   private val releasePrisonerReasonCalculator: ReleasePrisonerReasonCalculator = mock()
@@ -68,11 +72,7 @@ internal class HMPPSDomainEventsEmitterTest {
 
     emitter = HMPPSDomainEventsEmitter(
       hmppsQueueService,
-      ObjectMapper().also {
-        it.registerModule(KotlinModule.Builder().build())
-        it.registerModule(JavaTimeModule())
-        it.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
-      },
+      objectMapper,
       receivePrisonerReasonCalculator,
       releasePrisonerReasonCalculator,
       mergeRecordDiscriminator,
