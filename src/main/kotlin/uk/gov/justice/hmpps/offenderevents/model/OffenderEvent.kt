@@ -15,7 +15,7 @@ abstract class OffenderEvent(
 
   companion object {
     val eventMappings = mapOf(
-      "OFFENDER_CASE_NOTES-DELETED" to CaseNoteDeletedOffenderEvent::class.java,
+      "OFFENDER_CASE_NOTES-DELETED" to CaseNoteOffenderEvent::class.java,
       "OFFENDER_CASE_NOTES-INSERTED" to CaseNoteOffenderEvent::class.java,
       "OFFENDER_CASE_NOTES-UPDATED" to CaseNoteOffenderEvent::class.java,
       "BED_ASSIGNMENT_HISTORY-INSERTED" to CellMoveOffenderEvent::class.java,
@@ -26,15 +26,9 @@ abstract class OffenderEvent(
   }
 }
 
-class CaseNoteDeletedOffenderEvent(
-  eventDatetime: LocalDateTime,
-  offenderIdDisplay: String? = null,
-  val caseNoteId: Long,
-) : OffenderEvent(eventDatetime = eventDatetime, offenderIdDisplay = offenderIdDisplay)
-
 class CaseNoteOffenderEvent(
   eventDatetime: LocalDateTime,
-  override val offenderIdDisplay: String,
+  offenderIdDisplay: String? = null,
   val caseNoteId: Long,
   val caseNoteType: String,
   val caseNoteSubType: String,

@@ -10,7 +10,6 @@ import org.springframework.web.reactive.function.client.WebClientResponseExcepti
 import software.amazon.awssdk.services.sns.SnsAsyncClient
 import software.amazon.awssdk.services.sns.model.PublishRequest
 import uk.gov.justice.hmpps.offenderevents.config.OffenderEventsProperties
-import uk.gov.justice.hmpps.offenderevents.model.CaseNoteDeletedOffenderEvent
 import uk.gov.justice.hmpps.offenderevents.model.CaseNoteOffenderEvent
 import uk.gov.justice.hmpps.offenderevents.model.CellMoveOffenderEvent
 import uk.gov.justice.hmpps.offenderevents.model.HmppsDomainEvent
@@ -49,7 +48,6 @@ class HMPPSDomainEventsEmitter(
   fun convertAndSendWhenSignificant(event: String, message: String) {
     val mapping = OffenderEvent.eventMappings[event] ?: return
     val hmppsEvents = when (val offenderEvent = objectMapper.readValue(message, mapping)) {
-      is CaseNoteDeletedOffenderEvent -> listOfNotNull(toCaseNotePublished(offenderEvent))
       is CaseNoteOffenderEvent -> listOfNotNull(toCaseNotePublished(offenderEvent))
       is PrisonerReceivedOffenderEvent -> listOfNotNull(toPrisonerReceived(offenderEvent))
       is PrisonerDischargedOffenderEvent -> listOfNotNull(toPrisonerReleased(offenderEvent))
@@ -190,34 +188,36 @@ class HMPPSDomainEventsEmitter(
       .withAdditionalInformation("currentPrisonStatus", releaseReason.currentPrisonStatus?.name)
   }
 
-  private fun toCaseNotePublished(event: CaseNoteDeletedOffenderEvent): HmppsDomainEvent? {
+  private fun toCaseNotePublished(event: CaseNoteOffenderEvent): HmppsDomainEvent? {
     // SDI-594: If there is no offender id then this means that the case note has actually been removed instead
     // This means that we can ignore this event - will be handled by the offender deletion event instead.
-    log.warn(
-      "Ignoring case note published event for case note {} as offender id display is null",
-      event.caseNoteId,
-    )
-    return null
-  }
+    if (event.offenderIdDisplay == null) {
+      log.warn(
+        "Ignoring case note published event for case note {} as offender id display is null",
+        event.caseNoteId,
+      )
+      return null
+    }
 
-  private fun toCaseNotePublished(event: CaseNoteOffenderEvent): HmppsDomainEvent = HmppsDomainEvent(
-    eventType = "prison.case-note.published",
-    description = "A prison case note has been created or amended",
-    detailUrl = "${offenderEventsProperties.casenotesApiBaseUrl}/case-notes/${event.offenderIdDisplay}/${event.caseNoteId}",
-    occurredAt = event.toOccurredAt(),
-    publishedAt = OffsetDateTime.now().toString(),
-    personReference = PersonReference(event.offenderIdDisplay),
-  )
-    .withAdditionalInformation("caseNoteId", event.caseNoteId.toString())
-    .withAdditionalInformation(
-      "caseNoteType",
-      "${event.caseNoteType}-${
-      event.caseNoteSubType.split("\\W".toRegex()).dropLastWhile { it.isEmpty() }
-        .toTypedArray()[0]
-      }",
+    return HmppsDomainEvent(
+      eventType = "prison.case-note.published",
+      description = "A prison case note has been created or amended",
+      detailUrl = "${offenderEventsProperties.casenotesApiBaseUrl}/case-notes/${event.offenderIdDisplay}/${event.caseNoteId}",
+      occurredAt = event.toOccurredAt(),
+      publishedAt = OffsetDateTime.now().toString(),
+      personReference = PersonReference(event.offenderIdDisplay),
     )
-    .withAdditionalInformation("type", event.caseNoteType)
-    .withAdditionalInformation("subType", event.caseNoteSubType)
+      .withAdditionalInformation("caseNoteId", event.caseNoteId.toString())
+      .withAdditionalInformation(
+        "caseNoteType",
+        "${event.caseNoteType}-${
+        event.caseNoteSubType.split("\\W".toRegex()).dropLastWhile { it.isEmpty() }
+          .toTypedArray()[0]
+        }",
+      )
+      .withAdditionalInformation("type", event.caseNoteType)
+      .withAdditionalInformation("subType", event.caseNoteSubType)
+  }
 
   fun sendEvent(payload: HmppsDomainEvent) {
     try {
