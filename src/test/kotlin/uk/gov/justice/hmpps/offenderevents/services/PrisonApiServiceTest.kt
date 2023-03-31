@@ -24,7 +24,7 @@ import uk.gov.justice.hmpps.offenderevents.services.CurrentPrisonStatus.UNDER_PR
 import uk.gov.justice.hmpps.offenderevents.services.LegalStatus.REMAND
 import uk.gov.justice.hmpps.offenderevents.services.wiremock.HMPPSAuthExtension
 import uk.gov.justice.hmpps.offenderevents.services.wiremock.PrisonApiExtension
-import uk.gov.justice.hmpps.offenderevents.services.wiremock.PrisonApiExtension.server
+import uk.gov.justice.hmpps.offenderevents.services.wiremock.PrisonApiExtension.Companion.server
 import uk.gov.justice.hmpps.offenderevents.services.wiremock.PrisonApiMockServer.MovementFragment
 import java.time.LocalDate
 import java.time.LocalDateTime
