@@ -8,7 +8,9 @@ import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.mockito.Mockito
+import org.mockito.kotlin.any
 import org.mockito.kotlin.argumentCaptor
+import org.mockito.kotlin.eq
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.whenever
@@ -16,7 +18,6 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.json.JsonTest
 import software.amazon.awssdk.services.sqs.SqsAsyncClient
 import software.amazon.awssdk.services.sqs.model.SendMessageRequest
-import uk.gov.justice.hmpps.offenderevents.model.OffenderEvent
 import uk.gov.justice.hmpps.offenderevents.services.HMPPSDomainEventsEmitter
 import uk.gov.justice.hmpps.sqs.HmppsQueue
 import uk.gov.justice.hmpps.sqs.HmppsQueueService
@@ -48,11 +49,7 @@ internal class PrisonerEventsListenerTest {
     @DisplayName("Will pass offender event to events emitter")
     fun willPassOffenderEventToEventsEmitter() {
       listener.onPrisonerEvent(createMessage("OFFENDER_MOVEMENT-RECEPTION", "2021-06-08T14:41:11.526762Z"), message)
-      argumentCaptor<OffenderEvent>().apply {
-        verify(eventsEmitter).convertAndSendWhenSignificant(capture())
-        assertThat(firstValue.eventType).isEqualTo("OFFENDER_MOVEMENT-RECEPTION")
-        assertThat(firstValue.offenderIdDisplay).isEqualTo("A5194DY")
-      }
+      verify(eventsEmitter).convertAndSendWhenSignificant(eq("OFFENDER_MOVEMENT-RECEPTION"), any())
     }
 
     @Test
@@ -65,9 +62,7 @@ internal class PrisonerEventsListenerTest {
 
       listener.onPrisonerEvent(createMessage("OFFENDER_MOVEMENT-RECEPTION", fortyFiveMinutesAgo), message)
 
-      argumentCaptor<OffenderEvent>().apply {
-        verify(eventsEmitter).convertAndSendWhenSignificant(capture())
-      }
+      verify(eventsEmitter).convertAndSendWhenSignificant(eq("OFFENDER_MOVEMENT-RECEPTION"), any())
     }
   }
 
@@ -174,9 +169,7 @@ internal class PrisonerEventsListenerTest {
     @Test
     @DisplayName("will process message")
     fun willProcessMessage() {
-      argumentCaptor<OffenderEvent>().apply {
-        verify(eventsEmitter).convertAndSendWhenSignificant(capture())
-      }
+      verify(eventsEmitter).convertAndSendWhenSignificant(eq("OFFENDER_CASE_NOTES-INSERTED"), any())
     }
   }
 }

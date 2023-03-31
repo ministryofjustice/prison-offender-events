@@ -1,6 +1,9 @@
 package uk.gov.justice.hmpps.offenderevents.services
 
+import com.fasterxml.jackson.databind.DeserializationFeature
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
+import com.fasterxml.jackson.module.kotlin.KotlinModule
 import com.microsoft.applicationinsights.TelemetryClient
 import net.javacrumbs.jsonunit.assertj.JsonAssertions.assertThatJson
 import org.assertj.core.api.Assertions
@@ -9,17 +12,12 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.TestInstance
-import org.junit.jupiter.api.TestInstance.Lifecycle.PER_CLASS
-import org.junit.jupiter.api.extension.ExtendWith
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.Arguments
 import org.junit.jupiter.params.provider.MethodSource
 import org.mockito.ArgumentMatchers
-import org.mockito.Mock
 import org.mockito.Mockito
 import org.mockito.Mockito.verify
-import org.mockito.junit.jupiter.MockitoExtension
 import org.mockito.junit.jupiter.MockitoSettings
 import org.mockito.kotlin.any
 import org.mockito.kotlin.argumentCaptor
@@ -33,7 +31,6 @@ import software.amazon.awssdk.services.sns.SnsAsyncClient
 import software.amazon.awssdk.services.sns.model.MessageAttributeValue
 import software.amazon.awssdk.services.sns.model.PublishRequest
 import uk.gov.justice.hmpps.offenderevents.config.OffenderEventsProperties
-import uk.gov.justice.hmpps.offenderevents.model.OffenderEvent
 import uk.gov.justice.hmpps.offenderevents.services.CurrentLocation.IN_PRISON
 import uk.gov.justice.hmpps.offenderevents.services.CurrentLocation.OUTSIDE_PRISON
 import uk.gov.justice.hmpps.offenderevents.services.CurrentPrisonStatus.NOT_UNDER_PRISON_CARE
@@ -52,38 +49,30 @@ import java.time.OffsetDateTime
 import java.time.temporal.ChronoUnit.SECONDS
 import java.util.function.Consumer
 
-@TestInstance(PER_CLASS)
-@ExtendWith(MockitoExtension::class)
 internal class HMPPSDomainEventsEmitterTest {
   private lateinit var emitter: HMPPSDomainEventsEmitter
 
-  @Mock
-  private lateinit var receivePrisonerReasonCalculator: ReceivePrisonerReasonCalculator
+  private val receivePrisonerReasonCalculator: ReceivePrisonerReasonCalculator = mock()
+  private val releasePrisonerReasonCalculator: ReleasePrisonerReasonCalculator = mock()
+  private val mergeRecordDiscriminator: MergeRecordDiscriminator = mock()
+  private val telemetryClient: TelemetryClient = mock()
+  private val offenderEventsProperties: OffenderEventsProperties = mock()
 
-  @Mock
-  private lateinit var releasePrisonerReasonCalculator: ReleasePrisonerReasonCalculator
-
-  @Mock
-  private lateinit var mergeRecordDiscriminator: MergeRecordDiscriminator
-
-  @Mock
-  private lateinit var telemetryClient: TelemetryClient
-
-  @Mock
-  private lateinit var offenderEventsProperties: OffenderEventsProperties
-
-  private val hmppsQueueService = mock<HmppsQueueService>()
-  private var hmppsEventSnsClient = mock<SnsAsyncClient>()
+  private val hmppsQueueService: HmppsQueueService = mock()
+  private val hmppsEventSnsClient: SnsAsyncClient = mock()
 
   @BeforeEach
   fun setUp() {
-    hmppsEventSnsClient = mock()
     whenever(hmppsQueueService.findByTopicId("hmppseventtopic"))
       .thenReturn(HmppsTopic("hmppseventtopic", "sometopicarn", hmppsEventSnsClient))
 
     emitter = HMPPSDomainEventsEmitter(
       hmppsQueueService,
-      ObjectMapper(),
+      ObjectMapper().also {
+        it.registerModule(KotlinModule.Builder().build())
+        it.registerModule(JavaTimeModule())
+        it.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
+      },
       receivePrisonerReasonCalculator,
       releasePrisonerReasonCalculator,
       mergeRecordDiscriminator,
@@ -95,14 +84,13 @@ internal class HMPPSDomainEventsEmitterTest {
   @Test
   @DisplayName("Will do nothing for insignificant events")
   fun willDoNothingForInsignificantEvents() {
-    emitter.convertAndSendWhenSignificant(OffenderEvent(eventType = "BALANCE_UPDATED"))
+    emitter.convertAndSendWhenSignificant("BALANCE_UPDATED", "")
     verifyNoInteractions(hmppsEventSnsClient)
   }
 
   @ParameterizedTest
   @MethodSource("eventMap")
   @DisplayName("Will send to topic for these events")
-  @MockitoSettings(strictness = LENIENT)
   fun willSendToTopicForTheseEvents(prisonEventType: String, eventType: String) {
     whenever(receivePrisonerReasonCalculator.calculateMostLikelyReasonForPrisonerReceive(any()))
       .thenReturn(
@@ -127,11 +115,8 @@ internal class HMPPSDomainEventsEmitterTest {
         ),
       )
     emitter.convertAndSendWhenSignificant(
-      OffenderEvent(
-        eventType = prisonEventType,
-        offenderIdDisplay = "A1234GH",
-        eventDatetime = LocalDateTime.now(),
-      ),
+      prisonEventType,
+      """{ "offenderIdDisplay": "A1234GH", "eventDatetime": "${LocalDateTime.now()}" }""",
     )
 
     argumentCaptor<PublishRequest>().apply {
@@ -161,12 +146,14 @@ internal class HMPPSDomainEventsEmitterTest {
       )
 
     emitter.convertAndSendWhenSignificant(
-      OffenderEvent(
-        eventType = prisonEventType,
-        offenderIdDisplay = "A1234GH",
-        bookingId = 43124234L,
-        eventDatetime = LocalDateTime.now(),
-      ),
+      prisonEventType,
+      """
+        {
+           "offenderIdDisplay": "A1234GH",
+           "bookingId": 43124234,
+           "eventDatetime": "${LocalDateTime.now()}" 
+        } 
+      """.trimIndent(),
     )
 
     argumentCaptor<PublishRequest>().apply {
@@ -208,12 +195,15 @@ internal class HMPPSDomainEventsEmitterTest {
             ReceivePrisonerReasonCalculator.MovementReason("N"),
           ),
         )
+
       emitter.convertAndSendWhenSignificant(
-        OffenderEvent(
-          eventType = "OFFENDER_MOVEMENT-RECEPTION",
-          offenderIdDisplay = "A1234GH",
-          eventDatetime = LocalDateTime.parse("2020-12-04T10:42:43"),
-        ),
+        "OFFENDER_MOVEMENT-RECEPTION",
+        """
+        {
+           "offenderIdDisplay": "A1234GH",
+           "eventDatetime": "${LocalDateTime.parse("2020-12-04T10:42:43")}" 
+        } 
+        """.trimIndent(),
       )
 
       argumentCaptor<PublishRequest>().apply {
@@ -356,12 +346,15 @@ internal class HMPPSDomainEventsEmitterTest {
             ReceivePrisonerReasonCalculator.MovementReason("N"),
           ),
         )
+
       emitter.convertAndSendWhenSignificant(
-        OffenderEvent(
-          eventType = "OFFENDER_MOVEMENT-RECEPTION",
-          offenderIdDisplay = "A1234GH",
-          eventDatetime = LocalDateTime.parse("2020-12-04T10:42:43"),
-        ),
+        "OFFENDER_MOVEMENT-RECEPTION",
+        """
+        {
+           "offenderIdDisplay": "A1234GH",
+           "eventDatetime": "${LocalDateTime.parse("2020-12-04T10:42:43")}" 
+        } 
+        """.trimIndent(),
       )
       Mockito.verifyNoInteractions(hmppsEventSnsClient)
 
@@ -422,12 +415,15 @@ internal class HMPPSDomainEventsEmitterTest {
             MovementReason("N"),
           ),
         )
+
       emitter.convertAndSendWhenSignificant(
-        OffenderEvent(
-          eventType = "OFFENDER_MOVEMENT-DISCHARGE",
-          offenderIdDisplay = "A1234GH",
-          eventDatetime = LocalDateTime.parse("2020-07-04T10:42:43"),
-        ),
+        "OFFENDER_MOVEMENT-DISCHARGE",
+        """
+        {
+           "offenderIdDisplay": "A1234GH",
+           "eventDatetime": "${LocalDateTime.parse("2020-07-04T10:42:43")}" 
+        } 
+        """.trimIndent(),
       )
       argumentCaptor<PublishRequest>().apply {
         verify(hmppsEventSnsClient, times(1)).publish(capture())
@@ -559,12 +555,15 @@ internal class HMPPSDomainEventsEmitterTest {
 
           ),
         )
+
       emitter.convertAndSendWhenSignificant(
-        OffenderEvent(
-          eventType = "OFFENDER_MOVEMENT-DISCHARGE",
-          offenderIdDisplay = "A1234GH",
-          eventDatetime = LocalDateTime.parse("2020-12-04T10:42:43"),
-        ),
+        "OFFENDER_MOVEMENT-DISCHARGE",
+        """
+        {
+           "offenderIdDisplay": "A1234GH",
+           "eventDatetime": "${LocalDateTime.parse("2020-12-04T10:42:43")}" 
+        } 
+        """.trimIndent(),
       )
       Mockito.verifyNoInteractions(hmppsEventSnsClient)
       argumentCaptor<Map<String, String>>().apply {
@@ -624,11 +623,13 @@ internal class HMPPSDomainEventsEmitterTest {
         )
 
       emitter.convertAndSendWhenSignificant(
-        OffenderEvent(
-          eventType = "BOOKING_NUMBER-CHANGED",
-          bookingId = 43124234L,
-          eventDatetime = LocalDateTime.parse("2020-12-04T10:42:43"),
-        ),
+        "BOOKING_NUMBER-CHANGED",
+        """
+        {
+           "bookingId": 43124234,
+           "eventDatetime": "${LocalDateTime.parse("2020-12-04T10:42:43")}" 
+        } 
+        """.trimIndent(),
       )
 
       argumentCaptor<PublishRequest>().apply {
@@ -732,11 +733,13 @@ internal class HMPPSDomainEventsEmitterTest {
         )
 
       emitter.convertAndSendWhenSignificant(
-        OffenderEvent(
-          eventType = "BOOKING_NUMBER-CHANGED",
-          bookingId = 43124234L,
-          eventDatetime = LocalDateTime.parse("2020-12-04T10:42:43"),
-        ),
+        "BOOKING_NUMBER-CHANGED",
+        """
+        {
+           "bookingId": 43124234,
+           "eventDatetime": "${LocalDateTime.parse("2020-12-04T10:42:43")}" 
+        } 
+        """.trimIndent(),
       )
 
       argumentCaptor<PublishRequest>().apply {
@@ -809,15 +812,17 @@ internal class HMPPSDomainEventsEmitterTest {
     fun setUp() {
       whenever(offenderEventsProperties.casenotesApiBaseUrl).thenReturn("http://localhost:1234")
       emitter.convertAndSendWhenSignificant(
-        OffenderEvent(
-          eventType = "OFFENDER_CASE_NOTES-INSERTED",
-          caseNoteType = "CHAP",
-          caseNoteSubType = "MAIL ROOM",
-          caseNoteId = -12345L,
-          offenderIdDisplay = "A1234GH",
-          bookingId = 1234L,
-          eventDatetime = LocalDateTime.parse("2022-12-04T10:00:00"),
-        ),
+        "OFFENDER_CASE_NOTES-INSERTED",
+        """
+        {
+           "offenderIdDisplay": "A1234GH",
+           "bookingId": 1234,
+           "caseNoteType": "CHAP",
+           "caseNoteSubType": "MAIL ROOM",
+           "caseNoteId": -12345,
+           "eventDatetime": "${LocalDateTime.parse("2022-12-04T10:00:00")}" 
+        } 
+        """.trimIndent(),
       )
       argumentCaptor<PublishRequest>().apply {
         verify(hmppsEventSnsClient, times(1)).publish(capture())
@@ -912,15 +917,16 @@ internal class HMPPSDomainEventsEmitterTest {
     @BeforeEach
     fun setUp() {
       emitter.convertAndSendWhenSignificant(
-        OffenderEvent(
-          eventType = "OFFENDER_CASE_NOTES-INSERTED",
-          caseNoteType = "CHAP",
-          caseNoteSubType = "MAIL ROOM",
-          caseNoteId = -12345L,
-          offenderIdDisplay = null,
-          bookingId = 1234L,
-          eventDatetime = LocalDateTime.parse("2022-12-04T10:00:00"),
-        ),
+        "OFFENDER_CASE_NOTES-DELETED",
+        """
+        {
+           "bookingId": 1234,
+           "caseNoteType": "CHAP",
+           "caseNoteSubType": "MAIL ROOM",
+           "caseNoteId": -12345,
+           "eventDatetime": "${LocalDateTime.parse("2022-12-04T10:00:00")}" 
+        } 
+        """.trimIndent(),
       )
     }
 
@@ -943,14 +949,16 @@ internal class HMPPSDomainEventsEmitterTest {
     @BeforeEach
     fun setUp() {
       emitter.convertAndSendWhenSignificant(
-        OffenderEvent(
-          eventType = "BED_ASSIGNMENT_HISTORY-INSERTED",
-          eventDatetime = LocalDateTime.parse("2022-12-04T10:00:00"),
-          offenderIdDisplay = "A1234GH",
-          bookingId = 1234L,
-          bedAssignmentSeq = 1,
-          livingUnitId = 4012L,
-        ),
+        "BED_ASSIGNMENT_HISTORY-INSERTED",
+        """
+        {
+           "offenderIdDisplay": "A1234GH",
+           "bookingId": 1234,
+           "bedAssignmentSeq": 1,
+           "livingUnitId": 4012,
+           "eventDatetime": "${LocalDateTime.parse("2022-12-04T10:00:00")}" 
+        } 
+        """.trimIndent(),
       )
       argumentCaptor<PublishRequest>().apply {
         verify(hmppsEventSnsClient).publish(capture())
@@ -1033,12 +1041,16 @@ internal class HMPPSDomainEventsEmitterTest {
     }
   }
 
-  private fun eventMap() = listOf(
-    Arguments.of("OFFENDER_MOVEMENT-DISCHARGE", "prison-offender-events.prisoner.released"),
-    Arguments.of("OFFENDER_MOVEMENT-RECEPTION", "prison-offender-events.prisoner.received"),
-  )
+  companion object {
+    @JvmStatic
+    private fun eventMap() = listOf(
+      Arguments.of("OFFENDER_MOVEMENT-DISCHARGE", "prison-offender-events.prisoner.released"),
+      Arguments.of("OFFENDER_MOVEMENT-RECEPTION", "prison-offender-events.prisoner.received"),
+    )
 
-  private fun bookingChangedEventMap() = listOf(
-    Arguments.of("BOOKING_NUMBER-CHANGED", "prison-offender-events.prisoner.merged"),
-  )
+    @JvmStatic
+    private fun bookingChangedEventMap() = listOf(
+      Arguments.of("BOOKING_NUMBER-CHANGED", "prison-offender-events.prisoner.merged"),
+    )
+  }
 }
