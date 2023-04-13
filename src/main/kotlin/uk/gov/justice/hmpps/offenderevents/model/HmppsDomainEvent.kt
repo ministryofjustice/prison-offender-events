@@ -2,6 +2,8 @@ package uk.gov.justice.hmpps.offenderevents.model
 
 import com.fasterxml.jackson.annotation.JsonInclude
 import software.amazon.awssdk.services.sns.model.MessageAttributeValue
+import java.time.LocalDate
+import java.time.format.DateTimeFormatter
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 data class HmppsDomainEvent(
@@ -25,13 +27,19 @@ data class HmppsDomainEvent(
     return this
   }
 
+  fun withAdditionalInformation(key: String, value: LocalDate?): HmppsDomainEvent {
+    if (value != null) additionalInformation[key] = value.format(DateTimeFormatter.ISO_DATE)
+    return this
+  }
+
   fun asTelemetryMap(): Map<String, String> {
     val elements = mutableMapOf(
       "eventType" to eventType,
       "occurredAt" to occurredAt,
       "publishedAt" to publishedAt,
-      "nomsNumber" to personReference.nomsNumber(),
     )
+    personReference.nomsNumber()?.also { elements["nomsNumber"] = it }
+    personReference.personNumber()?.also { elements["personId"] = it }
     elements.putAll(additionalInformation)
     return elements.toMap()
   }
@@ -47,13 +55,17 @@ data class HmppsDomainEvent(
     return attributes
   }
 
-  data class PersonIdentifier(val type: String, val value: String)
+  enum class Identifier { NOMS, PERSON }
+  data class PersonIdentifier(val type: Identifier, val value: String)
 
-  class PersonReference(nomsNumber: String) {
+  class PersonReference(personIdentifier: PersonIdentifier) {
+
+    constructor(nomsNumber: String) : this(PersonIdentifier(Identifier.NOMS, nomsNumber))
+
     @Suppress("MemberVisibilityCanBePrivate")
-    val identifiers: List<PersonIdentifier> = listOf(PersonIdentifier("NOMS", nomsNumber))
+    val identifiers: List<PersonIdentifier> = listOf(personIdentifier)
 
-    fun nomsNumber(): String =
-      identifiers.find { it.type == "NOMS" }?.value ?: throw RuntimeException("No NOMS identifier")
+    fun nomsNumber(): String? = identifiers.find { it.type == Identifier.NOMS }?.value
+    fun personNumber(): String? = identifiers.find { it.type == Identifier.PERSON }?.value
   }
 }

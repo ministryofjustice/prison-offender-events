@@ -14,10 +14,14 @@ import uk.gov.justice.hmpps.offenderevents.model.CaseNoteOffenderEvent
 import uk.gov.justice.hmpps.offenderevents.model.CellMoveOffenderEvent
 import uk.gov.justice.hmpps.offenderevents.model.HmppsDomainEvent
 import uk.gov.justice.hmpps.offenderevents.model.HmppsDomainEvent.PersonReference
+import uk.gov.justice.hmpps.offenderevents.model.NonAssociationDetailsOffenderEvent
 import uk.gov.justice.hmpps.offenderevents.model.OffenderEvent
+import uk.gov.justice.hmpps.offenderevents.model.PersonRestrictionOffenderEvent
 import uk.gov.justice.hmpps.offenderevents.model.PrisonerDischargedOffenderEvent
 import uk.gov.justice.hmpps.offenderevents.model.PrisonerMergedOffenderEvent
 import uk.gov.justice.hmpps.offenderevents.model.PrisonerReceivedOffenderEvent
+import uk.gov.justice.hmpps.offenderevents.model.RestrictionOffenderEvent
+import uk.gov.justice.hmpps.offenderevents.model.VisitorRestrictionOffenderEvent
 import uk.gov.justice.hmpps.offenderevents.services.MergeRecordDiscriminator.MergeOutcome
 import uk.gov.justice.hmpps.offenderevents.services.ReceivePrisonerReasonCalculator.ReceiveReason
 import uk.gov.justice.hmpps.offenderevents.services.ReleasePrisonerReasonCalculator.ReleaseReason
@@ -53,6 +57,11 @@ class HMPPSDomainEventsEmitter(
       is PrisonerDischargedOffenderEvent -> listOfNotNull(toPrisonerReleased(offenderEvent))
       is PrisonerMergedOffenderEvent -> toMergedOffenderNumbers(offenderEvent)
       is CellMoveOffenderEvent -> listOf(toCellMove(offenderEvent))
+      is NonAssociationDetailsOffenderEvent -> listOf(toNonAssociationDetails(offenderEvent))
+      is PersonRestrictionOffenderEvent -> listOf(toPersonRestriction(offenderEvent))
+      is VisitorRestrictionOffenderEvent -> listOf(toVisitorRestriction(offenderEvent))
+      is RestrictionOffenderEvent -> listOf(toRestriction(offenderEvent))
+
       else -> emptyList()
     }
 
@@ -218,6 +227,76 @@ class HMPPSDomainEventsEmitter(
       .withAdditionalInformation("type", event.caseNoteType)
       .withAdditionalInformation("subType", event.caseNoteSubType)
   }
+
+  private fun toNonAssociationDetails(event: NonAssociationDetailsOffenderEvent): HmppsDomainEvent = HmppsDomainEvent(
+    eventType = "prison-offender-events.prisoner.non-association-detail.changed",
+    description = "A prisoner non-association detail record has changed",
+    occurredAt = event.toOccurredAt(),
+    publishedAt = OffsetDateTime.now().toString(),
+    personReference = PersonReference(event.offenderIdDisplay ?: ""),
+  )
+    .withAdditionalInformation("nomsNumber", event.offenderIdDisplay)
+    .withAdditionalInformation("bookingId", event.bookingId)
+    .withAdditionalInformation("nonAssociationNomsNumber", event.nsOffenderIdDisplay)
+    .withAdditionalInformation("nonAssociationBookingId", event.nsBookingId)
+    .withAdditionalInformation("reasonCode", event.reasonCode)
+    .withAdditionalInformation("levelCode", event.levelCode)
+    .withAdditionalInformation("nonAssociationType", event.nsType)
+    .withAdditionalInformation("typeSeq", event.typeSeq)
+    .withAdditionalInformation("effectiveDate", event.effectiveDate)
+    .withAdditionalInformation("expiryDate", event.expiryDate)
+    .withAdditionalInformation("authorisedBy", event.authorisedBy)
+    .withAdditionalInformation("comment", event.comment)
+
+  private fun toRestriction(event: RestrictionOffenderEvent): HmppsDomainEvent = HmppsDomainEvent(
+    eventType = "prison-offender-events.prisoner.restriction.changed",
+    description = "A prisoner restriction record has changed",
+    occurredAt = event.toOccurredAt(),
+    publishedAt = OffsetDateTime.now().toString(),
+    personReference = PersonReference(event.offenderIdDisplay ?: ""),
+  )
+    .withAdditionalInformation("nomsNumber", event.offenderIdDisplay)
+    .withAdditionalInformation("bookingId", event.bookingId)
+    .withAdditionalInformation("offenderRestrictionId", event.offenderRestrictionId)
+    .withAdditionalInformation("restrictionType", event.restrictionType)
+    .withAdditionalInformation("effectiveDate", event.effectiveDate)
+    .withAdditionalInformation("expiryDate", event.expiryDate)
+    .withAdditionalInformation("comment", event.comment)
+    .withAdditionalInformation("authorisedById", event.authorisedById)
+    .withAdditionalInformation("enteredById", event.enteredById)
+
+  private fun toPersonRestriction(event: PersonRestrictionOffenderEvent): HmppsDomainEvent = HmppsDomainEvent(
+    eventType = "prison-offender-events.prisoner.person-restriction.changed",
+    description = "A prisoner person restriction record has changed",
+    occurredAt = event.toOccurredAt(),
+    publishedAt = OffsetDateTime.now().toString(),
+    personReference = PersonReference(event.offenderIdDisplay ?: ""),
+  )
+    .withAdditionalInformation("nomsNumber", event.offenderIdDisplay)
+    .withAdditionalInformation("contactPersonId", event.contactPersonId)
+    .withAdditionalInformation("offenderPersonRestrictionId", event.offenderPersonRestrictionId)
+    .withAdditionalInformation("restrictionType", event.restrictionType)
+    .withAdditionalInformation("effectiveDate", event.effectiveDate)
+    .withAdditionalInformation("expiryDate", event.expiryDate)
+    .withAdditionalInformation("authorisedById", event.authorisedById)
+    .withAdditionalInformation("enteredById", event.enteredById)
+    .withAdditionalInformation("comment", event.comment)
+
+  private fun toVisitorRestriction(event: VisitorRestrictionOffenderEvent): HmppsDomainEvent =
+    HmppsDomainEvent(
+      eventType = "prison-offender-events.visitor.restriction.changed",
+      description = "A prisoner visitor restriction record has changed",
+      occurredAt = event.toOccurredAt(),
+      publishedAt = OffsetDateTime.now().toString(),
+      personReference = PersonReference(HmppsDomainEvent.PersonIdentifier(HmppsDomainEvent.Identifier.PERSON, event.personId.toString())),
+    )
+      .withAdditionalInformation("personId", event.personId)
+      .withAdditionalInformation("restrictionType", event.restrictionType)
+      .withAdditionalInformation("effectiveDate", event.effectiveDate)
+      .withAdditionalInformation("expiryDate", event.expiryDate)
+      .withAdditionalInformation("comment", event.comment)
+      .withAdditionalInformation("visitorRestrictionId", event.visitorRestrictionId)
+      .withAdditionalInformation("enteredById", event.enteredById)
 
   fun sendEvent(payload: HmppsDomainEvent) {
     try {
