@@ -1,6 +1,7 @@
 package uk.gov.justice.hmpps.offenderevents.model
 
 import com.fasterxml.jackson.annotation.JsonInclude
+import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter.ISO_OFFSET_DATE_TIME
@@ -22,6 +23,14 @@ abstract class OffenderEvent(
       "OFFENDER_MOVEMENT-RECEPTION" to PrisonerReceivedOffenderEvent::class.java,
       "OFFENDER_MOVEMENT-DISCHARGE" to PrisonerDischargedOffenderEvent::class.java,
       "BOOKING_NUMBER-CHANGED" to PrisonerMergedOffenderEvent::class.java,
+      "NON_ASSOCIATION_DETAIL-UPSERTED" to NonAssociationDetailsOffenderEvent::class.java,
+      "NON_ASSOCIATION_DETAIL-DELETED" to NonAssociationDetailsOffenderEvent::class.java,
+      "RESTRICTION-UPSERTED" to RestrictionOffenderEvent::class.java,
+      "RESTRICTION-DELETED" to RestrictionOffenderEvent::class.java,
+      "PERSON_RESTRICTION-UPSERTED" to PersonRestrictionOffenderEvent::class.java,
+      "PERSON_RESTRICTION-DELETED" to PersonRestrictionOffenderEvent::class.java,
+      "VISITOR_RESTRICTION-UPSERTED" to VisitorRestrictionOffenderEvent::class.java,
+      "VISITOR_RESTRICTION-DELETED" to VisitorRestrictionOffenderEvent::class.java,
     )
   }
 }
@@ -57,3 +66,73 @@ class PrisonerMergedOffenderEvent(
   offenderIdDisplay: String? = null,
   val bookingId: Long,
 ) : OffenderEvent(eventDatetime = eventDatetime, offenderIdDisplay = offenderIdDisplay)
+
+class NonAssociationDetailsOffenderEvent(
+  eventDatetime: LocalDateTime,
+  offenderIdDisplay: String?,
+
+  val bookingId: Long?,
+  val nsOffenderIdDisplay: String?,
+  val nsBookingId: Long?,
+  val reasonCode: String?,
+  val levelCode: String? = null,
+  val nsType: String?,
+  val typeSeq: Int?,
+  val effectiveDate: LocalDate?,
+  val expiryDate: LocalDate?,
+  val authorisedBy: String?,
+  val comment: String?,
+) : OffenderEvent(
+  eventDatetime = eventDatetime,
+  offenderIdDisplay = offenderIdDisplay,
+)
+
+class RestrictionOffenderEvent(
+  eventDatetime: LocalDateTime,
+  offenderIdDisplay: String? = null,
+
+  val bookingId: Long? = null,
+  val offenderRestrictionId: Long?,
+  val restrictionType: String?,
+  val effectiveDate: LocalDate?,
+  val expiryDate: LocalDate?,
+  val comment: String?,
+  val authorisedById: Long?,
+  val enteredById: Long?,
+) : OffenderEvent(
+  eventDatetime = eventDatetime,
+  offenderIdDisplay = offenderIdDisplay,
+)
+
+class PersonRestrictionOffenderEvent(
+  eventDatetime: LocalDateTime,
+  offenderIdDisplay: String? = null,
+
+  val contactPersonId: Long?,
+  val offenderPersonRestrictionId: Long?,
+  val restrictionType: String?,
+  val effectiveDate: LocalDate?,
+  val expiryDate: LocalDate?,
+  val authorisedById: Long?,
+  val comment: String?,
+  val enteredById: Long?,
+) : OffenderEvent(
+  eventDatetime = eventDatetime,
+  offenderIdDisplay = offenderIdDisplay,
+)
+
+class VisitorRestrictionOffenderEvent(
+  eventDatetime: LocalDateTime,
+  offenderIdDisplay: String? = null,
+
+  val personId: Long?,
+  val restrictionType: String?,
+  val effectiveDate: LocalDate?,
+  val expiryDate: LocalDate?,
+  val comment: String?,
+  val visitorRestrictionId: Long?,
+  val enteredById: Long?,
+) : OffenderEvent(
+  eventDatetime = eventDatetime,
+  offenderIdDisplay = offenderIdDisplay,
+)

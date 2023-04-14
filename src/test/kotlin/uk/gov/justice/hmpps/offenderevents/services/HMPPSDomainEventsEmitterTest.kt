@@ -44,6 +44,7 @@ import uk.gov.justice.hmpps.offenderevents.services.ReleasePrisonerReasonCalcula
 import uk.gov.justice.hmpps.offenderevents.services.ReleasePrisonerReasonCalculator.ReleaseReason
 import uk.gov.justice.hmpps.sqs.HmppsQueueService
 import uk.gov.justice.hmpps.sqs.HmppsTopic
+import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.OffsetDateTime
 import java.time.temporal.ChronoUnit.SECONDS
@@ -1037,6 +1038,431 @@ internal class HMPPSDomainEventsEmitterTest {
         "bedAssignmentSeq",
         "livingUnitId",
         "bookingId",
+      )
+    }
+  }
+
+  @Nested
+  internal inner class NonAssociationDetail {
+    private var payload: String? = null
+    private var telemetryAttributes: Map<String, String>? = null
+
+    @BeforeEach
+    fun setUp() {
+      emitter.convertAndSendWhenSignificant(
+        "NON_ASSOCIATION_DETAIL-UPSERTED",
+        """
+        {
+           "offenderIdDisplay": "A1234GH",
+           "bookingId": 1234,
+           "nsOffenderIdDisplay": "G5678HJ",
+           "nsBookingId": 5678,
+           "reasonCode": "REASON",
+           "levelCode": "LEVEL",
+           "nsType": "WING",
+           "typeSeq": 3,
+           "effectiveDate": "${LocalDate.parse("2022-12-04")}",
+           "expiryDate": "${LocalDate.parse("2022-12-05")}",
+           "authorisedBy": "me",
+           "comment": "a test",
+           "eventDatetime": "${LocalDateTime.parse("2022-12-04T10:00:00")}"
+        } 
+        """.trimIndent(),
+      )
+      argumentCaptor<PublishRequest>().apply {
+        verify(hmppsEventSnsClient).publish(capture())
+        payload = firstValue.message()
+      }
+      argumentCaptor<Map<String, String>>().apply {
+        verify(telemetryClient).trackEvent(
+          any(),
+          capture(),
+          isNull(),
+        )
+        telemetryAttributes = firstValue
+      }
+    }
+
+    @Test
+    fun `will use event datetime for occurred at time`() {
+      assertThatJson(payload).node("occurredAt").isEqualTo("2022-12-04T10:00:00Z")
+    }
+
+    @Test
+    fun `will user current time as publishedAt`() {
+      assertThatJson(payload)
+        .node("publishedAt")
+        .asString()
+        .satisfies(
+          Consumer { publishedAt: String? ->
+            assertThat(OffsetDateTime.parse(publishedAt))
+              .isCloseTo(OffsetDateTime.now(), Assertions.within(10, SECONDS))
+          },
+        )
+    }
+
+    @Test
+    fun `person reference will contain offenderNumber as NOMS number`() {
+      assertThatJson(payload).node("personReference.identifiers").isArray.hasSize(1)
+      assertThatJson(payload).node("personReference.identifiers[0].type").isEqualTo("NOMS")
+      assertThatJson(payload).node("personReference.identifiers[0].value").isEqualTo("A1234GH")
+    }
+
+    @Test
+    fun `additional information will contain the correct fields`() {
+      assertThatJson(payload).node("additionalInformation.bookingId").isEqualTo("\"1234\"")
+      assertThatJson(payload).node("additionalInformation.nonAssociationNomsNumber").isEqualTo("\"G5678HJ\"")
+      assertThatJson(payload).node("additionalInformation.nonAssociationBookingId").isEqualTo("\"5678\"")
+      assertThatJson(payload).node("additionalInformation.reasonCode").isEqualTo("\"REASON\"")
+      assertThatJson(payload).node("additionalInformation.levelCode").isEqualTo("\"LEVEL\"")
+      assertThatJson(payload).node("additionalInformation.nonAssociationType").isEqualTo("\"WING\"")
+      assertThatJson(payload).node("additionalInformation.typeSeq").isEqualTo("\"3\"")
+      assertThatJson(payload).node("additionalInformation.effectiveDate").isEqualTo("\"2022-12-04\"")
+      assertThatJson(payload).node("additionalInformation.expiryDate").isEqualTo("\"2022-12-05\"")
+      assertThatJson(payload).node("additionalInformation.authorisedBy").isEqualTo("\"me\"")
+      assertThatJson(payload).node("additionalInformation.comment").isEqualTo("\"a test\"")
+    }
+
+    @Test
+    fun `will describe the event as a non-association`() {
+      assertThatJson(payload).node("description")
+        .isEqualTo("A prisoner non-association detail record has changed")
+    }
+
+    @Test
+    fun `will add correct fields to telemetry event`() {
+      assertThat(telemetryAttributes).containsEntry("nomsNumber", "A1234GH")
+      assertThat(telemetryAttributes).containsEntry("occurredAt", "2022-12-04T10:00:00Z")
+      assertThat(telemetryAttributes).containsEntry("nonAssociationNomsNumber", "G5678HJ")
+      assertThat(telemetryAttributes).containsEntry("reasonCode", "REASON")
+    }
+
+    @Test
+    fun `will contain no other telemetry properties`() {
+      assertThat(telemetryAttributes).containsOnlyKeys(
+        "eventType",
+        "nomsNumber",
+        "occurredAt",
+        "publishedAt",
+        "nonAssociationNomsNumber",
+        "bookingId",
+        "nonAssociationBookingId",
+        "reasonCode",
+        "levelCode",
+        "nonAssociationType",
+        "typeSeq",
+        "effectiveDate",
+        "expiryDate",
+        "authorisedBy",
+        "comment",
+      )
+    }
+  }
+
+  @Nested
+  internal inner class Restriction {
+    private var payload: String? = null
+    private var telemetryAttributes: Map<String, String>? = null
+
+    @BeforeEach
+    fun setUp() {
+      emitter.convertAndSendWhenSignificant(
+        "RESTRICTION-UPSERTED",
+        """
+        {
+           "offenderIdDisplay": "A1234GH",
+           "bookingId": 1234,
+           "offenderRestrictionId": 1,
+           "restrictionType": "SEC",
+           "effectiveDate": "${LocalDate.parse("2022-12-04")}",
+           "expiryDate": "${LocalDate.parse("2022-12-05")}",
+           "comment": "a test",
+           "authorisedById": 2,
+           "enteredById": 3,
+           "eventDatetime": "${LocalDateTime.parse("2022-12-04T10:00:00")}"
+        } 
+        """.trimIndent(),
+      )
+      argumentCaptor<PublishRequest>().apply {
+        verify(hmppsEventSnsClient).publish(capture())
+        payload = firstValue.message()
+      }
+      argumentCaptor<Map<String, String>>().apply {
+        verify(telemetryClient).trackEvent(
+          any(),
+          capture(),
+          isNull(),
+        )
+        telemetryAttributes = firstValue
+      }
+    }
+
+    @Test
+    fun `will use event datetime for occurred at time`() {
+      assertThatJson(payload).node("occurredAt").isEqualTo("2022-12-04T10:00:00Z")
+    }
+
+    @Test
+    fun `will user current time as publishedAt`() {
+      assertThatJson(payload)
+        .node("publishedAt")
+        .asString()
+        .satisfies(
+          Consumer { publishedAt: String? ->
+            assertThat(OffsetDateTime.parse(publishedAt))
+              .isCloseTo(OffsetDateTime.now(), Assertions.within(10, SECONDS))
+          },
+        )
+    }
+
+    @Test
+    fun `person reference will contain offenderNumber as NOMS number`() {
+      assertThatJson(payload).node("personReference.identifiers").isArray.hasSize(1)
+      assertThatJson(payload).node("personReference.identifiers[0].type").isEqualTo("NOMS")
+      assertThatJson(payload).node("personReference.identifiers[0].value").isEqualTo("A1234GH")
+    }
+
+    @Test
+    fun `additional information will contain the correct fields`() {
+      assertThatJson(payload).node("additionalInformation.bookingId").isEqualTo("\"1234\"")
+      assertThatJson(payload).node("additionalInformation.offenderRestrictionId").isEqualTo("\"1\"")
+      assertThatJson(payload).node("additionalInformation.restrictionType").isEqualTo("\"SEC\"")
+      assertThatJson(payload).node("additionalInformation.effectiveDate").isEqualTo("\"2022-12-04\"")
+      assertThatJson(payload).node("additionalInformation.expiryDate").isEqualTo("\"2022-12-05\"")
+      assertThatJson(payload).node("additionalInformation.comment").isEqualTo("\"a test\"")
+      assertThatJson(payload).node("additionalInformation.authorisedById").isEqualTo("\"2\"")
+      assertThatJson(payload).node("additionalInformation.enteredById").isEqualTo("\"3\"")
+    }
+
+    @Test
+    fun `will describe the event as a restriction`() {
+      assertThatJson(payload).node("description")
+        .isEqualTo("A prisoner restriction record has changed")
+    }
+
+    @Test
+    fun `will add correct fields to telemetry event`() {
+      assertThat(telemetryAttributes).containsEntry("nomsNumber", "A1234GH")
+      assertThat(telemetryAttributes).containsEntry("occurredAt", "2022-12-04T10:00:00Z")
+      assertThat(telemetryAttributes).containsEntry("restrictionType", "SEC")
+      assertThat(telemetryAttributes).containsEntry("comment", "a test")
+    }
+
+    @Test
+    fun `will contain no other telemetry properties`() {
+      assertThat(telemetryAttributes).containsOnlyKeys(
+        "eventType",
+        "nomsNumber",
+        "occurredAt",
+        "publishedAt",
+        "bookingId",
+        "restrictionType",
+        "offenderRestrictionId",
+        "effectiveDate",
+        "expiryDate",
+        "comment",
+        "authorisedById",
+        "enteredById",
+      )
+    }
+  }
+
+  @Nested
+  internal inner class PersonRestriction {
+    private var payload: String? = null
+    private var telemetryAttributes: Map<String, String>? = null
+
+    @BeforeEach
+    fun setUp() {
+      emitter.convertAndSendWhenSignificant(
+        "PERSON_RESTRICTION-UPSERTED",
+        """
+        {
+           "offenderIdDisplay": "A1234GH",
+           "offenderPersonRestrictionId": 1,
+           "restrictionType": "SEC",
+           "effectiveDate": "${LocalDate.parse("2022-12-04")}",
+           "expiryDate": "${LocalDate.parse("2022-12-05")}",
+           "authorisedById": 2,
+           "enteredById": 3,
+           "comment": "a test",
+           "eventDatetime": "${LocalDateTime.parse("2022-12-04T10:00:00")}"
+        } 
+        """.trimIndent(),
+      )
+      argumentCaptor<PublishRequest>().apply {
+        verify(hmppsEventSnsClient).publish(capture())
+        payload = firstValue.message()
+      }
+      argumentCaptor<Map<String, String>>().apply {
+        verify(telemetryClient).trackEvent(
+          any(),
+          capture(),
+          isNull(),
+        )
+        telemetryAttributes = firstValue
+      }
+    }
+
+    @Test
+    fun `will use event datetime for occurred at time`() {
+      assertThatJson(payload).node("occurredAt").isEqualTo("2022-12-04T10:00:00Z")
+    }
+
+    @Test
+    fun `will user current time as publishedAt`() {
+      assertThatJson(payload)
+        .node("publishedAt")
+        .asString()
+        .satisfies(
+          Consumer { publishedAt: String? ->
+            assertThat(OffsetDateTime.parse(publishedAt))
+              .isCloseTo(OffsetDateTime.now(), Assertions.within(10, SECONDS))
+          },
+        )
+    }
+
+    @Test
+    fun `person reference will contain offenderNumber as NOMS number`() {
+      assertThatJson(payload).node("personReference.identifiers").isArray.hasSize(1)
+      assertThatJson(payload).node("personReference.identifiers[0].type").isEqualTo("NOMS")
+      assertThatJson(payload).node("personReference.identifiers[0].value").isEqualTo("A1234GH")
+    }
+
+    @Test
+    fun `additional information will contain the correct fields`() {
+      assertThatJson(payload).node("additionalInformation.offenderPersonRestrictionId").isEqualTo("\"1\"")
+      assertThatJson(payload).node("additionalInformation.restrictionType").isEqualTo("\"SEC\"")
+      assertThatJson(payload).node("additionalInformation.effectiveDate").isEqualTo("\"2022-12-04\"")
+    }
+
+    @Test
+    fun `will describe the event as a restriction`() {
+      assertThatJson(payload).node("description")
+        .isEqualTo("A prisoner person restriction record has changed")
+    }
+
+    @Test
+    fun `will add correct fields to telemetry event`() {
+      assertThat(telemetryAttributes).containsEntry("nomsNumber", "A1234GH")
+      assertThat(telemetryAttributes).containsEntry("occurredAt", "2022-12-04T10:00:00Z")
+      assertThat(telemetryAttributes).containsEntry("restrictionType", "SEC")
+      assertThat(telemetryAttributes).containsEntry("comment", "a test")
+    }
+
+    @Test
+    fun `will contain no other telemetry properties`() {
+      assertThat(telemetryAttributes).containsOnlyKeys(
+        "eventType",
+        "nomsNumber",
+        "occurredAt",
+        "publishedAt",
+        "offenderPersonRestrictionId",
+        "restrictionType",
+        "effectiveDate",
+        "expiryDate",
+        "authorisedById",
+        "enteredById",
+        "comment",
+      )
+    }
+  }
+
+  @Nested
+  internal inner class VisitorRestriction {
+    private var payload: String? = null
+    private var telemetryAttributes: Map<String, String>? = null
+
+    @BeforeEach
+    fun setUp() {
+      emitter.convertAndSendWhenSignificant(
+        "VISITOR_RESTRICTION-UPSERTED",
+        """
+        {
+           "personId": 1,
+           "restrictionType": "SEC",
+           "effectiveDate": "${LocalDate.parse("2022-12-04")}",
+           "expiryDate": "${LocalDate.parse("2022-12-05")}",
+           "comment": "a test",
+           "visitorRestrictionId": 2,
+           "enteredById": 3,
+           "eventDatetime": "${LocalDateTime.parse("2022-12-04T10:00:00")}"
+        } 
+        """.trimIndent(),
+      )
+      argumentCaptor<PublishRequest>().apply {
+        verify(hmppsEventSnsClient).publish(capture())
+        payload = firstValue.message()
+      }
+      argumentCaptor<Map<String, String>>().apply {
+        verify(telemetryClient).trackEvent(
+          any(),
+          capture(),
+          isNull(),
+        )
+        telemetryAttributes = firstValue
+      }
+    }
+
+    @Test
+    fun `will use event datetime for occurred at time`() {
+      assertThatJson(payload).node("occurredAt").isEqualTo("2022-12-04T10:00:00Z")
+    }
+
+    @Test
+    fun `will user current time as publishedAt`() {
+      assertThatJson(payload)
+        .node("publishedAt")
+        .asString()
+        .satisfies(
+          Consumer { publishedAt: String? ->
+            assertThat(OffsetDateTime.parse(publishedAt))
+              .isCloseTo(OffsetDateTime.now(), Assertions.within(10, SECONDS))
+          },
+        )
+    }
+
+    @Test
+    fun `person reference will contain personId as PERSON identifier`() {
+      assertThatJson(payload).node("personReference.identifiers").isArray.hasSize(1)
+      assertThatJson(payload).node("personReference.identifiers[0].type").isEqualTo("PERSON")
+      assertThatJson(payload).node("personReference.identifiers[0].value").isEqualTo("\"1\"")
+    }
+
+    @Test
+    fun `additional information will contain the correct fields`() {
+      assertThatJson(payload).node("additionalInformation.personId").isEqualTo("\"1\"")
+      assertThatJson(payload).node("additionalInformation.restrictionType").isEqualTo("\"SEC\"")
+      assertThatJson(payload).node("additionalInformation.visitorRestrictionId").isEqualTo("\"2\"")
+      assertThatJson(payload).node("additionalInformation.effectiveDate").isEqualTo("\"2022-12-04\"")
+    }
+
+    @Test
+    fun `will describe the event as a restriction`() {
+      assertThatJson(payload).node("description")
+        .isEqualTo("A prisoner visitor restriction record has changed")
+    }
+
+    @Test
+    fun `will add correct fields to telemetry event`() {
+      assertThat(telemetryAttributes).containsEntry("occurredAt", "2022-12-04T10:00:00Z")
+      assertThat(telemetryAttributes).containsEntry("restrictionType", "SEC")
+      assertThat(telemetryAttributes).containsEntry("comment", "a test")
+    }
+
+    @Test
+    fun `will contain no other telemetry properties`() {
+      assertThat(telemetryAttributes).containsOnlyKeys(
+        "eventType",
+        "occurredAt",
+        "publishedAt",
+        "personId",
+        "restrictionType",
+        "effectiveDate",
+        "expiryDate",
+        "comment",
+        "visitorRestrictionId",
+        "enteredById",
       )
     }
   }
