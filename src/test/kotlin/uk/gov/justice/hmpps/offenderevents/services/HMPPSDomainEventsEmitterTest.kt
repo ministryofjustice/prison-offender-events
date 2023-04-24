@@ -1467,6 +1467,103 @@ internal class HMPPSDomainEventsEmitterTest {
     }
   }
 
+  @Nested
+  internal inner class PrisonerActivityUpdated {
+    private var payload: String? = null
+    private var telemetryAttributes: Map<String, String>? = null
+
+    @BeforeEach
+    fun setUp() {
+      emitter.convertAndSendWhenSignificant(
+        "PRISONER_ACTIVITY-UPDATED",
+        """
+        {
+           "offenderIdDisplay": "A1234BC",
+           "prisonId": "LEI",
+           "staffId": "Some staff ID",
+           "suspendActivities": "true",
+           "endActivities": "false",
+           "eventDatetime": "${LocalDateTime.parse("2022-12-04T10:00:00")}"
+        } 
+        """.trimIndent(),
+      )
+      argumentCaptor<PublishRequest>().apply {
+        verify(hmppsEventSnsClient).publish(capture())
+        payload = firstValue.message()
+      }
+      argumentCaptor<Map<String, String>>().apply {
+        verify(telemetryClient).trackEvent(
+          any(),
+          capture(),
+          isNull(),
+        )
+        telemetryAttributes = firstValue
+      }
+    }
+
+    @Test
+    fun `will use event datetime for occurred at time`() {
+      assertThatJson(payload).node("occurredAt").isEqualTo("2022-12-04T10:00:00Z")
+    }
+
+    @Test
+    fun `will use current time as publishedAt`() {
+      assertThatJson(payload)
+        .node("publishedAt")
+        .asString()
+        .satisfies(
+          Consumer { publishedAt: String? ->
+            assertThat(OffsetDateTime.parse(publishedAt))
+              .isCloseTo(OffsetDateTime.now(), Assertions.within(10, SECONDS))
+          },
+        )
+    }
+
+    @Test
+    fun `person reference will contain nomsId as NOMS identifier`() {
+      assertThatJson(payload).node("personReference.identifiers").isArray.hasSize(1)
+      assertThatJson(payload).node("personReference.identifiers[0].type").isEqualTo("NOMS")
+      assertThatJson(payload).node("personReference.identifiers[0].value").isEqualTo("\"A1234BC\"")
+    }
+
+    @Test
+    fun `additional information will contain the correct fields`() {
+      assertThatJson(payload).node("additionalInformation.nomsId").isEqualTo("\"A1234BC\"")
+      assertThatJson(payload).node("additionalInformation.prisonId").isEqualTo("\"LEI\"")
+      assertThatJson(payload).node("additionalInformation.staffId").isEqualTo("\"Some Staff ID\"")
+      assertThatJson(payload).node("additionalInformation.supsendActivities").isEqualTo("\"true\"")
+      assertThatJson(payload).node("additionalInformation.endActivities").isEqualTo("\"false\"")
+    }
+
+    @Test
+    fun `will describe the event as a prisoner activity update`() {
+      assertThatJson(payload).node("description")
+        .isEqualTo("A prisoner's activities have been changed")
+    }
+
+    @Test
+    fun `will add correct fields to telemetry event`() {
+      assertThat(telemetryAttributes).containsEntry("occurredAt", "2022-12-04T10:00:00Z")
+      assertThat(telemetryAttributes).containsEntry("nomsId", "A1234BC")
+      assertThat(telemetryAttributes).containsEntry("suspendActivities", "true")
+      assertThat(telemetryAttributes).containsEntry("endActivities", "false")
+    }
+
+    @Test
+    fun `will contain no other telemetry properties`() {
+      assertThat(telemetryAttributes).containsOnlyKeys(
+        "eventType",
+        "occurredAt",
+        "publishedAt",
+        "nomsNumber",
+        "prisonId",
+        "staffId",
+        "suspendActivities",
+        "endActivities",
+      )
+    }
+  }
+
   companion object {
     @JvmStatic
     private fun eventMap() = listOf(

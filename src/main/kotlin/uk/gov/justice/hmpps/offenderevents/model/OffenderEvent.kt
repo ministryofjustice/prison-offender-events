@@ -31,6 +31,7 @@ abstract class OffenderEvent(
       "PERSON_RESTRICTION-DELETED" to PersonRestrictionOffenderEvent::class.java,
       "VISITOR_RESTRICTION-UPSERTED" to VisitorRestrictionOffenderEvent::class.java,
       "VISITOR_RESTRICTION-DELETED" to VisitorRestrictionOffenderEvent::class.java,
+      "PRISONER_ACTIVITY-UPDATED" to PrisonerActivityUpdateEvent::class.java,
     )
   }
 }
@@ -132,6 +133,19 @@ class VisitorRestrictionOffenderEvent(
   val comment: String?,
   val visitorRestrictionId: Long?,
   val enteredById: Long?,
+) : OffenderEvent(
+  eventDatetime = eventDatetime,
+  offenderIdDisplay =
+  offenderIdDisplay,
+)
+@JsonInclude(JsonInclude.Include.NON_NULL)
+class PrisonerActivityUpdateEvent(
+  eventDatetime: LocalDateTime,
+  override val offenderIdDisplay: String,
+  val prisonId: String,
+  val suspendActivities: Boolean,
+  val endActivities: Boolean,
+  val staffId: String,
 ) : OffenderEvent(
   eventDatetime = eventDatetime,
   offenderIdDisplay = offenderIdDisplay,
