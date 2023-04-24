@@ -1480,7 +1480,7 @@ internal class HMPPSDomainEventsEmitterTest {
         {
            "offenderIdDisplay": "A1234BC",
            "prisonId": "LEI",
-           "staffId": "Some staff ID",
+           "staffId": "Some Staff ID",
            "suspendActivities": "true",
            "endActivities": "false",
            "eventDatetime": "${LocalDateTime.parse("2022-12-04T10:00:00")}"
@@ -1530,7 +1530,7 @@ internal class HMPPSDomainEventsEmitterTest {
     fun `additional information will contain the correct fields`() {
       assertThatJson(payload).node("additionalInformation.prisonId").isEqualTo("\"LEI\"")
       assertThatJson(payload).node("additionalInformation.staffId").isEqualTo("\"Some Staff ID\"")
-      assertThatJson(payload).node("additionalInformation.supsendActivities").isEqualTo("\"true\"")
+      assertThatJson(payload).node("additionalInformation.suspendActivities").isEqualTo("\"true\"")
       assertThatJson(payload).node("additionalInformation.endActivities").isEqualTo("\"false\"")
     }
 
