@@ -138,6 +138,7 @@ class VisitorRestrictionOffenderEvent(
   offenderIdDisplay =
   offenderIdDisplay,
 )
+
 @JsonInclude(JsonInclude.Include.NON_NULL)
 class PrisonerActivityUpdateEvent(
   eventDatetime: LocalDateTime,
