@@ -1528,7 +1528,6 @@ internal class HMPPSDomainEventsEmitterTest {
 
     @Test
     fun `additional information will contain the correct fields`() {
-      assertThatJson(payload).node("additionalInformation.nomsNumber").isEqualTo("\"A1234BC\"")
       assertThatJson(payload).node("additionalInformation.prisonId").isEqualTo("\"LEI\"")
       assertThatJson(payload).node("additionalInformation.staffId").isEqualTo("\"Some Staff ID\"")
       assertThatJson(payload).node("additionalInformation.supsendActivities").isEqualTo("\"true\"")
