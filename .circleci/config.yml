@@ -101,6 +101,7 @@ workflows:
                 - main
     jobs:
       - hmpps/gradle_owasp_dependency_check:
+          jdk_tag: "19.0"
           cache_key: "v2_0"
           slack_channel: syscon-alerts
           context:
