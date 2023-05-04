@@ -1,9 +1,14 @@
 ---
 # Environment specific values, override helm_deploy/prison-to-probation-update/values.yaml
 generic-service:
-  replicaCount: 4
+  replicaCount: 2
   ingress:
     host: offender-events-preprod.prison.service.justice.gov.uk
+
+  scheduledDowntime:
+    enabled: true
+    startup: '19 6 * * 1-5' # Start at 6.19am UTC Monday-Friday
+    shutdown: '51 21 * * 1-5' # Stop at 9.51pm UTC Monday-Friday
 
   env:
     PRISON_API_BASE_URL: "https://api-preprod.prison.service.justice.gov.uk"
