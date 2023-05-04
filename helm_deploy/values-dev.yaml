@@ -5,6 +5,11 @@ generic-service:
   ingress:
     host: offender-events-dev.prison.service.justice.gov.uk
 
+  scheduledDowntime:
+    enabled: true
+    startup: '18 6 * * 1-5' # Start at 6.18am UTC Monday-Friday
+    shutdown: '52 21 * * 1-5' # Stop at 9.52pm UTC Monday-Friday
+
   allowlist: null
 
   env:
