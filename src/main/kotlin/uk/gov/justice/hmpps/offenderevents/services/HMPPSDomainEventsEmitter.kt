@@ -308,10 +308,9 @@ class HMPPSDomainEventsEmitter(
       publishedAt = OffsetDateTime.now().toString(),
       personReference = PersonReference(event.offenderIdDisplay),
     )
-      .withAdditionalInformation("suspendActivities", event.suspendActivities.toString())
-      .withAdditionalInformation("endActivities", event.endActivities.toString())
+      .withAdditionalInformation("action", event.action)
       .withAdditionalInformation("prisonId", event.prisonId)
-      .withAdditionalInformation("staffId", event.staffId)
+      .withAdditionalInformation("user", event.user)
 
   fun sendEvent(payload: HmppsDomainEvent) {
     try {

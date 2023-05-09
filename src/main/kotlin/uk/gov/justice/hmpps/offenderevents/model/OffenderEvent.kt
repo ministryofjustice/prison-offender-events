@@ -31,7 +31,7 @@ abstract class OffenderEvent(
       "PERSON_RESTRICTION-DELETED" to PersonRestrictionOffenderEvent::class.java,
       "VISITOR_RESTRICTION-UPSERTED" to VisitorRestrictionOffenderEvent::class.java,
       "VISITOR_RESTRICTION-DELETED" to VisitorRestrictionOffenderEvent::class.java,
-      "PRISONER_ACTIVITY-UPDATED" to PrisonerActivityUpdateEvent::class.java,
+      "PRISONER_ACTIVITY-UPDATE" to PrisonerActivityUpdateEvent::class.java,
     )
   }
 }
@@ -144,9 +144,8 @@ class PrisonerActivityUpdateEvent(
   eventDatetime: LocalDateTime,
   override val offenderIdDisplay: String,
   val prisonId: String,
-  val suspendActivities: Boolean,
-  val endActivities: Boolean,
-  val staffId: String,
+  val action: String,
+  val user: String,
 ) : OffenderEvent(
   eventDatetime = eventDatetime,
   offenderIdDisplay = offenderIdDisplay,

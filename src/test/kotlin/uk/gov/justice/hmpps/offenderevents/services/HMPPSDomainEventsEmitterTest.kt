@@ -1475,14 +1475,13 @@ internal class HMPPSDomainEventsEmitterTest {
     @BeforeEach
     fun setUp() {
       emitter.convertAndSendWhenSignificant(
-        "PRISONER_ACTIVITY-UPDATED",
+        "PRISONER_ACTIVITY-UPDATE",
         """
         {
            "offenderIdDisplay": "A1234BC",
            "prisonId": "LEI",
-           "staffId": "Some Staff ID",
-           "suspendActivities": "true",
-           "endActivities": "false",
+           "user": "some_user",
+           "action": "SUSPEND",
            "eventDatetime": "${LocalDateTime.parse("2022-12-04T10:00:00")}"
         } 
         """.trimIndent(),
@@ -1529,9 +1528,8 @@ internal class HMPPSDomainEventsEmitterTest {
     @Test
     fun `additional information will contain the correct fields`() {
       assertThatJson(payload).node("additionalInformation.prisonId").isEqualTo("\"LEI\"")
-      assertThatJson(payload).node("additionalInformation.staffId").isEqualTo("\"Some Staff ID\"")
-      assertThatJson(payload).node("additionalInformation.suspendActivities").isEqualTo("\"true\"")
-      assertThatJson(payload).node("additionalInformation.endActivities").isEqualTo("\"false\"")
+      assertThatJson(payload).node("additionalInformation.user").isEqualTo("\"SOME_USER\"")
+      assertThatJson(payload).node("additionalInformation.action").isEqualTo("\"SUSPEND\"")
     }
 
     @Test
@@ -1544,8 +1542,7 @@ internal class HMPPSDomainEventsEmitterTest {
     fun `will add correct fields to telemetry event`() {
       assertThat(telemetryAttributes).containsEntry("occurredAt", "2022-12-04T10:00:00Z")
       assertThat(telemetryAttributes).containsEntry("nomsNumber", "A1234BC")
-      assertThat(telemetryAttributes).containsEntry("suspendActivities", "true")
-      assertThat(telemetryAttributes).containsEntry("endActivities", "false")
+      assertThat(telemetryAttributes).containsEntry("action", "SUSPEND")
     }
 
     @Test
@@ -1556,9 +1553,8 @@ internal class HMPPSDomainEventsEmitterTest {
         "publishedAt",
         "nomsNumber",
         "prisonId",
-        "staffId",
-        "suspendActivities",
-        "endActivities",
+        "user",
+        "action",
       )
     }
   }
