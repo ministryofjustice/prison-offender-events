@@ -1480,7 +1480,7 @@ internal class HMPPSDomainEventsEmitterTest {
         {
            "offenderIdDisplay": "A1234BC",
            "prisonId": "LEI",
-           "user": "some_user",
+           "user": "SOME_USER",
            "action": "SUSPEND",
            "eventDatetime": "${LocalDateTime.parse("2022-12-04T10:00:00")}"
         } 
