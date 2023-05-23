@@ -23,6 +23,7 @@ generic-service:
 
 # CloudPlatform AlertManager receiver to route promethues alerts to slack
 generic-prometheus-alerts:
+  businessHoursOnly: true
   alertSeverity: syscon
 
   # AWS SQS queues to monitor
