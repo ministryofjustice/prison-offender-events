@@ -12,10 +12,6 @@ testSets {
   "testSmoke"()
 }
 
-repositories {
-  maven { url = uri("https://repo.spring.io/milestone") }
-  mavenCentral()
-}
 dependencies {
   annotationProcessor("org.springframework.boot:spring-boot-configuration-processor")
   annotationProcessor("org.projectlombok:lombok:1.18.26")
