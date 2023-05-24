@@ -1,15 +1,20 @@
 plugins {
   id("uk.gov.justice.hmpps.gradle-spring-boot") version "5.2.0-beta"
   kotlin("plugin.spring") version "1.8.21"
-  id("org.unbroken-dome.test-sets") version "4.0.0"
 }
 
 configurations {
   implementation { exclude(mapOf("module" to "tomcat-jdbc")) }
 }
 
-testSets {
-  "testSmoke"()
+testing {
+  suites {
+    register<JvmTestSuite>("testSmoke")
+  }
+}
+
+tasks.named("testSmoke") {
+  dependsOn("jar")
 }
 
 dependencies {
