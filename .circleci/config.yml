@@ -46,7 +46,6 @@ workflows:
             branches:
               only:
                 - main
-                - mh-SDIT-824-jvm-test-suite
       - hmpps/deploy_env:
           name: deploy_dev
           env: "dev"
@@ -56,7 +55,6 @@ workflows:
             branches:
               only:
                 - main
-                - mh-SDIT-824-jvm-test-suite
           requires:
             - validate
             - helm_lint
@@ -67,11 +65,6 @@ workflows:
           jdk_tag: "19.0"
           requires:
             - deploy_dev
-          filters:
-            branches:
-              only:
-                - main
-                - mh-SDIT-824-jvm-test-suite
       - hmpps/deploy_env:
           name: deploy_preprod
           env: "preprod"
@@ -82,18 +75,10 @@ workflows:
             - prison-offender-events-preprod
           requires:
             - smoke_test
-          filters:
-            branches:
-              only:
-                - main
       - request-prod-approval:
           type: approval
           requires:
             - deploy_preprod
-          filters:
-            branches:
-              only:
-                - main
       - hmpps/deploy_env:
           name: deploy_prod
           env: "prod"
@@ -105,10 +90,6 @@ workflows:
             - prison-offender-events-prod
           requires:
             - request-prod-approval
-          filters:
-            branches:
-              only:
-                - main
 
   security:
     triggers:
