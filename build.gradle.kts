@@ -1,16 +1,24 @@
+@file:Suppress("UnstableApiUsage")
+
 plugins {
-  id("uk.gov.justice.hmpps.gradle-spring-boot") version "5.2.0-beta"
+  id("uk.gov.justice.hmpps.gradle-spring-boot") version "5.2.0-beta-2"
   kotlin("plugin.spring") version "1.8.21"
-  id("org.unbroken-dome.test-sets") version "4.0.0"
 }
 
 configurations {
   implementation { exclude(mapOf("module" to "tomcat-jdbc")) }
 }
 
-testSets {
-  "testSmoke"()
+testing {
+  suites {
+    register<JvmTestSuite>("testSmoke") {
+      dependencies {
+        implementation(project())
+      }
+    }
+  }
 }
+configurations["testSmokeImplementation"].extendsFrom(configurations["testImplementation"])
 
 dependencies {
   annotationProcessor("org.springframework.boot:spring-boot-configuration-processor")
