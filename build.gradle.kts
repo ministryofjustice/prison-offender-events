@@ -1,7 +1,7 @@
-
+@file:Suppress("UnstableApiUsage")
 
 plugins {
-  id("uk.gov.justice.hmpps.gradle-spring-boot") version "5.2.0-beta"
+  id("uk.gov.justice.hmpps.gradle-spring-boot") version "5.2.0-beta-2"
   kotlin("plugin.spring") version "1.8.21"
 }
 
@@ -18,7 +18,7 @@ testing {
     }
   }
 }
-configurations.get("testSmokeImplementation").extendsFrom(configurations.get("testImplementation"))
+configurations["testSmokeImplementation"].extendsFrom(configurations["testImplementation"])
 
 dependencies {
   annotationProcessor("org.springframework.boot:spring-boot-configuration-processor")
