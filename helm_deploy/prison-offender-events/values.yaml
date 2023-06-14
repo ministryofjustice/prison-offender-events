@@ -21,12 +21,14 @@ generic-service:
         }
     tlsSecretName: offender-events-cert
 
+  serviceAccountName: prison-offender-events
 
   env:
     JAVA_OPTS: "-Xmx512m"
     AWS_REGION: "eu-west-2"
     SPRING_PROFILES_ACTIVE: "sns"
     APPLICATIONINSIGHTS_CONNECTION_STRING: "InstrumentationKey=$(APPINSIGHTS_INSTRUMENTATIONKEY);IngestionEndpoint=https://northeurope-0.in.applicationinsights.azure.com/;LiveEndpoint=https://northeurope.livediagnostics.monitor.azure.com/"
+    HMPPS_SQS_USE_WEB_TOKEN: true
 
   # Pre-existing kubernetes secrets to load as environment variables in the deployment.
   # namespace_secrets:
@@ -39,21 +41,13 @@ generic-service:
       OFFENDER_EVENTS_CLIENT_SECRET: "OFFENDER_EVENTS_CLIENT_SECRET"
       OFFENDER_EVENTS_CLIENT_ID: "OFFENDER_EVENTS_CLIENT_ID"
     offender-events-topic:
-      HMPPS_SQS_TOPICS_PRISONEVENTTOPIC_ACCESS_KEY_ID: "access_key_id"
-      HMPPS_SQS_TOPICS_PRISONEVENTTOPIC_SECRET_ACCESS_KEY: "secret_access_key"
       HMPPS_SQS_TOPICS_PRISONEVENTTOPIC_ARN: "topic_arn"
     hmpps-domain-events-topic:
-      HMPPS_SQS_TOPICS_HMPPSEVENTTOPIC_ACCESS_KEY_ID: "access_key_id"
-      HMPPS_SQS_TOPICS_HMPPSEVENTTOPIC_SECRET_ACCESS_KEY: "secret_access_key"
       HMPPS_SQS_TOPICS_HMPPSEVENTTOPIC_ARN: "topic_arn"
     prisoner-offender-events-queue:
       HMPPS_SQS_QUEUES_PRISONEVENTQUEUE_QUEUE_NAME: "sqs_queue_name"
-      HMPPS_SQS_QUEUES_PRISONEVENTQUEUE_QUEUE_ACCESS_KEY_ID: "access_key_id"
-      HMPPS_SQS_QUEUES_PRISONEVENTQUEUE_QUEUE_SECRET_ACCESS_KEY: "secret_access_key"
     prisoner-offender-events-dlq:
       HMPPS_SQS_QUEUES_PRISONEVENTQUEUE_DLQ_NAME: "sqs_queue_name"
-      HMPPS_SQS_QUEUES_PRISONEVENTQUEUE_DLQ_ACCESS_KEY_ID: "access_key_id"
-      HMPPS_SQS_QUEUES_PRISONEVENTQUEUE_DLQ_SECRET_ACCESS_KEY: "secret_access_key"
 
   allowlist:
     office: "217.33.148.210/32"
