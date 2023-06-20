@@ -16,8 +16,8 @@ generic-service:
     OAUTH_API_BASE_URL: "https://sign-in-preprod.hmpps.service.justice.gov.uk/auth"
     CASENOTES_API_BASE_URL: "https://preprod.offender-case-notes.service.justice.gov.uk"
     APPLICATIONINSIGHTS_CONFIGURATION_FILE: applicationinsights.json
-    APPLICATION_LISTENER_TOTALDELAYDURATION: "PT45M"
-    APPLICATION_LISTENER_DELAYDURATION: "PT10M"
+#    APPLICATION_LISTENER_TOTALDELAYDURATION: "PT45M"
+#    APPLICATION_LISTENER_DELAYDURATION: "PT10M"
 
 # CloudPlatform AlertManager receiver to route promethues alerts to slack
 generic-prometheus-alerts:
