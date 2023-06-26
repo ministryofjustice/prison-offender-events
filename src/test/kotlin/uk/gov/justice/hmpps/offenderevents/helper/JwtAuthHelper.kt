@@ -3,6 +3,7 @@ package uk.gov.justice.hmpps.offenderevents.helper
 import io.jsonwebtoken.Jwts
 import io.jsonwebtoken.SignatureAlgorithm
 import org.springframework.context.annotation.Bean
+import org.springframework.context.annotation.Primary
 import org.springframework.http.HttpHeaders
 import org.springframework.security.oauth2.jwt.JwtDecoder
 import org.springframework.security.oauth2.jwt.NimbusJwtDecoder
@@ -25,6 +26,7 @@ class JwtAuthHelper() {
   }
 
   @Bean
+  @Primary
   fun jwtDecoder(): JwtDecoder = NimbusJwtDecoder.withPublicKey(keyPair.public as RSAPublicKey).build()
 
   fun setAuthorisation(user: String = "hmpps-offender-events-client", roles: List<String> = listOf()): (HttpHeaders) -> Unit {
