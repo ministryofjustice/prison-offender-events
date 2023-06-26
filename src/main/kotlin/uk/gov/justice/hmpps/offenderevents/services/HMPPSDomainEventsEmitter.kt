@@ -18,6 +18,7 @@ import uk.gov.justice.hmpps.offenderevents.model.NonAssociationDetailsOffenderEv
 import uk.gov.justice.hmpps.offenderevents.model.OffenderEvent
 import uk.gov.justice.hmpps.offenderevents.model.PersonRestrictionOffenderEvent
 import uk.gov.justice.hmpps.offenderevents.model.PrisonerActivityUpdateEvent
+import uk.gov.justice.hmpps.offenderevents.model.PrisonerAppointmentUpdateEvent
 import uk.gov.justice.hmpps.offenderevents.model.PrisonerDischargedOffenderEvent
 import uk.gov.justice.hmpps.offenderevents.model.PrisonerMergedOffenderEvent
 import uk.gov.justice.hmpps.offenderevents.model.PrisonerReceivedOffenderEvent
@@ -63,6 +64,7 @@ class HMPPSDomainEventsEmitter(
       is VisitorRestrictionOffenderEvent -> listOf(toVisitorRestriction(offenderEvent))
       is RestrictionOffenderEvent -> listOf(toRestriction(offenderEvent))
       is PrisonerActivityUpdateEvent -> listOf(toActivityChanged(offenderEvent))
+      is PrisonerAppointmentUpdateEvent -> listOf(toAppointmentChanged(offenderEvent))
 
       else -> emptyList()
     }
@@ -304,6 +306,18 @@ class HMPPSDomainEventsEmitter(
     HmppsDomainEvent(
       eventType = "prison-offender-events.prisoner.activities-changed",
       description = "A prisoner's activities have been changed",
+      occurredAt = event.toOccurredAt(),
+      publishedAt = OffsetDateTime.now().toString(),
+      personReference = PersonReference(event.offenderIdDisplay),
+    )
+      .withAdditionalInformation("action", event.action)
+      .withAdditionalInformation("prisonId", event.prisonId)
+      .withAdditionalInformation("user", event.user)
+
+  private fun toAppointmentChanged(event: PrisonerAppointmentUpdateEvent): HmppsDomainEvent =
+    HmppsDomainEvent(
+      eventType = "prison-offender-events.prisoner.appointments-changed",
+      description = "A prisoner's appointment has been changed",
       occurredAt = event.toOccurredAt(),
       publishedAt = OffsetDateTime.now().toString(),
       personReference = PersonReference(event.offenderIdDisplay),
