@@ -1,7 +1,7 @@
 @file:Suppress("UnstableApiUsage")
 
 plugins {
-  id("uk.gov.justice.hmpps.gradle-spring-boot") version "5.2.1"
+  id("uk.gov.justice.hmpps.gradle-spring-boot") version "5.2.2"
   kotlin("plugin.spring") version "1.8.22"
 }
 
@@ -61,7 +61,7 @@ dependencies {
   testImplementation("org.awaitility:awaitility-kotlin:4.2.0")
   testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-reactive:1.7.1")
   testImplementation("org.mockito:mockito-inline:5.2.0")
-  testImplementation("io.swagger.parser.v3:swagger-parser:2.1.15")
+  testImplementation("io.swagger.parser.v3:swagger-parser:2.1.16")
   testImplementation("io.opentelemetry:opentelemetry-sdk-testing:1.27.0")
   testImplementation("javax.xml.bind:jaxb-api:2.3.1")
 }
