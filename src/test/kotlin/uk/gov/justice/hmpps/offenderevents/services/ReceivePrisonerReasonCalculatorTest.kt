@@ -13,8 +13,10 @@ import org.junit.jupiter.params.provider.MethodSource
 import org.mockito.junit.jupiter.MockitoSettings
 import org.mockito.kotlin.any
 import org.mockito.kotlin.mock
+import org.mockito.kotlin.reset
 import org.mockito.kotlin.whenever
 import org.mockito.quality.Strictness
+import org.springframework.web.reactive.function.client.WebClientResponseException
 import uk.gov.justice.hmpps.offenderevents.services.ReceivePrisonerReasonCalculator.ProbableCause
 import java.time.LocalDate
 import java.util.stream.Stream
@@ -24,6 +26,11 @@ internal class ReceivePrisonerReasonCalculatorTest {
   private val prisonApiService: PrisonApiService = mock()
   private val communityApiService: CommunityApiService = mock()
   private val calculator: ReceivePrisonerReasonCalculator = ReceivePrisonerReasonCalculator(prisonApiService, communityApiService)
+
+  @BeforeEach
+  fun resetMocks() {
+    reset(prisonApiService, communityApiService)
+  }
 
   @Test
   @DisplayName("probable cause is recall of both legal status RECALL and calculated recall true")
@@ -255,6 +262,21 @@ internal class ReceivePrisonerReasonCalculatorTest {
       .isEqualTo(ProbableCause.UNKNOWN)
     assertThat(calculator.calculateMostLikelyReasonForPrisonerReceive("A1234GH").reason)
       .isEqualTo(ReceivePrisonerReasonCalculator.Reason.ADMISSION)
+  }
+
+  @Test
+  @DisplayName("probable cause is UNKNOWN when communityApiService call fails")
+  fun reasonInUNKNOWNWhenDeliusError() {
+    whenever(communityApiService.getRecalls(any())).thenThrow(
+      WebClientResponseException
+        .create(500, "test system error", null, null, null),
+    )
+    whenever(prisonApiService.getPrisonerDetails(any()))
+      .thenReturn(prisonerDetails("UNKNOWN", false))
+    val result = calculator.calculateMostLikelyReasonForPrisonerReceive("A1234GH")
+    assertThat(result.probableCause).isEqualTo(ProbableCause.UNKNOWN)
+    assertThat(result.reason).isEqualTo(ReceivePrisonerReasonCalculator.Reason.ADMISSION)
+    assertThat(result.details).isEqualTo("ACTIVE IN:ADM-K Error getting Delius recall details: 500 test system error")
   }
 
   @Test

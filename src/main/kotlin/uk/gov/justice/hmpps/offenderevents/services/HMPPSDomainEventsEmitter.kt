@@ -42,8 +42,8 @@ class HMPPSDomainEventsEmitter(
   private val telemetryClient: TelemetryClient,
   private val offenderEventsProperties: OffenderEventsProperties,
 ) {
-  private val hmppsEventsTopicSnsClient: SnsAsyncClient
-  private val topicArn: String
+  private final val hmppsEventsTopicSnsClient: SnsAsyncClient
+  private final val topicArn: String
 
   init {
     val hmppsEventTopic = hmppsQueueService.findByTopicId("hmppseventtopic")
