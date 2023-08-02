@@ -16,7 +16,9 @@ import org.mockito.kotlin.mock
 import org.mockito.kotlin.reset
 import org.mockito.kotlin.whenever
 import org.mockito.quality.Strictness
+import org.springframework.http.HttpHeaders
 import org.springframework.web.reactive.function.client.WebClientResponseException
+import scala.Array.emptyByteArray
 import uk.gov.justice.hmpps.offenderevents.services.ReceivePrisonerReasonCalculator.ProbableCause
 import java.time.LocalDate
 import java.util.stream.Stream
@@ -269,7 +271,7 @@ internal class ReceivePrisonerReasonCalculatorTest {
   fun reasonInUNKNOWNWhenDeliusError() {
     whenever(communityApiService.getRecalls(any())).thenThrow(
       WebClientResponseException
-        .create(500, "test system error", null, null, null),
+        .create(500, "test system error", HttpHeaders(), emptyByteArray(), null),
     )
     whenever(prisonApiService.getPrisonerDetails(any()))
       .thenReturn(prisonerDetails("UNKNOWN", false))
