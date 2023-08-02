@@ -2,6 +2,7 @@ package uk.gov.justice.hmpps.offenderevents.services
 
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
+import org.springframework.web.reactive.function.client.WebClientResponseException
 import uk.gov.justice.hmpps.offenderevents.services.MovementReason.RECALL
 import uk.gov.justice.hmpps.offenderevents.services.MovementReason.REMAND
 import uk.gov.justice.hmpps.offenderevents.services.MovementReason.TRANSFER
@@ -133,23 +134,35 @@ class ReceivePrisonerReasonCalculator(
       lastPrisonEntryDate.ifPresent { log.debug("Last time in prison was {}", it) }
       lastPrisonEntryDate.isPresent
     }
-    val recalls = communityApiService.getRecalls(offenderNumber)
-    return recalls
-      .stream()
-      .filter { recall: Recall -> hasActiveOrCompletedRecall(recall) }
-      .map(Recall::referralDate)
-      .filter { obj: LocalDate? -> Objects.nonNull(obj) }
-      .max { obj: LocalDate, other: LocalDate? -> obj.compareTo(other) }
-      .filter(Predicate.not(hasBeenInPrisonSince))
-      .map { referralDate: LocalDate? ->
+    try {
+      return communityApiService.getRecalls(offenderNumber)
+        .stream()
+        .filter { recall: Recall -> hasActiveOrCompletedRecall(recall) }
+        .map(Recall::referralDate)
+        .filter { obj: LocalDate? -> Objects.nonNull(obj) }
+        .max { obj: LocalDate, other: LocalDate? -> obj.compareTo(other) }
+        .filter(Predicate.not(hasBeenInPrisonSince))
+        .map { referralDate: LocalDate? ->
+          ReasonWithDetailsAndSource(
+            Reason.ADMISSION,
+            ProbableCause.RECALL,
+            Source.PROBATION,
+            "$details Recall referral date $referralDate",
+            nomisMovementReason,
+          )
+        }
+    } catch (e: WebClientResponseException) {
+      log.error("Error getting probation recall details for $offenderNumber", e)
+      return Optional.of(
         ReasonWithDetailsAndSource(
           Reason.ADMISSION,
-          ProbableCause.RECALL,
+          ProbableCause.UNKNOWN,
           Source.PROBATION,
-          "$details Recall referral date $referralDate",
+          "$details Error getting Delius recall details: ${e.message}",
           nomisMovementReason,
-        )
-      }
+        ),
+      )
+    }
   }
 
   private fun hasActiveOrCompletedRecall(recall: Recall): Boolean {
