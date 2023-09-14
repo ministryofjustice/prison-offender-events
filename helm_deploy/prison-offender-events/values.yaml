@@ -2,6 +2,7 @@
 # Values here are the same across all environments
 generic-service:
   nameOverride: prison-offender-events
+  productId: DPS060
 
   image:
     repository: quay.io/hmpps/prison-offender-events
