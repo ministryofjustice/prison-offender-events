@@ -1,7 +1,7 @@
 @file:Suppress("UnstableApiUsage")
 
 plugins {
-  id("uk.gov.justice.hmpps.gradle-spring-boot") version "5.5.0"
+  id("uk.gov.justice.hmpps.gradle-spring-boot") version "5.5.1"
   kotlin("plugin.spring") version "1.9.10"
 }
 
@@ -40,7 +40,7 @@ dependencies {
   implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.15.2")
   implementation("com.pauldijou:jwt-core_2.11:5.0.0")
   implementation("com.google.code.gson:gson:2.10.1")
-  implementation("com.google.guava:guava:32.1.2-jre")
+  implementation("com.google.guava:guava:32.1.3-jre")
 
   implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:2.2.0")
 
@@ -48,8 +48,8 @@ dependencies {
   testAnnotationProcessor("org.projectlombok:lombok:1.18.30")
   testCompileOnly("org.projectlombok:lombok:1.18.30")
 
-  testImplementation("io.jsonwebtoken:jjwt-impl:0.12.0")
-  testImplementation("io.jsonwebtoken:jjwt-jackson:0.12.0")
+  testImplementation("io.jsonwebtoken:jjwt-impl:0.12.2")
+  testImplementation("io.jsonwebtoken:jjwt-jackson:0.12.2")
 
   testImplementation("org.springframework.security:spring-security-test")
   testImplementation("com.tngtech.java:junit-dataprovider:1.13.1")
@@ -75,10 +75,5 @@ tasks {
     kotlinOptions {
       jvmTarget = "20"
     }
-  }
-
-  test {
-    // required for jjwt 0.12 - see https://github.com/jwtk/jjwt/issues/849
-    jvmArgs("--add-exports", "java.base/sun.security.util=ALL-UNNAMED")
   }
 }
