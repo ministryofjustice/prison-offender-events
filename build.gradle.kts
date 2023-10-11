@@ -62,7 +62,7 @@ dependencies {
   testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-reactive:1.7.3")
   testImplementation("org.mockito:mockito-inline:5.2.0")
   testImplementation("io.swagger.parser.v3:swagger-parser:2.1.16")
-  testImplementation("io.opentelemetry:opentelemetry-sdk-testing:1.31.0")
+  testImplementation("io.opentelemetry:opentelemetry-sdk-testing:1.30.1")
   testImplementation("javax.xml.bind:jaxb-api:2.3.1")
 }
 
@@ -75,10 +75,5 @@ tasks {
     kotlinOptions {
       jvmTarget = "20"
     }
-  }
-
-  test {
-    // required for jjwt 0.12 - see https://github.com/jwtk/jjwt/issues/849
-    jvmArgs("--add-exports", "java.base/sun.security.util=ALL-UNNAMED")
   }
 }
