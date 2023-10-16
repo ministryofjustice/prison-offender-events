@@ -18,7 +18,7 @@ class CommunityApiService(
 ) {
   fun getRecalls(offenderNumber: String?): List<Recall> =
     communityApiWebClient.get()
-      .uri("/secure/offenders/nomsNumber/$offenderNumber/convictions/active/nsis/recall")
+      .uri("/secure/offenders/nomsNumber/{offenderNumber}/convictions/active/nsis/recall", offenderNumber)
       .retrieve()
       .bodyToMono(NsiWrapper::class.java)
       .onErrorResume(WebClientResponseException::class.java) { emptyWhenNotFound(it) }
