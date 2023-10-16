@@ -26,14 +26,14 @@ class PrisonApiService(
   @Value("\${api.prisoner-timeout:30s}") private val timeout: Duration,
 ) {
   internal fun getPrisonerDetails(offenderNumber: String): PrisonerDetails = prisonApiWebClient.get()
-    .uri("/api/offenders/$offenderNumber")
+    .uri("/api/offenders/{offenderNumber}", offenderNumber)
     .retrieve()
     .bodyToMono(PrisonerDetails::class.java)
     .block(timeout)!!
 
   internal fun getPrisonerNumberForBookingId(bookingId: Long?): Optional<String> {
     val basicBookingDetail = prisonApiWebClient.get()
-      .uri("/api/bookings/$bookingId?basicInfo=true&extraInfo=false")
+      .uri("/api/bookings/{bookingId}?basicInfo=true&extraInfo=false", bookingId)
       .retrieve()
       .bodyToMono(BasicBookingDetail::class.java)
       .block(timeout)
@@ -48,7 +48,7 @@ class PrisonApiService(
     .block(timeout)!!
 
   internal fun getIdentifiersByBookingId(bookingId: Long?): List<BookingIdentifier>? = prisonApiWebClient.get()
-    .uri("/api/bookings/$bookingId/identifiers?type=MERGED")
+    .uri("/api/bookings/{bookingId}/identifiers?type=MERGED", bookingId)
     .retrieve()
     .bodyToMono<List<BookingIdentifier>>(object : ParameterizedTypeReference<List<BookingIdentifier>>() {})
     .block(timeout)
