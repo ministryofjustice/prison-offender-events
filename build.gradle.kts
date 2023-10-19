@@ -1,7 +1,7 @@
 @file:Suppress("UnstableApiUsage")
 
 plugins {
-  id("uk.gov.justice.hmpps.gradle-spring-boot") version "5.5.1"
+  id("uk.gov.justice.hmpps.gradle-spring-boot") version "5.7.0"
   kotlin("plugin.spring") version "1.9.10"
 }
 
@@ -37,7 +37,7 @@ dependencies {
   implementation("io.opentelemetry.instrumentation:opentelemetry-instrumentation-annotations:1.30.0")
 
   implementation("org.apache.commons:commons-text:1.10.0")
-  implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.15.2")
+  implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.15.3")
   implementation("com.pauldijou:jwt-core_2.11:5.0.0")
   implementation("com.google.code.gson:gson:2.10.1")
   implementation("com.google.guava:guava:32.1.3-jre")
@@ -48,8 +48,8 @@ dependencies {
   testAnnotationProcessor("org.projectlombok:lombok:1.18.30")
   testCompileOnly("org.projectlombok:lombok:1.18.30")
 
-  testImplementation("io.jsonwebtoken:jjwt-impl:0.12.2")
-  testImplementation("io.jsonwebtoken:jjwt-jackson:0.12.2")
+  testImplementation("io.jsonwebtoken:jjwt-impl:0.12.3")
+  testImplementation("io.jsonwebtoken:jjwt-jackson:0.12.3")
 
   testImplementation("org.springframework.security:spring-security-test")
   testImplementation("com.tngtech.java:junit-dataprovider:1.13.1")
@@ -61,7 +61,7 @@ dependencies {
   testImplementation("org.awaitility:awaitility-kotlin:4.2.0")
   testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-reactive:1.7.3")
   testImplementation("org.mockito:mockito-inline:5.2.0")
-  testImplementation("io.swagger.parser.v3:swagger-parser:2.1.16")
+  testImplementation("io.swagger.parser.v3:swagger-parser:2.1.18")
   testImplementation("io.opentelemetry:opentelemetry-sdk-testing:1.30.1")
   testImplementation("javax.xml.bind:jaxb-api:2.3.1")
 }
