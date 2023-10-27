@@ -78,14 +78,3 @@ The source set `testSmoke` contains the smoke tests.
 These tests are not intended to be run locally, but instead are run against a deployed application (as happens in the Circle build).
 
 For more information on the smoke tests see the project `dps-smoketest`.
-
-#### Manual Regression Test
-
-To perform a quick manual regression test of the service, for example after dependency updates, use the following process:
-
-- Log in to DPS
-- Search for a prisoner and click 'Add a case note'
-- Save an 'OMic', 'Open Case Note' (although subtype could be anything)
-- Search in Application Insights for: `requests | where cloud_RoleName == "community-api" | where url contains "case"`
-- Check that there are logs generated as a result of that case note creation
-

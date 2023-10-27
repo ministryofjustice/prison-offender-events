@@ -5,14 +5,13 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
 import uk.gov.justice.hmpps.offenderevents.resource.QueueListenerIntegrationTest
-import uk.gov.justice.hmpps.offenderevents.services.wiremock.CommunityApiExtension
 import uk.gov.justice.hmpps.offenderevents.services.wiremock.HMPPSAuthExtension
 import uk.gov.justice.hmpps.offenderevents.services.wiremock.PrisonApiExtension
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 import java.util.function.Consumer
 
-@ExtendWith(PrisonApiExtension::class, HMPPSAuthExtension::class, CommunityApiExtension::class)
+@ExtendWith(PrisonApiExtension::class, HMPPSAuthExtension::class)
 class HealthCheckTest : QueueListenerIntegrationTest() {
 
   @BeforeEach
@@ -32,7 +31,6 @@ class HealthCheckTest : QueueListenerIntegrationTest() {
       .jsonPath("status").isEqualTo("UP")
       .jsonPath("components.OAuthApiHealth.details.HttpStatus").isEqualTo("OK")
       .jsonPath("components.prisonApiHealth.details.HttpStatus").isEqualTo("OK")
-      .jsonPath("components.communityApiHealth.details.HttpStatus").isEqualTo("OK")
   }
 
   @Test
@@ -48,7 +46,6 @@ class HealthCheckTest : QueueListenerIntegrationTest() {
       .jsonPath("status").isEqualTo("DOWN")
       .jsonPath("components.OAuthApiHealth.details.HttpStatus").isEqualTo("NOT_FOUND")
       .jsonPath("components.prisonApiHealth.details.HttpStatus").isEqualTo("NOT_FOUND")
-      .jsonPath("components.communityApiHealth.details.HttpStatus").isEqualTo("NOT_FOUND")
   }
 
   @Test
@@ -63,7 +60,6 @@ class HealthCheckTest : QueueListenerIntegrationTest() {
       .expectBody()
       .jsonPath("components.OAuthApiHealth.details.HttpStatus").isEqualTo("I_AM_A_TEAPOT")
       .jsonPath("components.prisonApiHealth.details.HttpStatus").isEqualTo("I_AM_A_TEAPOT")
-      .jsonPath("components.communityApiHealth.details.HttpStatus").isEqualTo("I_AM_A_TEAPOT")
       .jsonPath("status").isEqualTo("DOWN")
   }
 
@@ -129,6 +125,5 @@ class HealthCheckTest : QueueListenerIntegrationTest() {
   fun stubHealthPing(status: Int) {
     HMPPSAuthExtension.server.stubHealthPing(status)
     PrisonApiExtension.server.stubHealthPing(status)
-    CommunityApiExtension.server.stubHealthPing(status)
   }
 }

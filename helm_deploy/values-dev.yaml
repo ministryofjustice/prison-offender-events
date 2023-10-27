@@ -14,7 +14,6 @@ generic-service:
 
   env:
     PRISON_API_BASE_URL: "https://prison-api-dev.prison.service.justice.gov.uk"
-    COMMUNITY_API_BASE_URL: "https://community-api.test.probation.service.justice.gov.uk"
     OAUTH_API_BASE_URL: "https://sign-in-dev.hmpps.service.justice.gov.uk/auth"
     CASENOTES_API_BASE_URL: "https://dev.offender-case-notes.service.justice.gov.uk"
     APPLICATIONINSIGHTS_CONFIGURATION_FILE: applicationinsights.dev.json

@@ -25,8 +25,7 @@ import org.mockito.kotlin.verifyNoInteractions
 import org.mockito.kotlin.whenever
 import org.mockito.quality.Strictness.LENIENT
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.boot.autoconfigure.jackson.JacksonAutoConfiguration
-import org.springframework.boot.test.context.SpringBootTest
+import org.springframework.boot.test.autoconfigure.json.JsonTest
 import software.amazon.awssdk.services.sns.SnsAsyncClient
 import software.amazon.awssdk.services.sns.model.MessageAttributeValue
 import software.amazon.awssdk.services.sns.model.PublishRequest
@@ -35,9 +34,7 @@ import uk.gov.justice.hmpps.offenderevents.services.CurrentLocation.IN_PRISON
 import uk.gov.justice.hmpps.offenderevents.services.CurrentLocation.OUTSIDE_PRISON
 import uk.gov.justice.hmpps.offenderevents.services.CurrentPrisonStatus.NOT_UNDER_PRISON_CARE
 import uk.gov.justice.hmpps.offenderevents.services.CurrentPrisonStatus.UNDER_PRISON_CARE
-import uk.gov.justice.hmpps.offenderevents.services.ReceivePrisonerReasonCalculator.ProbableCause
 import uk.gov.justice.hmpps.offenderevents.services.ReceivePrisonerReasonCalculator.ReceiveReason
-import uk.gov.justice.hmpps.offenderevents.services.ReceivePrisonerReasonCalculator.Source.PRISON
 import uk.gov.justice.hmpps.offenderevents.services.ReleasePrisonerReasonCalculator.MovementReason
 import uk.gov.justice.hmpps.offenderevents.services.ReleasePrisonerReasonCalculator.Reason
 import uk.gov.justice.hmpps.offenderevents.services.ReleasePrisonerReasonCalculator.Reason.TEMPORARY_ABSENCE_RELEASE
@@ -50,12 +47,9 @@ import java.time.OffsetDateTime
 import java.time.temporal.ChronoUnit.SECONDS
 import java.util.function.Consumer
 
-@SpringBootTest(classes = [JacksonAutoConfiguration::class])
-internal class HMPPSDomainEventsEmitterTest {
+@JsonTest
+internal class HMPPSDomainEventsEmitterTest(@Autowired private val objectMapper: ObjectMapper) {
   private lateinit var emitter: HMPPSDomainEventsEmitter
-
-  @Autowired
-  private lateinit var objectMapper: ObjectMapper
 
   private val receivePrisonerReasonCalculator: ReceivePrisonerReasonCalculator = mock()
   private val releasePrisonerReasonCalculator: ReleasePrisonerReasonCalculator = mock()
@@ -97,8 +91,6 @@ internal class HMPPSDomainEventsEmitterTest {
       .thenReturn(
         ReceiveReason(
           reason = ReceivePrisonerReasonCalculator.Reason.ADMISSION,
-          probableCause = ProbableCause.UNKNOWN,
-          source = PRISON,
           currentLocation = IN_PRISON,
           currentPrisonStatus = UNDER_PRISON_CARE,
           prisonId = "MDI",
@@ -187,8 +179,6 @@ internal class HMPPSDomainEventsEmitterTest {
         .thenReturn(
           ReceiveReason(
             ReceivePrisonerReasonCalculator.Reason.ADMISSION,
-            ProbableCause.RECALL,
-            PRISON,
             "some details",
             IN_PRISON,
             UNDER_PRISON_CARE,
@@ -257,12 +247,6 @@ internal class HMPPSDomainEventsEmitterTest {
     }
 
     @Test
-    @DisplayName("will indicate the probable cause for a prisoners entry")
-    fun willIndicateTheProbableCauseForAPrisonersEntry() {
-      assertThatJson(payload).node("additionalInformation.probableCause").isEqualTo("RECALL")
-    }
-
-    @Test
     @DisplayName("will describe the event as a receive")
     fun willDescribeTheEventAsAReceive() {
       assertThatJson(payload).node("description")
@@ -297,21 +281,9 @@ internal class HMPPSDomainEventsEmitterTest {
     }
 
     @Test
-    @DisplayName("will add probable cause to telemetry event")
-    fun willAddProbableCauseToTelemetryEvent() {
-      assertThat(telemetryAttributes).containsEntry("probableCause", "RECALL")
-    }
-
-    @Test
     @DisplayName("will add occurredAt to telemetry event")
     fun willAddOccurredAtToTelemetryEvent() {
       assertThat(telemetryAttributes).containsEntry("occurredAt", "2020-12-04T10:42:43Z")
-    }
-
-    @Test
-    @DisplayName("will add source to telemetry event")
-    fun willAddSourceToTelemetryEvent() {
-      assertThat(telemetryAttributes).containsEntry("source", "PRISON")
     }
 
     @Test
@@ -338,8 +310,6 @@ internal class HMPPSDomainEventsEmitterTest {
         .thenReturn(
           ReceiveReason(
             ReceivePrisonerReasonCalculator.Reason.ADMISSION,
-            ProbableCause.UNKNOWN,
-            PRISON,
             "some details",
             OUTSIDE_PRISON,
             NOT_UNDER_PRISON_CARE,
@@ -521,13 +491,6 @@ internal class HMPPSDomainEventsEmitterTest {
     @DisplayName("will add details to telemetry event when present")
     fun willAddDetailsToTelemetryEvent() {
       assertThat(telemetryAttributes).containsEntry("details", "some details")
-    }
-
-    @Test
-    @DisplayName("source will be absent from event and telemetry when not present")
-    fun sourceWillBeAbsentFromEventAndTelemetryWhenNotPresent() {
-      assertThatJson(payload).node("additionalInformation.source").isAbsent()
-      assertThat(telemetryAttributes).doesNotContainKey("source")
     }
 
     @Test

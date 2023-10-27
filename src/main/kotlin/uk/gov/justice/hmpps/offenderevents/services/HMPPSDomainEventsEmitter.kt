@@ -139,8 +139,6 @@ class HMPPSDomainEventsEmitter(
     )
       .withAdditionalInformation("nomsNumber", offenderNumber)
       .withAdditionalInformation("reason", receivedReason.reason.name)
-      .withAdditionalInformation("probableCause", receivedReason.probableCause?.name)
-      .withAdditionalInformation("source", receivedReason.source.name)
       .withAdditionalInformation("details", receivedReason.details)
       .withAdditionalInformation("currentLocation", receivedReason.currentLocation?.name)
       .withAdditionalInformation("prisonId", receivedReason.prisonId)

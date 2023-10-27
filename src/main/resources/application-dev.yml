@@ -3,8 +3,6 @@ oauth:
   api.base.url: ${OAUTH_API_BASE_URL:http://localhost:9090/auth}
 prison:
   api.base.url: ${PRISON_API_BASE_URL:http://localhost:8081}
-community:
-  api.base.url: ${COMMUNITY_API_BASE_URL:http://localhost:8082}
 casenotes:
   api.base.url: ${CASENOTES_API_BASE_URL:http://localhost:8083}
 

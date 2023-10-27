@@ -2,9 +2,6 @@ package uk.gov.justice.hmpps.offenderevents.e2e
 
 import com.fasterxml.jackson.core.JsonProcessingException
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.github.tomakehurst.wiremock.client.WireMock
-import com.github.tomakehurst.wiremock.client.WireMock.getRequestedFor
-import com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo
 import junit.framework.AssertionFailedError
 import net.javacrumbs.jsonunit.assertj.JsonAssertions.assertThatJson
 import org.assertj.core.api.Assertions.assertThat
@@ -23,16 +20,13 @@ import software.amazon.awssdk.services.sns.model.PublishRequest
 import software.amazon.awssdk.services.sqs.model.Message
 import software.amazon.awssdk.services.sqs.model.ReceiveMessageRequest
 import uk.gov.justice.hmpps.offenderevents.resource.QueueListenerIntegrationTest
-import uk.gov.justice.hmpps.offenderevents.services.wiremock.CommunityApiExtension
 import uk.gov.justice.hmpps.offenderevents.services.wiremock.HMPPSAuthExtension
 import uk.gov.justice.hmpps.offenderevents.services.wiremock.PrisonApiExtension
-import uk.gov.justice.hmpps.offenderevents.services.wiremock.PrisonApiMockServer.MovementFragment
-import java.time.LocalDateTime
 import java.time.OffsetDateTime
 import java.time.temporal.ChronoUnit
 import java.util.concurrent.ExecutionException
 
-@ExtendWith(PrisonApiExtension::class, CommunityApiExtension::class, HMPPSAuthExtension::class)
+@ExtendWith(PrisonApiExtension::class, HMPPSAuthExtension::class)
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 class HMPPSDomainEventsTest : QueueListenerIntegrationTest() {
   @Autowired
@@ -150,7 +144,7 @@ class HMPPSDomainEventsTest : QueueListenerIntegrationTest() {
       }
 
       @Test
-      @DisplayName("will publish prison-offender-events.prisoner.received HMPPS domain event without asking community-api")
+      @DisplayName("will publish prison-offender-events.prisoner.received HMPPS domain event")
       @Throws(
         ExecutionException::class,
         InterruptedException::class,
@@ -175,72 +169,13 @@ class HMPPSDomainEventsTest : QueueListenerIntegrationTest() {
                 },
               )
             assertThatJson(event).node("additionalInformation.reason").isEqualTo("ADMISSION")
-            assertThatJson(event).node("additionalInformation.probableCause").isEqualTo("RECALL")
             assertThatJson(event).node("additionalInformation.prisonId").isEqualTo("MDI")
-            assertThatJson(event).node("additionalInformation.source").isEqualTo("PRISON")
             assertThatJson(event).node("additionalInformation.currentLocation").isEqualTo("IN_PRISON")
             assertThatJson(event)
               .node("additionalInformation.currentPrisonStatus")
               .isEqualTo("UNDER_PRISON_CARE")
           },
         )
-        CommunityApiExtension.server.verify(0, getRequestedFor(WireMock.anyUrl()))
-      }
-    }
-
-    @Nested
-    internal inner class WhenIsReportedAsSentenced {
-      @BeforeEach
-      fun setUp() {
-        PrisonApiExtension.server.stubPrisonerDetails("A5194DY", "SENTENCED", false, "ADM", "K", "ACTIVE IN", "MDI")
-      }
-
-      @Test
-      @DisplayName("will publish prison-offender-events.prisoner.received HMPPS domain event by asking community-api")
-      @Throws(
-        ExecutionException::class,
-        InterruptedException::class,
-      )
-      fun willPublishHMPPSDomainEvent() {
-        CommunityApiExtension.server.stubForNoRecall("A5194DY")
-        Awaitility.await().until { getNumberOfMessagesCurrentlyOnHMPPSEventTestQueue() == 1 }
-        val hmppsEventMessages = geMessagesCurrentlyOnHMPPSTestQueue()
-        assertThat(hmppsEventMessages).singleElement().satisfies(
-          ThrowingConsumer { event: String? ->
-            assertThatJson(event).node("eventType").isEqualTo("prison-offender-events.prisoner.received")
-            assertThatJson(event).node("additionalInformation.reason").isEqualTo("ADMISSION")
-            assertThatJson(event).node("additionalInformation.probableCause").isEqualTo("CONVICTED")
-            assertThatJson(event).node("additionalInformation.prisonId").isEqualTo("MDI")
-            assertThatJson(event).node("additionalInformation.source").isEqualTo("PRISON")
-          },
-        )
-        CommunityApiExtension.server.verify(getRequestedFor(urlEqualTo("/secure/offenders/nomsNumber/A5194DY/convictions/active/nsis/recall")))
-      }
-
-      @Test
-      @DisplayName("will publish a recalled  prison-offender-events.prisoner.received HMPPS domain event when community-api indicates a recall")
-      @Throws(
-        ExecutionException::class,
-        InterruptedException::class,
-      )
-      fun willPublishRecallHMPPSDomainEvent() {
-        CommunityApiExtension.server.stubForRecall("A5194DY")
-        PrisonApiExtension.server.stubMovements(
-          "A5194DY",
-          listOf(MovementFragment("IN", LocalDateTime.now())),
-        )
-        Awaitility.await().until { getNumberOfMessagesCurrentlyOnHMPPSEventTestQueue() == 1 }
-        val hmppsEventMessages = geMessagesCurrentlyOnHMPPSTestQueue()
-        assertThat(hmppsEventMessages).singleElement().satisfies(
-          ThrowingConsumer { event: String? ->
-            assertThatJson(event).node("eventType").isEqualTo("prison-offender-events.prisoner.received")
-            assertThatJson(event).node("additionalInformation.reason").isEqualTo("ADMISSION")
-            assertThatJson(event).node("additionalInformation.probableCause").isEqualTo("RECALL")
-            assertThatJson(event).node("additionalInformation.prisonId").isEqualTo("MDI")
-            assertThatJson(event).node("additionalInformation.source").isEqualTo("PROBATION")
-          },
-        )
-        CommunityApiExtension.server.verify(getRequestedFor(urlEqualTo("/secure/offenders/nomsNumber/A5194DY/convictions/active/nsis/recall")))
       }
     }
   }
@@ -326,7 +261,6 @@ class HMPPSDomainEventsTest : QueueListenerIntegrationTest() {
                 },
               )
             assertThatJson(event).node("additionalInformation.reason").isEqualTo("TRANSFERRED")
-            assertThatJson(event).node("additionalInformation.probableCause").isAbsent()
             assertThatJson(event).node("additionalInformation.prisonId").isEqualTo("WWA")
             assertThatJson(event).node("additionalInformation.currentLocation")
               .isEqualTo("BEING_TRANSFERRED")
@@ -335,7 +269,6 @@ class HMPPSDomainEventsTest : QueueListenerIntegrationTest() {
               .isEqualTo("NOT_UNDER_PRISON_CARE")
           },
         )
-        CommunityApiExtension.server.verify(0, getRequestedFor(WireMock.anyUrl()))
       }
     }
 
@@ -359,7 +292,6 @@ class HMPPSDomainEventsTest : QueueListenerIntegrationTest() {
           ThrowingConsumer { event: String? ->
             assertThatJson(event).node("eventType").isEqualTo("prison-offender-events.prisoner.released")
             assertThatJson(event).node("additionalInformation.reason").isEqualTo("RELEASED")
-            assertThatJson(event).node("additionalInformation.probableCause").isAbsent()
             assertThatJson(event).node("additionalInformation.prisonId").isEqualTo("MDI")
             assertThatJson(event).node("additionalInformation.currentLocation")
               .isEqualTo("OUTSIDE_PRISON")

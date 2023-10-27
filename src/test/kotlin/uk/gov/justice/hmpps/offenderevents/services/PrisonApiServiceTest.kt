@@ -25,9 +25,6 @@ import uk.gov.justice.hmpps.offenderevents.services.LegalStatus.REMAND
 import uk.gov.justice.hmpps.offenderevents.services.wiremock.HMPPSAuthExtension
 import uk.gov.justice.hmpps.offenderevents.services.wiremock.PrisonApiExtension
 import uk.gov.justice.hmpps.offenderevents.services.wiremock.PrisonApiExtension.Companion.server
-import uk.gov.justice.hmpps.offenderevents.services.wiremock.PrisonApiMockServer.MovementFragment
-import java.time.LocalDate
-import java.time.LocalDateTime
 
 @ExtendWith(PrisonApiExtension::class, HMPPSAuthExtension::class)
 @ActiveProfiles(profiles = ["test"])
@@ -233,43 +230,6 @@ internal class PrisonApiServiceTest {
       assertThat(identifiers).isNotEmpty
       assertThat(identifiers).hasSize(1)
       assertThat(identifiers?.get(0)?.value).isEqualTo("A5841DY")
-    }
-  }
-
-  @Nested
-  internal inner class GetMovements {
-    @BeforeEach
-    fun setUp() {
-      server.stubMovements(
-        "A7841DY",
-        listOf(
-          MovementFragment("IN", LocalDateTime.parse("2020-07-19T10:00:40")),
-          MovementFragment("OUT", LocalDateTime.parse("2020-07-20T11:00:40")),
-        ),
-      )
-    }
-
-    @Test
-    @DisplayName("can retrieve all movements")
-    fun canRetrieveAllMovements() {
-      val movements = service.getMovements("A7841DY")
-      assertThat(movements).hasSize(2)
-    }
-
-    @Test
-    @DisplayName("can parse the direction code")
-    fun canParseTheDirectionCode() {
-      val movements = service.getMovements("A7841DY")
-      assertThat(movements[0].directionCode).isEqualTo("IN")
-      assertThat(movements[1].directionCode).isEqualTo("OUT")
-    }
-
-    @Test
-    @DisplayName("can parse movement date")
-    fun canParseMovementDate() {
-      val movements = service.getMovements("A7841DY")
-      assertThat(movements[0].movementDate).isEqualTo(LocalDate.parse("2020-07-19"))
-      assertThat(movements[1].movementDate).isEqualTo(LocalDate.parse("2020-07-20"))
     }
   }
 }
