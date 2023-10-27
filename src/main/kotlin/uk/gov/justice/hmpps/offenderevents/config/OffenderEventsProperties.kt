@@ -13,10 +13,6 @@ class OffenderEventsProperties(
    */
   @Value("\${prison.api.base.url}") val prisonApiBaseUrl: @URL String,
   /**
-   * Prison API Base URL endpoint ("http://localhost:8082")
-   */
-  @Value("\${community.api.base.url}") val communityApiBaseUrl: @URL String,
-  /**
    * OAUTH2 API Rest URL endpoint ("http://localhost:9090/auth")
    */
   @Value("\${oauth.api.base.url}") val oauthApiBaseUrl: @URL String,

@@ -33,27 +33,6 @@ class WebClientConfiguration(private val properties: OffenderEventsProperties) {
       .build()
   }
 
-  @Bean
-  fun communityApiWebClient(
-    builder: WebClient.Builder,
-    authorizedClientManager: OAuth2AuthorizedClientManager,
-  ): WebClient {
-    val oauth2Client = ServletOAuth2AuthorizedClientExchangeFilterFunction(authorizedClientManager).also {
-      it.setDefaultClientRegistrationId("community-api")
-    }
-    return builder
-      .baseUrl(properties.communityApiBaseUrl)
-      .apply(oauth2Client.oauth2Configuration())
-      .exchangeStrategies(
-        ExchangeStrategies.builder().codecs {
-          it.defaultCodecs()
-            .maxInMemorySize(1024 * 1024)
-        }
-          .build(),
-      )
-      .build()
-  }
-
   /*** default web client for health checks */
   @Bean
   fun healthCheckWebClient(builder: WebClient.Builder): WebClient = builder.build()

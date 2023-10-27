@@ -40,13 +40,6 @@ class PrisonApiService(
     return if (basicBookingDetail != null) Optional.of(basicBookingDetail.offenderNo) else Optional.empty()
   }
 
-  internal fun getMovements(offenderNumber: String): List<Movement> = prisonApiWebClient.post()
-    .uri("/api/movements/offenders?latestOnly=false&allBookings=true")
-    .bodyValue(listOf(offenderNumber))
-    .retrieve()
-    .bodyToMono<List<Movement>>(object : ParameterizedTypeReference<List<Movement>>() {})
-    .block(timeout)!!
-
   internal fun getIdentifiersByBookingId(bookingId: Long?): List<BookingIdentifier>? = prisonApiWebClient.get()
     .uri("/api/bookings/{bookingId}/identifiers?type=MERGED", bookingId)
     .retrieve()

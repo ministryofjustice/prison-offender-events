@@ -26,10 +26,7 @@ import java.time.OffsetDateTime
 import java.time.format.DateTimeFormatter
 
 @JsonTest
-internal class PrisonerEventsListenerTest {
-  @Autowired
-  private lateinit var objectMapper: ObjectMapper
-
+internal class PrisonerEventsListenerTest(@Autowired private val objectMapper: ObjectMapper) {
   private val hmppsQueueService: HmppsQueueService = mock()
   private val eventsEmitter: HMPPSDomainEventsEmitter = mock()
 

@@ -12,7 +12,6 @@ generic-service:
 
   env:
     PRISON_API_BASE_URL: "https://api-preprod.prison.service.justice.gov.uk"
-    COMMUNITY_API_BASE_URL: "https://community-api.pre-prod.delius.probation.hmpps.dsd.io"
     OAUTH_API_BASE_URL: "https://sign-in-preprod.hmpps.service.justice.gov.uk/auth"
     CASENOTES_API_BASE_URL: "https://preprod.offender-case-notes.service.justice.gov.uk"
     APPLICATIONINSIGHTS_CONFIGURATION_FILE: applicationinsights.json
