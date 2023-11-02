@@ -1,8 +1,8 @@
 @file:Suppress("UnstableApiUsage")
 
 plugins {
-  id("uk.gov.justice.hmpps.gradle-spring-boot") version "5.7.0"
-  kotlin("plugin.spring") version "1.9.10"
+  id("uk.gov.justice.hmpps.gradle-spring-boot") version "5.8.0"
+  kotlin("plugin.spring") version "1.9.20"
 }
 
 configurations {
@@ -34,9 +34,9 @@ dependencies {
   implementation("org.springframework.boot:spring-boot-starter-cache")
 
   implementation("uk.gov.justice.service.hmpps:hmpps-sqs-spring-boot-starter:2.1.1")
-  implementation("io.opentelemetry.instrumentation:opentelemetry-instrumentation-annotations:1.30.0")
+  implementation("io.opentelemetry.instrumentation:opentelemetry-instrumentation-annotations:1.31.0")
 
-  implementation("org.apache.commons:commons-text:1.10.0")
+  implementation("org.apache.commons:commons-text:1.11.0")
   implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.15.3")
   implementation("com.pauldijou:jwt-core_2.11:5.0.0")
   implementation("com.google.code.gson:gson:2.10.1")
@@ -62,18 +62,18 @@ dependencies {
   testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-reactive:1.7.3")
   testImplementation("org.mockito:mockito-inline:5.2.0")
   testImplementation("io.swagger.parser.v3:swagger-parser:2.1.18")
-  testImplementation("io.opentelemetry:opentelemetry-sdk-testing:1.30.1")
+  testImplementation("io.opentelemetry:opentelemetry-sdk-testing:1.31.0")
   testImplementation("javax.xml.bind:jaxb-api:2.3.1")
 }
 
-java {
-  toolchain.languageVersion.set(JavaLanguageVersion.of(20))
+kotlin {
+  jvmToolchain(21)
 }
 
 tasks {
   withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile> {
     kotlinOptions {
-      jvmTarget = "20"
+      jvmTarget = "21"
     }
   }
 }
