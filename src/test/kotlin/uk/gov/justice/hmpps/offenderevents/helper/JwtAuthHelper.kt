@@ -1,7 +1,6 @@
 package uk.gov.justice.hmpps.offenderevents.helper
 
 import io.jsonwebtoken.Jwts
-import io.jsonwebtoken.SignatureAlgorithm
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Primary
 import org.springframework.http.HttpHeaders
@@ -17,13 +16,7 @@ import java.util.UUID
 
 @Component
 class JwtAuthHelper() {
-  private val keyPair: KeyPair
-
-  init {
-    val gen = KeyPairGenerator.getInstance("RSA")
-    gen.initialize(2048)
-    keyPair = gen.generateKeyPair()
-  }
+  private val keyPair: KeyPair = KeyPairGenerator.getInstance("RSA").apply { initialize(2048) }.generateKeyPair()
 
   @Bean
   @Primary
@@ -53,11 +46,11 @@ class JwtAuthHelper() {
       .also { scope?.let { scope -> it["scope"] = scope } }
       .let {
         Jwts.builder()
-          .setId(jwtId)
-          .setSubject(subject)
-          .addClaims(it.toMap())
-          .setExpiration(Date(System.currentTimeMillis() + expiryTime.toMillis()))
-          .signWith(keyPair.private, SignatureAlgorithm.RS256)
+          .id(jwtId)
+          .subject(subject)
+          .claims(it.toMap())
+          .expiration(Date(System.currentTimeMillis() + expiryTime.toMillis()))
+          .signWith(keyPair.private, Jwts.SIG.RS256)
           .compact()
       }
 }
