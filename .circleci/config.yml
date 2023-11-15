@@ -110,12 +110,11 @@ workflows:
           slack_channel: syscon-alerts
           context:
             - hmpps-common-vars
-# Disable until fixed by veracode - see #veracode channel
-#     - hmpps/veracode_pipeline_scan:
-#         slack_channel: syscon-alerts
-#         context:
-#           - veracode-credentials
-#           - hmpps-common-vars
+      - hmpps/veracode_pipeline_scan:
+          slack_channel: syscon-alerts
+          context:
+            - veracode-credentials
+            - hmpps-common-vars
   security-weekly:
     triggers:
       - schedule:
