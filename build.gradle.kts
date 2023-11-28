@@ -1,8 +1,8 @@
 @file:Suppress("UnstableApiUsage")
 
 plugins {
-  id("uk.gov.justice.hmpps.gradle-spring-boot") version "5.9.0"
-  kotlin("plugin.spring") version "1.9.20"
+  id("uk.gov.justice.hmpps.gradle-spring-boot") version "5.10.0"
+  kotlin("plugin.spring") version "1.9.21"
 }
 
 configurations {
@@ -34,7 +34,7 @@ dependencies {
   implementation("org.springframework.boot:spring-boot-starter-cache")
 
   implementation("uk.gov.justice.service.hmpps:hmpps-sqs-spring-boot-starter:2.1.1")
-  implementation("io.opentelemetry.instrumentation:opentelemetry-instrumentation-annotations:1.31.0")
+  implementation("io.opentelemetry.instrumentation:opentelemetry-instrumentation-annotations:1.32.0")
 
   implementation("org.apache.commons:commons-text:1.11.0")
   implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.16.0")
@@ -54,14 +54,14 @@ dependencies {
   testImplementation("org.springframework.security:spring-security-test")
   testImplementation("com.tngtech.java:junit-dataprovider:1.13.1")
   testImplementation("io.github.http-builder-ng:http-builder-ng-apache:1.0.4")
-  testImplementation("org.wiremock:wiremock:3.3.1")
+  testImplementation("org.wiremock:wiremock-standalone:3.3.1")
   testImplementation("junit:junit:4.13.2")
   testImplementation("net.javacrumbs.json-unit:json-unit-assertj:3.2.2")
   testImplementation("org.awaitility:awaitility:4.2.0")
   testImplementation("org.awaitility:awaitility-kotlin:4.2.0")
   testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-reactive:1.7.3")
   testImplementation("org.mockito:mockito-inline:5.2.0")
-  testImplementation("io.swagger.parser.v3:swagger-parser:2.1.18") {
+  testImplementation("io.swagger.parser.v3:swagger-parser:2.1.19") {
     exclude(group = "io.swagger.core.v3")
   }
   testImplementation("io.swagger.core.v3:swagger-core-jakarta:2.2.19")
