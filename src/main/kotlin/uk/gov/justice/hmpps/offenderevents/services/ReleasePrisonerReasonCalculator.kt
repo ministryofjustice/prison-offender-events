@@ -56,7 +56,12 @@ class ReleasePrisonerReasonCalculator(private val prisonApiService: PrisonApiSer
   }
 
   internal enum class Reason {
-    UNKNOWN, TEMPORARY_ABSENCE_RELEASE, RELEASED_TO_HOSPITAL, RELEASED, SENT_TO_COURT, TRANSFERRED
+    UNKNOWN,
+    TEMPORARY_ABSENCE_RELEASE,
+    RELEASED_TO_HOSPITAL,
+    RELEASED,
+    SENT_TO_COURT,
+    TRANSFERRED,
   }
 
   internal data class MovementReason(val code: String)
