@@ -8,9 +8,12 @@ interface PrisonerMovementReason {
 }
 
 enum class CurrentLocation {
-  IN_PRISON, OUTSIDE_PRISON, BEING_TRANSFERRED
+  IN_PRISON,
+  OUTSIDE_PRISON,
+  BEING_TRANSFERRED,
 }
 
 enum class CurrentPrisonStatus {
-  UNDER_PRISON_CARE, NOT_UNDER_PRISON_CARE
+  UNDER_PRISON_CARE,
+  NOT_UNDER_PRISON_CARE,
 }

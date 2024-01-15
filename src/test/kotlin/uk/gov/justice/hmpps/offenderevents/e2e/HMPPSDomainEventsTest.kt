@@ -79,8 +79,8 @@ class HMPPSDomainEventsTest : QueueListenerIntegrationTest() {
   private fun sendToTopic(eventType: String, payload: String) {
     val attributes = mapOf(
       "eventType" to MessageAttributeValue.builder().dataType("String").stringValue(eventType).build(),
-      "publishedAt" to MessageAttributeValue.builder().dataType("String").stringValue("2021-06-08T14:41:14Z")
-        .build(), // LocalDateTime.now().format(DateTimeFormatter.ISO_INSTANT)
+      // LocalDateTime.now().format(DateTimeFormatter.ISO_INSTANT)
+      "publishedAt" to MessageAttributeValue.builder().dataType("String").stringValue("2021-06-08T14:41:14Z").build(),
     )
     prisonEventTopicSnsClient.publish(
       PublishRequest.builder().topicArn(prisonEventTopicArn).message(payload)

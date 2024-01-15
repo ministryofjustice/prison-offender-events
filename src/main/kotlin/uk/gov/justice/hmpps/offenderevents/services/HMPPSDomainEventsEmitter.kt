@@ -222,8 +222,8 @@ class HMPPSDomainEventsEmitter(
       .withAdditionalInformation(
         "caseNoteType",
         "${event.caseNoteType}-${
-        event.caseNoteSubType.split("\\W".toRegex()).dropLastWhile { it.isEmpty() }
-          .toTypedArray()[0]
+          event.caseNoteSubType.split("\\W".toRegex()).dropLastWhile { it.isEmpty() }
+            .toTypedArray()[0]
         }",
       )
       .withAdditionalInformation("type", event.caseNoteType)

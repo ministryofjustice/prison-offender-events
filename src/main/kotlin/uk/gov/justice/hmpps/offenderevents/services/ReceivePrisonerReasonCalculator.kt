@@ -31,7 +31,10 @@ class ReceivePrisonerReasonCalculator(
   }
 
   enum class Reason {
-    ADMISSION, TEMPORARY_ABSENCE_RETURN, RETURN_FROM_COURT, TRANSFERRED
+    ADMISSION,
+    TEMPORARY_ABSENCE_RETURN,
+    RETURN_FROM_COURT,
+    TRANSFERRED,
   }
 
   internal data class MovementReason(val code: String)

@@ -48,8 +48,8 @@ class ClientTrackingConfigurationTest {
       t.hasSpansSatisfyingExactly({
         it.hasAttribute(AttributeKey.stringKey("username"), "bob")
         it.hasAttribute(AttributeKey.stringKey("clientId"), "hmpps-offender-events-client")
-      },)
-    },)
+      })
+    })
   }
 
   @Test
@@ -65,8 +65,8 @@ class ClientTrackingConfigurationTest {
       t.hasSpansSatisfyingExactly({
         it.hasAttribute(AttributeKey.stringKey("username"), "Fred")
         it.hasAttribute(AttributeKey.stringKey("clientId"), "hmpps-offender-events-client")
-      },)
-    },)
+      })
+    })
   }
 
   @Test
@@ -81,8 +81,8 @@ class ClientTrackingConfigurationTest {
     otelTesting.assertTraces().hasTracesSatisfyingExactly({ t ->
       t.hasSpansSatisfyingExactly({
         it.hasAttribute(AttributeKey.stringKey("clientIpAddress"), someIpAddress)
-      },)
-    },)
+      })
+    })
   }
 
   @Test
@@ -97,8 +97,8 @@ class ClientTrackingConfigurationTest {
     otelTesting.assertTraces().hasTracesSatisfyingExactly({ t ->
       t.hasSpansSatisfyingExactly({
         it.hasAttribute(AttributeKey.stringKey("clientIpAddress"), someIpAddress)
-      },)
-    },)
+      })
+    })
   }
 
   private companion object {
