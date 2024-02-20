@@ -25,7 +25,7 @@ dependencies {
   annotationProcessor("org.projectlombok:lombok:1.18.30")
   compileOnly("org.projectlombok:lombok:1.18.30")
 
-  implementation("uk.gov.justice.service.hmpps:hmpps-kotlin-spring-boot-starter:0.1.0")
+  implementation("uk.gov.justice.service.hmpps:hmpps-kotlin-spring-boot-starter:0.1.1")
   implementation("org.springframework.boot:spring-boot-starter-webflux")
 
   implementation("uk.gov.justice.service.hmpps:hmpps-sqs-spring-boot-starter:3.1.1")
@@ -49,12 +49,12 @@ dependencies {
   testImplementation("org.springframework.security:spring-security-test")
   testImplementation("com.tngtech.java:junit-dataprovider:1.13.1")
   testImplementation("io.github.http-builder-ng:http-builder-ng-apache:1.0.4")
-  testImplementation("org.wiremock:wiremock-standalone:3.3.1")
+  testImplementation("org.wiremock:wiremock-standalone:3.4.0")
   testImplementation("junit:junit:4.13.2")
   testImplementation("net.javacrumbs.json-unit:json-unit-assertj:3.2.4")
   testImplementation("org.awaitility:awaitility:4.2.0")
   testImplementation("org.awaitility:awaitility-kotlin:4.2.0")
-  testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-reactive:1.7.3")
+  testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-reactive:1.8.0")
   testImplementation("org.mockito:mockito-inline:5.2.0")
   testImplementation("io.swagger.parser.v3:swagger-parser:2.1.20") {
     exclude(group = "io.swagger.core.v3")
