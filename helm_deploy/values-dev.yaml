@@ -13,9 +13,9 @@ generic-service:
   allowlist: null
 
   env:
-    PRISON_API_BASE_URL: "https://prison-api-dev.prison.service.justice.gov.uk"
-    OAUTH_API_BASE_URL: "https://sign-in-dev.hmpps.service.justice.gov.uk/auth"
-    CASENOTES_API_BASE_URL: "https://dev.offender-case-notes.service.justice.gov.uk"
+    API_BASE_URL_PRISON: "https://prison-api-dev.prison.service.justice.gov.uk"
+    API_BASE_URL_HMPPS_AUTH: "https://sign-in-dev.hmpps.service.justice.gov.uk/auth"
+    API_BASE_URL_CASENOTES: "https://dev.offender-case-notes.service.justice.gov.uk"
     APPLICATIONINSIGHTS_CONFIGURATION_FILE: applicationinsights.dev.json
     APPLICATION_LISTENER_TOTALDELAYDURATION: "PT1M"
     APPLICATION_LISTENER_DELAYDURATION: "PT30S"

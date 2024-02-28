@@ -11,14 +11,14 @@ spring:
             scope: read
         provider:
           hmpps-smoketest-auth:
-            token-uri: ${smoketest.oauth.endpoint.url}/oauth/token
+            token-uri: ${smoketest.hmpps-auth.endpoint.url}/oauth/token
 
 graceful:
   shutdown.enabled: false
 
 smoketest:
   enabled: true
-  oauth:
+  hmpps-auth:
     endpoint:
       url: http://localhost:8090
   endpoint:

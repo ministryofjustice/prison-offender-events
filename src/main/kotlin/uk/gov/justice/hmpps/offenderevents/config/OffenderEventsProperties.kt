@@ -11,5 +11,5 @@ class OffenderEventsProperties(
   /**
    * Case Notes API Rest URL endpoint ("http://localhost:8083")
    */
-  @Value("\${casenotes.api.base.url}") val casenotesApiBaseUrl: @URL String,
+  @Value("\${api.base.url.casenotes}") val casenotesApiBaseUrl: @URL String,
 )
