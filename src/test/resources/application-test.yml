@@ -6,9 +6,10 @@ management.endpoint:
   health.cache.time-to-live: 0
   info.cache.time-to-live: 0
 
-oauth.api.base.url: http://localhost:8090/auth
-prison.api.base.url: http://localhost:8086
-casenotes.api.base.url: http://localhost:8088
+api.base.url:
+  hmpps-auth: http://localhost:8090/auth
+  prison: http://localhost:8086
+  casenotes: http://localhost:8088
 
 offender.events:
   client:

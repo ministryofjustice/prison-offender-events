@@ -1,10 +1,8 @@
 
-oauth:
-  api.base.url: ${OAUTH_API_BASE_URL:http://localhost:9090/auth}
-prison:
-  api.base.url: ${PRISON_API_BASE_URL:http://localhost:8081}
-casenotes:
-  api.base.url: ${CASENOTES_API_BASE_URL:http://localhost:8083}
+api.base.url:
+  hmpps-auth: ${API_BASE_URL_HMPPS_AUTH:http://localhost:9090/auth}
+  prison: ${API_BASE_URL_PRISON:http://localhost:8081}
+  casenotes: ${API_BASE_URL_CASENOTES:http://localhost:8083}
 
 offender.events:
   client:

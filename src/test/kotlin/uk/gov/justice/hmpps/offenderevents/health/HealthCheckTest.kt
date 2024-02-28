@@ -29,7 +29,7 @@ class HealthCheckTest : QueueListenerIntegrationTest() {
       .isOk
       .expectBody()
       .jsonPath("status").isEqualTo("UP")
-      .jsonPath("components.OAuthApiHealth.details.HttpStatus").isEqualTo("OK")
+      .jsonPath("components.hmppsAuthApiHealth.details.HttpStatus").isEqualTo("OK")
       .jsonPath("components.prisonApiHealth.details.HttpStatus").isEqualTo("OK")
   }
 
@@ -44,7 +44,7 @@ class HealthCheckTest : QueueListenerIntegrationTest() {
       .is5xxServerError
       .expectBody()
       .jsonPath("status").isEqualTo("DOWN")
-      .jsonPath("components.OAuthApiHealth.details.HttpStatus").isEqualTo("NOT_FOUND")
+      .jsonPath("components.hmppsAuthApiHealth.details.HttpStatus").isEqualTo("NOT_FOUND")
       .jsonPath("components.prisonApiHealth.details.HttpStatus").isEqualTo("NOT_FOUND")
   }
 
@@ -58,7 +58,7 @@ class HealthCheckTest : QueueListenerIntegrationTest() {
       .expectStatus()
       .is5xxServerError
       .expectBody()
-      .jsonPath("components.OAuthApiHealth.details.HttpStatus").isEqualTo("I_AM_A_TEAPOT")
+      .jsonPath("components.hmppsAuthApiHealth.details.HttpStatus").isEqualTo("I_AM_A_TEAPOT")
       .jsonPath("components.prisonApiHealth.details.HttpStatus").isEqualTo("I_AM_A_TEAPOT")
       .jsonPath("status").isEqualTo("DOWN")
   }
