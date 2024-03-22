@@ -1,8 +1,8 @@
 @file:Suppress("UnstableApiUsage")
 
 plugins {
-  id("uk.gov.justice.hmpps.gradle-spring-boot") version "5.15.3"
-  kotlin("plugin.spring") version "1.9.22"
+  id("uk.gov.justice.hmpps.gradle-spring-boot") version "5.15.4"
+  kotlin("plugin.spring") version "1.9.23"
 }
 
 configurations {
@@ -22,14 +22,14 @@ configurations["testSmokeImplementation"].extendsFrom(configurations["testImplem
 
 dependencies {
   annotationProcessor("org.springframework.boot:spring-boot-configuration-processor")
-  annotationProcessor("org.projectlombok:lombok:1.18.30")
-  compileOnly("org.projectlombok:lombok:1.18.30")
+  annotationProcessor("org.projectlombok:lombok:1.18.32")
+  compileOnly("org.projectlombok:lombok:1.18.32")
 
   implementation("uk.gov.justice.service.hmpps:hmpps-kotlin-spring-boot-starter:0.2.2")
   implementation("org.springframework.boot:spring-boot-starter-webflux")
 
   implementation("uk.gov.justice.service.hmpps:hmpps-sqs-spring-boot-starter:3.1.1")
-  implementation("io.opentelemetry.instrumentation:opentelemetry-instrumentation-annotations:1.32.0")
+  implementation("io.opentelemetry.instrumentation:opentelemetry-instrumentation-annotations:1.33.1")
 
   implementation("org.apache.commons:commons-text:1.11.0")
   implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.17.0")
@@ -40,8 +40,8 @@ dependencies {
   implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:2.4.0")
 
   testAnnotationProcessor("org.springframework.boot:spring-boot-configuration-processor")
-  testAnnotationProcessor("org.projectlombok:lombok:1.18.30")
-  testCompileOnly("org.projectlombok:lombok:1.18.30")
+  testAnnotationProcessor("org.projectlombok:lombok:1.18.32")
+  testCompileOnly("org.projectlombok:lombok:1.18.32")
 
   testImplementation("io.jsonwebtoken:jjwt-impl:0.12.5")
   testImplementation("io.jsonwebtoken:jjwt-jackson:0.12.5")
@@ -59,8 +59,8 @@ dependencies {
   testImplementation("io.swagger.parser.v3:swagger-parser:2.1.21") {
     exclude(group = "io.swagger.core.v3")
   }
-  testImplementation("io.swagger.core.v3:swagger-core-jakarta:2.2.20")
-  testImplementation("io.opentelemetry:opentelemetry-sdk-testing:1.32.0")
+  testImplementation("io.swagger.core.v3:swagger-core-jakarta:2.2.21")
+  testImplementation("io.opentelemetry:opentelemetry-sdk-testing:1.35.0")
 }
 
 kotlin {
