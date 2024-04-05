@@ -14,6 +14,7 @@ import uk.gov.justice.hmpps.offenderevents.model.CaseNoteOffenderEvent
 import uk.gov.justice.hmpps.offenderevents.model.CellMoveOffenderEvent
 import uk.gov.justice.hmpps.offenderevents.model.HmppsDomainEvent
 import uk.gov.justice.hmpps.offenderevents.model.HmppsDomainEvent.PersonReference
+import uk.gov.justice.hmpps.offenderevents.model.ImprisonmentStatusChangedEvent
 import uk.gov.justice.hmpps.offenderevents.model.NonAssociationDetailsOffenderEvent
 import uk.gov.justice.hmpps.offenderevents.model.OffenderEvent
 import uk.gov.justice.hmpps.offenderevents.model.PersonRestrictionOffenderEvent
@@ -31,6 +32,7 @@ import uk.gov.justice.hmpps.sqs.HmppsQueueService
 import java.time.OffsetDateTime
 import java.time.format.DateTimeFormatter
 import java.util.function.Consumer
+import kotlin.jvm.optionals.getOrNull
 
 @Service
 class HMPPSDomainEventsEmitter(
@@ -41,6 +43,7 @@ class HMPPSDomainEventsEmitter(
   private val mergeRecordDiscriminator: MergeRecordDiscriminator,
   private val telemetryClient: TelemetryClient,
   private val offenderEventsProperties: OffenderEventsProperties,
+  private val prisonApiService: PrisonApiService,
 ) {
   private final val hmppsEventsTopicSnsClient: SnsAsyncClient
   private final val topicArn: String
@@ -65,6 +68,7 @@ class HMPPSDomainEventsEmitter(
       is RestrictionOffenderEvent -> listOf(toRestriction(offenderEvent))
       is PrisonerActivityUpdateEvent -> listOf(toActivityChanged(offenderEvent))
       is PrisonerAppointmentUpdateEvent -> listOf(toAppointmentChanged(offenderEvent))
+      is ImprisonmentStatusChangedEvent -> listOfNotNull(toImprisonmentStatusChanged(offenderEvent))
 
       else -> emptyList()
     }
@@ -323,6 +327,21 @@ class HMPPSDomainEventsEmitter(
       .withAdditionalInformation("action", event.action)
       .withAdditionalInformation("prisonId", event.prisonId)
       .withAdditionalInformation("user", event.user)
+
+  private fun toImprisonmentStatusChanged(event: ImprisonmentStatusChangedEvent) =
+    if (event.imprisonmentStatusSeq == 0) {
+      prisonApiService.getPrisonerNumberForBookingId(event.bookingId).getOrNull()?.let {
+        HmppsDomainEvent(
+          eventType = "prison-offender-events.prisoner.imprisonment-status-changed",
+          description = "A prisoner's imprisonment status has been changed",
+          occurredAt = event.toOccurredAt(),
+          publishedAt = OffsetDateTime.now().toString(),
+          personReference = PersonReference(it),
+        ).withAdditionalInformation("bookingId", event.bookingId)
+      }
+    } else {
+      null
+    }
 
   fun sendEvent(payload: HmppsDomainEvent) {
     try {

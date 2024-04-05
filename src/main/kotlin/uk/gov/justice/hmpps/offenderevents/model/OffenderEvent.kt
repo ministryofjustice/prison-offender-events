@@ -33,6 +33,7 @@ abstract class OffenderEvent(
       "VISITOR_RESTRICTION-DELETED" to VisitorRestrictionOffenderEvent::class.java,
       "PRISONER_ACTIVITY-UPDATE" to PrisonerActivityUpdateEvent::class.java,
       "PRISONER_APPOINTMENT-UPDATE" to PrisonerAppointmentUpdateEvent::class.java,
+      "IMPRISONMENT_STATUS-CHANGED" to ImprisonmentStatusChangedEvent::class.java,
     )
   }
 }
@@ -163,4 +164,14 @@ class PrisonerAppointmentUpdateEvent(
 ) : OffenderEvent(
   eventDatetime = eventDatetime,
   offenderIdDisplay = offenderIdDisplay,
+)
+
+@JsonInclude(JsonInclude.Include.NON_NULL)
+class ImprisonmentStatusChangedEvent(
+  eventDatetime: LocalDateTime,
+  val bookingId: Long,
+  val imprisonmentStatusSeq: Int,
+) : OffenderEvent(
+  eventDatetime = eventDatetime,
+  offenderIdDisplay = null,
 )
