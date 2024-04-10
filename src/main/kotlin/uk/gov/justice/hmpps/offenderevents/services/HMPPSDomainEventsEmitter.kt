@@ -24,6 +24,7 @@ import uk.gov.justice.hmpps.offenderevents.model.PrisonerDischargedOffenderEvent
 import uk.gov.justice.hmpps.offenderevents.model.PrisonerMergedOffenderEvent
 import uk.gov.justice.hmpps.offenderevents.model.PrisonerReceivedOffenderEvent
 import uk.gov.justice.hmpps.offenderevents.model.RestrictionOffenderEvent
+import uk.gov.justice.hmpps.offenderevents.model.SentenceDatesChangedEvent
 import uk.gov.justice.hmpps.offenderevents.model.VisitorRestrictionOffenderEvent
 import uk.gov.justice.hmpps.offenderevents.services.MergeRecordDiscriminator.MergeOutcome
 import uk.gov.justice.hmpps.offenderevents.services.ReceivePrisonerReasonCalculator.ReceiveReason
@@ -69,6 +70,7 @@ class HMPPSDomainEventsEmitter(
       is PrisonerActivityUpdateEvent -> listOf(toActivityChanged(offenderEvent))
       is PrisonerAppointmentUpdateEvent -> listOf(toAppointmentChanged(offenderEvent))
       is ImprisonmentStatusChangedEvent -> listOfNotNull(toImprisonmentStatusChanged(offenderEvent))
+      is SentenceDatesChangedEvent -> listOf(toSentenceDatesChanged(offenderEvent))
 
       else -> emptyList()
     }
@@ -342,6 +344,17 @@ class HMPPSDomainEventsEmitter(
     } else {
       null
     }
+
+  private fun toSentenceDatesChanged(event: SentenceDatesChangedEvent) = HmppsDomainEvent(
+    eventType = "prison-offender-events.prisoner.sentence-dates-changed",
+    description = "A prisoner's sentence dates have been changed",
+    occurredAt = event.toOccurredAt(),
+    publishedAt = OffsetDateTime.now().toString(),
+    personReference = PersonReference(event.offenderIdDisplay),
+  )
+    .withAdditionalInformation("nomsNumber", event.offenderIdDisplay)
+    .withAdditionalInformation("bookingId", event.bookingId)
+    .withAdditionalInformation("sentenceCalculationId", event.sentenceCalculationId)
 
   fun sendEvent(payload: HmppsDomainEvent) {
     try {
