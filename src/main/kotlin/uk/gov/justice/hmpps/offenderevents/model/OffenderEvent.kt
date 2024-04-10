@@ -34,6 +34,7 @@ abstract class OffenderEvent(
       "PRISONER_ACTIVITY-UPDATE" to PrisonerActivityUpdateEvent::class.java,
       "PRISONER_APPOINTMENT-UPDATE" to PrisonerAppointmentUpdateEvent::class.java,
       "IMPRISONMENT_STATUS-CHANGED" to ImprisonmentStatusChangedEvent::class.java,
+      "SENTENCE_DATES-CHANGED" to SentenceDatesChangedEvent::class.java,
     )
   }
 }
@@ -174,4 +175,15 @@ class ImprisonmentStatusChangedEvent(
 ) : OffenderEvent(
   eventDatetime = eventDatetime,
   offenderIdDisplay = null,
+)
+
+@JsonInclude(JsonInclude.Include.NON_NULL)
+class SentenceDatesChangedEvent(
+  eventDatetime: LocalDateTime,
+  override val offenderIdDisplay: String,
+  val bookingId: Long,
+  val sentenceCalculationId: Long,
+) : OffenderEvent(
+  eventDatetime = eventDatetime,
+  offenderIdDisplay = offenderIdDisplay,
 )
