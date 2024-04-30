@@ -163,6 +163,7 @@ class HMPPSDomainEventsEmitter(
           publishedAt = OffsetDateTime.now().toString(),
           personReference = PersonReference(mergeResult.remainingNumber),
         )
+          .withAdditionalInformation("bookingId", event.bookingId)
           .withAdditionalInformation("nomsNumber", mergeResult.remainingNumber)
           .withAdditionalInformation("removedNomsNumber", mergeResult.mergedNumber)
           .withAdditionalInformation("reason", "MERGE")
