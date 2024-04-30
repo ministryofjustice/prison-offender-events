@@ -386,6 +386,7 @@ class HMPPSDomainEventsTest : QueueListenerIntegrationTest() {
               )
             assertThatJson(event).node("additionalInformation.reason").isEqualTo("MERGE")
             assertThatJson(event).node("additionalInformation.removedNomsNumber").isEqualTo("A5694DR")
+            assertThatJson(event).node("additionalInformation.bookingId").asString().isEqualTo("1201234")
           },
         )
       }
