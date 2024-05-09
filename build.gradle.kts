@@ -32,10 +32,10 @@ dependencies {
   implementation("io.opentelemetry.instrumentation:opentelemetry-instrumentation-annotations:1.33.1")
 
   implementation("org.apache.commons:commons-text:1.12.0")
-  implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.17.0")
+  implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.17.1")
   implementation("com.pauldijou:jwt-core_2.11:5.0.0")
   implementation("com.google.code.gson:gson:2.10.1")
-  implementation("com.google.guava:guava:33.1.0-jre")
+  implementation("com.google.guava:guava:33.2.0-jre")
 
   implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:2.5.0")
 
