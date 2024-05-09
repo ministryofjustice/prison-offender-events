@@ -22,6 +22,6 @@ generic-service:
 generic-prometheus-alerts:
   businessHoursOnly: true
   alertSeverity: syscon-nonprod
-  sqsAlertsQueueNames:
+  sqsNumberAlertQueueNames:
     - "Digital-Prison-Services-preprod-prisoner_offender_events_queue"
     - "Digital-Prison-Services-preprod-prisoner_offender_events_queue_dl"
