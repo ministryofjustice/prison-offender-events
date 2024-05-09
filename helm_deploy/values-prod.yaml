@@ -18,7 +18,7 @@ generic-prometheus-alerts:
   alertSeverity: syscon
 
   # AWS SQS queues to monitor
-  sqsAlertsQueueNames:
+  sqsNumberAlertQueueNames:
     - "Digital-Prison-Services-prod-prisoner_offender_events_queue"
     - "Digital-Prison-Services-prod-prisoner_offender_events_queue_dl"
 
