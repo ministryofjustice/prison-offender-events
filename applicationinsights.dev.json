@@ -14,39 +14,35 @@
     "destination": "console"
   },
   "sampling": {
-    "percentage": 100
-  },
-  "preview": {
-    "sampling": {
-      "overrides": [
-        {
-          "telemetryType": "request",
-          "attributes": [
-            {
-              "key": "http.url",
-              "value": "https?://[^/]+/health.*",
-              "matchType": "regexp"
-            }
-          ],
-          "percentage": 100
-        },
-        {
-          "telemetryType": "dependency",
-          "attributes": [
-            {
-              "key": "job.system",
-              "value": "spring_scheduling",
-              "matchType": "strict"
-            },
-            {
-              "key": "code.namespace",
-              "value": "io.awspring.cloud.sqs.listener.acknowledgement.BatchingAcknowledgementProcessor.*",
-              "matchType": "regexp"
-            }
-          ],
-          "percentage": 0
-        }
-      ]
-    }
+    "percentage": 100,
+    "overrides": [
+      {
+        "telemetryType": "request",
+        "attributes": [
+          {
+            "key": "http.url",
+            "value": "https?://[^/]+/health.*",
+            "matchType": "regexp"
+          }
+        ],
+        "percentage": 100
+      },
+      {
+        "telemetryType": "dependency",
+        "attributes": [
+          {
+            "key": "job.system",
+            "value": "spring_scheduling",
+            "matchType": "strict"
+          },
+          {
+            "key": "code.namespace",
+            "value": "io.awspring.cloud.sqs.listener.acknowledgement.BatchingAcknowledgementProcessor.*",
+            "matchType": "regexp"
+          }
+        ],
+        "percentage": 0
+      }
+    ]
   }
 }
