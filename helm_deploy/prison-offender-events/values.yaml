@@ -55,4 +55,4 @@ generic-service:
 
 generic-prometheus-alerts:
   targetApplication: prison-offender-events
-  sqsAlertsTotalMessagesThreshold: 1
+  sqsAlertsTotalMessagesThreshold: 0
