@@ -56,3 +56,6 @@ generic-service:
 generic-prometheus-alerts:
   targetApplication: prison-offender-events
   sqsAlertsTotalMessagesThreshold: "0"
+
+cron:
+  retry_dlqs_schedule: "*/10 * * * *"

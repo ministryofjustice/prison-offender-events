@@ -1,12 +1,11 @@
 apiVersion: batch/v1
 kind: CronJob
 metadata:
-  name: {{ include "app.fullname" . }}-queue-housekeeping-cronjob
+  name: {{ include "app.fullname" . }}--retry-dlqs
   labels:
     {{- include "app.labels" . | nindent 4 }}
 spec:
-  # At every 10th minute from 1 through 59 past every hour from 7 through 20 UTC on every day-of-week from Monday through Friday.
-  schedule: "1-59/10 07-20 * * 1-5"
+  schedule: "{{ .Values.cron.retry_dlqs_schedule }}"
   concurrencyPolicy: Forbid
   failedJobsHistoryLimit: 5
   startingDeadlineSeconds: 600
