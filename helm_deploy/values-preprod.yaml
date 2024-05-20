@@ -11,7 +11,7 @@ generic-service:
     shutdown: '51 21 * * 1-5' # Stop at 9.51pm UTC Monday-Friday
 
   env:
-    API_BASE_URL_PRISON: "https://api-preprod.prison.service.justice.gov.uk"
+    API_BASE_URL_PRISON: "https://prison-api-preprod.prison.service.justice.gov.uk"
     API_BASE_URL_HMPPS_AUTH: "https://sign-in-preprod.hmpps.service.justice.gov.uk/auth"
     API_BASE_URL_CASENOTES: "https://preprod.offender-case-notes.service.justice.gov.uk"
     APPLICATIONINSIGHTS_CONFIGURATION_FILE: applicationinsights.json
