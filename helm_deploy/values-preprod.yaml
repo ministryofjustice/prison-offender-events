@@ -25,3 +25,7 @@ generic-prometheus-alerts:
   sqsNumberAlertQueueNames:
     - "Digital-Prison-Services-preprod-prisoner_offender_events_queue"
     - "Digital-Prison-Services-preprod-prisoner_offender_events_queue_dl"
+
+cron:
+  # At every 10th minute from 1 through 59 past every hour from 7 through 20 UTC on every day-of-week from Monday through Friday.
+  retry_dlqs_schedule: "1-59/10 07-20 * * 1-5"
