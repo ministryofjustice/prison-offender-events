@@ -35,6 +35,9 @@ abstract class OffenderEvent(
       "PRISONER_APPOINTMENT-UPDATE" to PrisonerAppointmentUpdateEvent::class.java,
       "IMPRISONMENT_STATUS-CHANGED" to ImprisonmentStatusChangedEvent::class.java,
       "SENTENCE_DATES-CHANGED" to SentenceDatesChangedEvent::class.java,
+      "OFFENDER_CONTACT-INSERTED" to OffenderContactEventInserted::class.java,
+      "OFFENDER_CONTACT-UPDATED" to OffenderContactEventUpdated::class.java,
+      "OFFENDER_CONTACT-DELETED" to OffenderContactEventDeleted::class.java,
     )
   }
 }
@@ -186,4 +189,72 @@ class SentenceDatesChangedEvent(
 ) : OffenderEvent(
   eventDatetime = eventDatetime,
   offenderIdDisplay = offenderIdDisplay,
+)
+
+@JsonInclude(JsonInclude.Include.NON_NULL)
+abstract class OffenderContactEvent(
+  eventDatetime: LocalDateTime,
+  override val offenderIdDisplay: String,
+  val personId: Long,
+  val contactId: Long,
+  val approvedVisitor: Boolean,
+  val auditModuleName: String,
+  val bookingId: Long,
+) : OffenderEvent(
+  eventDatetime = eventDatetime,
+  offenderIdDisplay = offenderIdDisplay,
+)
+
+class OffenderContactEventInserted(
+  eventDatetime: LocalDateTime,
+  offenderIdDisplay: String,
+  personId: Long,
+  contactId: Long,
+  approvedVisitor: Boolean,
+  auditModuleName: String,
+  bookingId: Long,
+) : OffenderContactEvent(
+  eventDatetime = eventDatetime,
+  offenderIdDisplay = offenderIdDisplay,
+  personId = personId,
+  contactId = contactId,
+  approvedVisitor = approvedVisitor,
+  auditModuleName = auditModuleName,
+  bookingId = bookingId,
+)
+
+class OffenderContactEventUpdated(
+  eventDatetime: LocalDateTime,
+  offenderIdDisplay: String,
+  personId: Long,
+  contactId: Long,
+  approvedVisitor: Boolean,
+  auditModuleName: String,
+  bookingId: Long,
+) : OffenderContactEvent(
+  eventDatetime = eventDatetime,
+  offenderIdDisplay = offenderIdDisplay,
+  personId = personId,
+  contactId = contactId,
+  approvedVisitor = approvedVisitor,
+  auditModuleName = auditModuleName,
+  bookingId = bookingId,
+)
+
+class OffenderContactEventDeleted(
+  eventDatetime: LocalDateTime,
+  offenderIdDisplay: String,
+  personId: Long,
+  contactId: Long,
+  approvedVisitor: Boolean,
+  auditModuleName: String,
+  bookingId: Long,
+) : OffenderContactEvent(
+  eventDatetime = eventDatetime,
+  offenderIdDisplay = offenderIdDisplay,
+  personId = personId,
+  contactId = contactId,
+  approvedVisitor = approvedVisitor,
+  auditModuleName = auditModuleName,
+  bookingId = bookingId,
 )

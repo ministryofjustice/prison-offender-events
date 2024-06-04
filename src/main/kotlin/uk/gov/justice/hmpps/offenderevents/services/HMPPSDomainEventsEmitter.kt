@@ -16,6 +16,9 @@ import uk.gov.justice.hmpps.offenderevents.model.HmppsDomainEvent
 import uk.gov.justice.hmpps.offenderevents.model.HmppsDomainEvent.PersonReference
 import uk.gov.justice.hmpps.offenderevents.model.ImprisonmentStatusChangedEvent
 import uk.gov.justice.hmpps.offenderevents.model.NonAssociationDetailsOffenderEvent
+import uk.gov.justice.hmpps.offenderevents.model.OffenderContactEventDeleted
+import uk.gov.justice.hmpps.offenderevents.model.OffenderContactEventInserted
+import uk.gov.justice.hmpps.offenderevents.model.OffenderContactEventUpdated
 import uk.gov.justice.hmpps.offenderevents.model.OffenderEvent
 import uk.gov.justice.hmpps.offenderevents.model.PersonRestrictionOffenderEvent
 import uk.gov.justice.hmpps.offenderevents.model.PrisonerActivityUpdateEvent
@@ -71,6 +74,9 @@ class HMPPSDomainEventsEmitter(
       is PrisonerAppointmentUpdateEvent -> listOf(toAppointmentChanged(offenderEvent))
       is ImprisonmentStatusChangedEvent -> listOfNotNull(toImprisonmentStatusChanged(offenderEvent))
       is SentenceDatesChangedEvent -> listOf(toSentenceDatesChanged(offenderEvent))
+      is OffenderContactEventInserted -> listOf(toPrisonerContactAdded(offenderEvent))
+      is OffenderContactEventUpdated -> listOf(toPrisonerContactChanged(offenderEvent))
+      is OffenderContactEventDeleted -> listOf(toPrisonerContactRemoved(offenderEvent))
 
       else -> emptyList()
     }
@@ -356,6 +362,42 @@ class HMPPSDomainEventsEmitter(
     .withAdditionalInformation("nomsNumber", event.offenderIdDisplay)
     .withAdditionalInformation("bookingId", event.bookingId)
     .withAdditionalInformation("sentenceCalculationId", event.sentenceCalculationId)
+
+  private fun toPrisonerContactAdded(event: OffenderContactEventInserted) = HmppsDomainEvent(
+    eventType = "prison-offender-events.prisoner.contact-added",
+    description = "A contact has been added to a prisoner",
+    occurredAt = event.toOccurredAt(),
+    publishedAt = OffsetDateTime.now().toString(),
+    personReference = PersonReference(event.offenderIdDisplay),
+  )
+    .withAdditionalInformation("nomsNumber", event.offenderIdDisplay)
+    .withAdditionalInformation("bookingId", event.bookingId)
+    .withAdditionalInformation("personId", event.personId)
+    .withAdditionalInformation("contactId", event.contactId)
+
+  private fun toPrisonerContactChanged(event: OffenderContactEventUpdated) = HmppsDomainEvent(
+    eventType = "prison-offender-events.prisoner.contact-changed",
+    description = "A contact for a prisoner has changed",
+    occurredAt = event.toOccurredAt(),
+    publishedAt = OffsetDateTime.now().toString(),
+    personReference = PersonReference(event.offenderIdDisplay),
+  )
+    .withAdditionalInformation("nomsNumber", event.offenderIdDisplay)
+    .withAdditionalInformation("bookingId", event.bookingId)
+    .withAdditionalInformation("personId", event.personId)
+    .withAdditionalInformation("contactId", event.contactId)
+
+  private fun toPrisonerContactRemoved(event: OffenderContactEventDeleted) = HmppsDomainEvent(
+    eventType = "prison-offender-events.prisoner.contact-removed",
+    description = "A contact for a prisoner has been removed",
+    occurredAt = event.toOccurredAt(),
+    publishedAt = OffsetDateTime.now().toString(),
+    personReference = PersonReference(event.offenderIdDisplay),
+  )
+    .withAdditionalInformation("nomsNumber", event.offenderIdDisplay)
+    .withAdditionalInformation("bookingId", event.bookingId)
+    .withAdditionalInformation("personId", event.personId)
+    .withAdditionalInformation("contactId", event.contactId)
 
   fun sendEvent(payload: HmppsDomainEvent) {
     try {
