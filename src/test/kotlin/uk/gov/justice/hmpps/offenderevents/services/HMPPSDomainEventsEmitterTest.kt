@@ -9,6 +9,7 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.TestInstance
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.Arguments
 import org.junit.jupiter.params.provider.MethodSource
@@ -1801,6 +1802,110 @@ internal class HMPPSDomainEventsEmitterTest(@Autowired private val objectMapper:
         "sentenceCalculationId",
       )
     }
+  }
+
+  @Nested
+  @TestInstance(TestInstance.Lifecycle.PER_CLASS)
+  internal inner class PrisonerContactEvents {
+    private lateinit var payload: String
+    private lateinit var telemetryAttributes: Map<String, String>
+
+    private fun processXtagEvent(eventType: String) {
+      Mockito.reset(hmppsEventSnsClient, telemetryClient)
+      emitter.convertAndSendWhenSignificant(
+        "$eventType",
+        // language=JSON
+        """
+        {
+          "nomisEventType":"$eventType",
+          "contactId":7550868,
+          "eventDatetime":"${LocalDateTime.parse("2022-12-04T10:00:00")}",
+          "offenderIdDisplay":"A1234BC",
+          "personId":4729911,
+          "approvedVisitor":"true",
+          "eventType":"$eventType",
+          "auditModuleName":"OIDVIRES",
+          "bookingId":1215922
+        }
+        """.trimIndent(),
+      )
+      argumentCaptor<PublishRequest>().apply {
+        verify(hmppsEventSnsClient).publish(capture())
+        payload = firstValue.message()
+      }
+      argumentCaptor<Map<String, String>>().apply {
+        verify(telemetryClient, times(1)).trackEvent(
+          any(),
+          capture(),
+          isNull(),
+        )
+        telemetryAttributes = firstValue
+      }
+    }
+
+    @ParameterizedTest
+    @MethodSource("contactEventMap")
+    fun `will raise a contact event type`(prisonEventType: String, eventType: String) {
+      processXtagEvent(prisonEventType)
+      assertThatJson(payload).node("eventType")
+        .isEqualTo(eventType)
+    }
+
+    @ParameterizedTest
+    @MethodSource("contactEventMap")
+    fun `will use event datetime for occurred at time`(prisonEventType: String, eventType: String) {
+      processXtagEvent(prisonEventType)
+      assertThatJson(payload).node("occurredAt").isEqualTo("2022-12-04T10:00:00Z")
+    }
+
+    @ParameterizedTest
+    @MethodSource("contactEventMap")
+    fun `will use current time as publishedAt`(prisonEventType: String) {
+      processXtagEvent(prisonEventType)
+      assertThatJson(payload)
+        .node("publishedAt")
+        .asString()
+        .satisfies(
+          Consumer { publishedAt: String ->
+            assertThat(OffsetDateTime.parse(publishedAt))
+              .isCloseTo(OffsetDateTime.now(), Assertions.within(10, SECONDS))
+          },
+        )
+    }
+
+    @ParameterizedTest
+    @MethodSource("contactEventMap")
+    fun `person reference will contain nomsId as NOMS identifier`(prisonEventType: String) {
+      processXtagEvent(prisonEventType)
+      assertThatJson(payload).node("personReference.identifiers").isArray.hasSize(1)
+      assertThatJson(payload).node("personReference.identifiers[0].type").isEqualTo("NOMS")
+      assertThatJson(payload).node("personReference.identifiers[0].value").isEqualTo("A1234BC")
+    }
+
+    @ParameterizedTest
+    @MethodSource("contactEventMap")
+    fun `additional information will contain the NOMIS ids of the contact`(prisonEventType: String) {
+      processXtagEvent(prisonEventType)
+      assertThatJson(payload).node("additionalInformation.bookingId").isEqualTo("\"1215922\"")
+      assertThatJson(payload).node("additionalInformation.contactId").isEqualTo("\"7550868\"")
+      assertThatJson(payload).node("additionalInformation.personId").isEqualTo("\"4729911\"")
+    }
+
+    @ParameterizedTest
+    @MethodSource("contactEventMap")
+    fun `will add correct fields to telemetry event`(prisonEventType: String) {
+      processXtagEvent(prisonEventType)
+      assertThat(telemetryAttributes).containsEntry("occurredAt", "2022-12-04T10:00:00Z")
+      assertThat(telemetryAttributes).containsEntry("nomsNumber", "A1234BC")
+      assertThat(telemetryAttributes).containsEntry("personId", "4729911")
+      assertThat(telemetryAttributes).containsEntry("contactId", "7550868")
+    }
+
+    private fun contactEventMap() = listOf(
+      Arguments.of("OFFENDER_CONTACT-INSERTED", "prison-offender-events.prisoner.contact-added"),
+      Arguments.of("OFFENDER_CONTACT-UPDATED", "prison-offender-events.prisoner.contact-changed"),
+      Arguments.of("OFFENDER_CONTACT-DELETED", "prison-offender-events.prisoner.contact-removed"),
+    )
   }
 
   companion object {
