@@ -1810,10 +1810,10 @@ internal class HMPPSDomainEventsEmitterTest(@Autowired private val objectMapper:
     private lateinit var payload: String
     private lateinit var telemetryAttributes: Map<String, String>
 
-    private fun processXtagEvent(eventType: String) {
+    private fun processXtagEvent(eventType: String, approved: Boolean = true) {
       Mockito.reset(hmppsEventSnsClient, telemetryClient)
       emitter.convertAndSendWhenSignificant(
-        "$eventType",
+        eventType,
         // language=JSON
         """
         {
@@ -1822,7 +1822,7 @@ internal class HMPPSDomainEventsEmitterTest(@Autowired private val objectMapper:
           "eventDatetime":"${LocalDateTime.parse("2022-12-04T10:00:00")}",
           "offenderIdDisplay":"A1234BC",
           "personId":4729911,
-          "approvedVisitor":"true",
+          "approvedVisitor":"$approved",
           "eventType":"$eventType",
           "auditModuleName":"OIDVIRES",
           "bookingId":1215922
@@ -1845,8 +1845,8 @@ internal class HMPPSDomainEventsEmitterTest(@Autowired private val objectMapper:
 
     @ParameterizedTest
     @MethodSource("contactEventMap")
-    fun `will raise a contact event type`(prisonEventType: String, eventType: String) {
-      processXtagEvent(prisonEventType)
+    fun `will raise a contact event type`(prisonEventType: String, eventType: String, approved: Boolean) {
+      processXtagEvent(prisonEventType, approved = approved)
       assertThatJson(payload).node("eventType")
         .isEqualTo(eventType)
     }
@@ -1889,6 +1889,7 @@ internal class HMPPSDomainEventsEmitterTest(@Autowired private val objectMapper:
       assertThatJson(payload).node("additionalInformation.bookingId").isEqualTo("\"1215922\"")
       assertThatJson(payload).node("additionalInformation.contactId").isEqualTo("\"7550868\"")
       assertThatJson(payload).node("additionalInformation.personId").isEqualTo("\"4729911\"")
+      assertThatJson(payload).node("additionalInformation.approvedVisitor").isEqualTo("\"true\"")
     }
 
     @ParameterizedTest
@@ -1902,9 +1903,12 @@ internal class HMPPSDomainEventsEmitterTest(@Autowired private val objectMapper:
     }
 
     private fun contactEventMap() = listOf(
-      Arguments.of("OFFENDER_CONTACT-INSERTED", "prison-offender-events.prisoner.contact-added"),
-      Arguments.of("OFFENDER_CONTACT-UPDATED", "prison-offender-events.prisoner.contact-changed"),
-      Arguments.of("OFFENDER_CONTACT-DELETED", "prison-offender-events.prisoner.contact-removed"),
+      Arguments.of("OFFENDER_CONTACT-INSERTED", "prison-offender-events.prisoner.contact-added", true),
+      Arguments.of("OFFENDER_CONTACT-INSERTED", "prison-offender-events.prisoner.contact-added", false),
+      Arguments.of("OFFENDER_CONTACT-UPDATED", "prison-offender-events.prisoner.contact-approved", true),
+      Arguments.of("OFFENDER_CONTACT-UPDATED", "prison-offender-events.prisoner.contact-unapproved", false),
+      Arguments.of("OFFENDER_CONTACT-DELETED", "prison-offender-events.prisoner.contact-removed", true),
+      Arguments.of("OFFENDER_CONTACT-DELETED", "prison-offender-events.prisoner.contact-removed", false),
     )
   }
 

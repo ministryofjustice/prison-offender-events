@@ -16,6 +16,7 @@ import uk.gov.justice.hmpps.offenderevents.model.HmppsDomainEvent
 import uk.gov.justice.hmpps.offenderevents.model.HmppsDomainEvent.PersonReference
 import uk.gov.justice.hmpps.offenderevents.model.ImprisonmentStatusChangedEvent
 import uk.gov.justice.hmpps.offenderevents.model.NonAssociationDetailsOffenderEvent
+import uk.gov.justice.hmpps.offenderevents.model.OffenderContactEvent
 import uk.gov.justice.hmpps.offenderevents.model.OffenderContactEventDeleted
 import uk.gov.justice.hmpps.offenderevents.model.OffenderContactEventInserted
 import uk.gov.justice.hmpps.offenderevents.model.OffenderContactEventUpdated
@@ -61,22 +62,22 @@ class HMPPSDomainEventsEmitter(
   fun convertAndSendWhenSignificant(event: String, message: String) {
     val mapping = OffenderEvent.eventMappings[event] ?: return
     val hmppsEvents = when (val offenderEvent = objectMapper.readValue(message, mapping)) {
-      is CaseNoteOffenderEvent -> listOfNotNull(toCaseNotePublished(offenderEvent))
-      is PrisonerReceivedOffenderEvent -> listOfNotNull(toPrisonerReceived(offenderEvent))
-      is PrisonerDischargedOffenderEvent -> listOfNotNull(toPrisonerReleased(offenderEvent))
+      is CaseNoteOffenderEvent -> toCaseNotePublished(offenderEvent).toListOrEmptyWhenNull()
+      is PrisonerReceivedOffenderEvent -> toPrisonerReceived(offenderEvent).toListOrEmptyWhenNull()
+      is PrisonerDischargedOffenderEvent -> toPrisonerReleased(offenderEvent).toListOrEmptyWhenNull()
       is PrisonerMergedOffenderEvent -> toMergedOffenderNumbers(offenderEvent)
-      is CellMoveOffenderEvent -> listOf(toCellMove(offenderEvent))
-      is NonAssociationDetailsOffenderEvent -> listOf(toNonAssociationDetails(offenderEvent))
-      is PersonRestrictionOffenderEvent -> listOf(toPersonRestriction(offenderEvent))
-      is VisitorRestrictionOffenderEvent -> listOf(toVisitorRestriction(offenderEvent))
-      is RestrictionOffenderEvent -> listOf(toRestriction(offenderEvent))
-      is PrisonerActivityUpdateEvent -> listOf(toActivityChanged(offenderEvent))
-      is PrisonerAppointmentUpdateEvent -> listOf(toAppointmentChanged(offenderEvent))
-      is ImprisonmentStatusChangedEvent -> listOfNotNull(toImprisonmentStatusChanged(offenderEvent))
-      is SentenceDatesChangedEvent -> listOf(toSentenceDatesChanged(offenderEvent))
-      is OffenderContactEventInserted -> listOf(toPrisonerContactAdded(offenderEvent))
-      is OffenderContactEventUpdated -> listOf(toPrisonerContactChanged(offenderEvent))
-      is OffenderContactEventDeleted -> listOf(toPrisonerContactRemoved(offenderEvent))
+      is CellMoveOffenderEvent -> toCellMove(offenderEvent).toList()
+      is NonAssociationDetailsOffenderEvent -> toNonAssociationDetails(offenderEvent).toList()
+      is PersonRestrictionOffenderEvent -> toPersonRestriction(offenderEvent).toList()
+      is VisitorRestrictionOffenderEvent -> toVisitorRestriction(offenderEvent).toList()
+      is RestrictionOffenderEvent -> toRestriction(offenderEvent).toList()
+      is PrisonerActivityUpdateEvent -> toActivityChanged(offenderEvent).toList()
+      is PrisonerAppointmentUpdateEvent -> toAppointmentChanged(offenderEvent).toList()
+      is ImprisonmentStatusChangedEvent -> toImprisonmentStatusChanged(offenderEvent).toListOrEmptyWhenNull()
+      is SentenceDatesChangedEvent -> toSentenceDatesChanged(offenderEvent).toList()
+      is OffenderContactEventInserted -> offenderEvent.toDomainEvent().toList()
+      is OffenderContactEventUpdated -> offenderEvent.toDomainEvent().toList()
+      is OffenderContactEventDeleted -> offenderEvent.toDomainEvent().toList()
 
       else -> emptyList()
     }
@@ -363,42 +364,6 @@ class HMPPSDomainEventsEmitter(
     .withAdditionalInformation("bookingId", event.bookingId)
     .withAdditionalInformation("sentenceCalculationId", event.sentenceCalculationId)
 
-  private fun toPrisonerContactAdded(event: OffenderContactEventInserted) = HmppsDomainEvent(
-    eventType = "prison-offender-events.prisoner.contact-added",
-    description = "A contact has been added to a prisoner",
-    occurredAt = event.toOccurredAt(),
-    publishedAt = OffsetDateTime.now().toString(),
-    personReference = PersonReference(event.offenderIdDisplay),
-  )
-    .withAdditionalInformation("nomsNumber", event.offenderIdDisplay)
-    .withAdditionalInformation("bookingId", event.bookingId)
-    .withAdditionalInformation("personId", event.personId)
-    .withAdditionalInformation("contactId", event.contactId)
-
-  private fun toPrisonerContactChanged(event: OffenderContactEventUpdated) = HmppsDomainEvent(
-    eventType = "prison-offender-events.prisoner.contact-changed",
-    description = "A contact for a prisoner has changed",
-    occurredAt = event.toOccurredAt(),
-    publishedAt = OffsetDateTime.now().toString(),
-    personReference = PersonReference(event.offenderIdDisplay),
-  )
-    .withAdditionalInformation("nomsNumber", event.offenderIdDisplay)
-    .withAdditionalInformation("bookingId", event.bookingId)
-    .withAdditionalInformation("personId", event.personId)
-    .withAdditionalInformation("contactId", event.contactId)
-
-  private fun toPrisonerContactRemoved(event: OffenderContactEventDeleted) = HmppsDomainEvent(
-    eventType = "prison-offender-events.prisoner.contact-removed",
-    description = "A contact for a prisoner has been removed",
-    occurredAt = event.toOccurredAt(),
-    publishedAt = OffsetDateTime.now().toString(),
-    personReference = PersonReference(event.offenderIdDisplay),
-  )
-    .withAdditionalInformation("nomsNumber", event.offenderIdDisplay)
-    .withAdditionalInformation("bookingId", event.bookingId)
-    .withAdditionalInformation("personId", event.personId)
-    .withAdditionalInformation("contactId", event.contactId)
-
   fun sendEvent(payload: HmppsDomainEvent) {
     try {
       hmppsEventsTopicSnsClient.publish(
@@ -416,3 +381,35 @@ class HMPPSDomainEventsEmitter(
     private val log = LoggerFactory.getLogger(this::class.java)
   }
 }
+
+private fun HmppsDomainEvent.toList() = listOf(this)
+private fun HmppsDomainEvent?.toListOrEmptyWhenNull() = this?.toList() ?: emptyList()
+
+private fun OffenderContactEventInserted.toDomainEvent(): HmppsDomainEvent = this.toDomainEvent(
+  eventType = "prison-offender-events.prisoner.contact-added",
+  description = "A contact has been added to a prisoner",
+)
+
+private fun OffenderContactEventDeleted.toDomainEvent() = this.toDomainEvent(
+  eventType = "prison-offender-events.prisoner.contact-removed",
+  description = "A contact for a prisoner has been removed",
+)
+
+private fun OffenderContactEventUpdated.toDomainEvent() = this.toDomainEvent(
+  eventType = if (this.approvedVisitor) "prison-offender-events.prisoner.contact-approved" else "prison-offender-events.prisoner.contact-unapproved",
+  description = "A contact for a prisoner has been ${ if (this.approvedVisitor) "approved" else "unapproved"}",
+)
+private fun OffenderContactEvent.toDomainEvent(eventType: String, description: String) = HmppsDomainEvent(
+  eventType = eventType,
+  description = description,
+  occurredAt = toOccurredAt(),
+  publishedAt = OffsetDateTime.now().toString(),
+  personReference = PersonReference(offenderIdDisplay),
+).withContactAdditionalInformation(this)
+
+private fun HmppsDomainEvent.withContactAdditionalInformation(xtagEvent: OffenderContactEvent): HmppsDomainEvent =
+  this.withAdditionalInformation("nomsNumber", xtagEvent.offenderIdDisplay)
+    .withAdditionalInformation("bookingId", xtagEvent.bookingId)
+    .withAdditionalInformation("personId", xtagEvent.personId)
+    .withAdditionalInformation("contactId", xtagEvent.contactId)
+    .withAdditionalInformation("approvedVisitor", xtagEvent.approvedVisitor)
