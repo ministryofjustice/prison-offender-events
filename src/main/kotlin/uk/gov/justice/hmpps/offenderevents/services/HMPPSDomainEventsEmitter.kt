@@ -413,3 +413,4 @@ private fun HmppsDomainEvent.withContactAdditionalInformation(xtagEvent: Offende
     .withAdditionalInformation("personId", xtagEvent.personId)
     .withAdditionalInformation("contactId", xtagEvent.contactId)
     .withAdditionalInformation("approvedVisitor", xtagEvent.approvedVisitor)
+    .withAdditionalInformation("username", xtagEvent.username)

@@ -1825,6 +1825,7 @@ internal class HMPPSDomainEventsEmitterTest(@Autowired private val objectMapper:
           "approvedVisitor":"$approved",
           "eventType":"$eventType",
           "auditModuleName":"OIDVIRES",
+          "username": "J_SMITH",
           "bookingId":1215922
         }
         """.trimIndent(),
@@ -1890,6 +1891,7 @@ internal class HMPPSDomainEventsEmitterTest(@Autowired private val objectMapper:
       assertThatJson(payload).node("additionalInformation.contactId").isEqualTo("\"7550868\"")
       assertThatJson(payload).node("additionalInformation.personId").isEqualTo("\"4729911\"")
       assertThatJson(payload).node("additionalInformation.approvedVisitor").isEqualTo("\"true\"")
+      assertThatJson(payload).node("additionalInformation.username").isEqualTo("J_SMITH")
     }
 
     @ParameterizedTest
