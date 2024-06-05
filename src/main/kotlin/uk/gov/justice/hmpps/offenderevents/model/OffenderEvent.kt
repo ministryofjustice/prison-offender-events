@@ -198,7 +198,7 @@ abstract class OffenderContactEvent(
   val personId: Long,
   val contactId: Long,
   val approvedVisitor: Boolean,
-  val auditModuleName: String,
+  val username: String?,
   val bookingId: Long,
 ) : OffenderEvent(
   eventDatetime = eventDatetime,
@@ -211,7 +211,7 @@ class OffenderContactEventInserted(
   personId: Long,
   contactId: Long,
   approvedVisitor: Boolean,
-  auditModuleName: String,
+  username: String?,
   bookingId: Long,
 ) : OffenderContactEvent(
   eventDatetime = eventDatetime,
@@ -219,7 +219,7 @@ class OffenderContactEventInserted(
   personId = personId,
   contactId = contactId,
   approvedVisitor = approvedVisitor,
-  auditModuleName = auditModuleName,
+  username = username,
   bookingId = bookingId,
 )
 
@@ -229,7 +229,7 @@ class OffenderContactEventUpdated(
   personId: Long,
   contactId: Long,
   approvedVisitor: Boolean,
-  auditModuleName: String,
+  username: String?,
   bookingId: Long,
 ) : OffenderContactEvent(
   eventDatetime = eventDatetime,
@@ -237,7 +237,7 @@ class OffenderContactEventUpdated(
   personId = personId,
   contactId = contactId,
   approvedVisitor = approvedVisitor,
-  auditModuleName = auditModuleName,
+  username = username,
   bookingId = bookingId,
 )
 
@@ -247,7 +247,7 @@ class OffenderContactEventDeleted(
   personId: Long,
   contactId: Long,
   approvedVisitor: Boolean,
-  auditModuleName: String,
+  username: String?,
   bookingId: Long,
 ) : OffenderContactEvent(
   eventDatetime = eventDatetime,
@@ -255,6 +255,6 @@ class OffenderContactEventDeleted(
   personId = personId,
   contactId = contactId,
   approvedVisitor = approvedVisitor,
-  auditModuleName = auditModuleName,
+  username = username,
   bookingId = bookingId,
 )
