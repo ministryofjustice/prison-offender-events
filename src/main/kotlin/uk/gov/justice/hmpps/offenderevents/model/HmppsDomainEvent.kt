@@ -26,6 +26,10 @@ data class HmppsDomainEvent(
     if (value != null) additionalInformation[key] = value.toString()
     return this
   }
+  fun withAdditionalInformation(key: String, value: Boolean?): HmppsDomainEvent {
+    additionalInformation[key] = (value ?: false).toString()
+    return this
+  }
 
   fun withAdditionalInformation(key: String, value: LocalDate?): HmppsDomainEvent {
     if (value != null) additionalInformation[key] = value.format(DateTimeFormatter.ISO_DATE)
