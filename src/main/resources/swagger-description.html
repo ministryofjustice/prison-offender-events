@@ -84,85 +84,85 @@ conservative <b>offender.events</b>.
 <h4>Event details</h4>
 <div>
     <ul>
-        <li>
-          <b>prison-offender-events.prisoner.released</b> is raised when a prisoner is released from prison, this includes temporary releases
-          such as court appearances and transfers. We would recommend consumers to ensure their service is idempotent, there are scenarios where multiple events maybe raised for same release.
-          <h3>Additional Information</h3>
-              <ul>
-                <li><b>nomsNumber</b> string - NOMIS offender number</li>
-                <li><b>reason</b> enum - reason for the release. Will be one of these values
-                  <ul>
-                    <li><b>TEMPORARY_ABSENCE_RELEASE</b> prisoner has been temporarily released and is expected to return</li>
-                    <li><b>RELEASED_TO_HOSPITAL</b> prisoner has been discharged in to the care of a hospital</li>
-                    <li><b>RELEASED</b> prisoner has been discharged, typically into the care of probation</li>
-                    <li><b>SENT_TO_COURT</b> prisoner has sent to court</li>
-                    <li><b>TRANSFERRED</b> prisoner is being transferred to another prison</li>
-                    <li><b>UNKNOWN</b> not sure why the prisoner has been released</li>
-                  </ul>
-                </li>
-                <li><b>detail</b> string - further human readable information about the reason. The contents is developer focused and not to be relied on. Example <b>Movement reason code YY</b>
-                <li><b>currentLocation</b> enum  - indicates if prisoner is in or out of prison
-                  <ul>
-                    <li><b>IN_PRISON</b> prisoner in a prison</li>
-                    <li><b>OUTSIDE_PRISON</b> prisoner no longer in a prison</li>
-                  </ul>
-                </li>
-                <li><b>currentPrisonStatus</b> enum  - indicates if prisoner is still actively cared for by a prison, and alias for ACTIVE/INACTION
-                  <ul>
-                    <li><b>UNDER_PRISON_CARE</b> even if the prison is out of prison they are still attached to a prison and has not been discharged</li>
-                    <li><b>NOT_UNDER_PRISON_CARE</b> prisoner has been discharged from prison</li>
-                  </ul>
-                </li>
-                <li><b>prisonId</b> string - the current prison where the prisoner was last located</li>
-                <li><b>nomisMovementReasonCode</b> string - the reason code for the last movement. Since this is the literal NOMIS reference data that can change clients should be cautious of tightly integrating with this value. MOVE_RSN is the reference data domain in NOMIS</li>
-              </ul>
-        </li>
-        <li>
-          <b>prison-offender-events.prisoner.received</b> is raised when a prisoner is received to prison, this may be due to remand, a conviction or a recall from a broken licence. Also included are returns from temporary absences and transfers.
-          We would recommend consumers to ensure their service is idempotent, there are scenarios where multiple events maybe raised for same receive.
-          <h3>Additional Information</h3>
-              <ul>
-                <li><b>nomsNumber</b> string - NOMIS offender number</li>
-                <li><b>reason</b> enum - reason for the receive. Will be one of these values below. It has been observed that administration mistakes in NOMIS can cause the reason for RECALL and CONVICTED to be not always be accurate.
-                  <ul>
-                    <li><b>ADMISSION</b> prisoner is entering prison due to a new court order or recall</li>
-                    <li><b>TEMPORARY_ABSENCE_RETURN</b> prisoner is returning from temporary absence e.g. day release</li>
-                    <li><b>RETURN_FROM_COURT</b> prisoner is returning from court</li>
-                    <li><b>TRANSFERRED</b> prisoner has been transferred from another prison</li>
-                  </ul>
-                </li>
-                <li><b>detail</b> string - further human readable information about the reason. The contents is developer focused and not to be relied on. Example<b>Recall referral date 2021-06-13</b>
-                </li>
-                <li><b>currentLocation</b> enum  - indicates if prisoner is in or out of prison
-                  <ul>
-                    <li><b>IN_PRISON</b> prisoner in a prison</li>
-                    <li><b>OUTSIDE_PRISON</b> prisoner no longer in a prison</li>
-                  </ul>
-                </li>
-                <li><b>currentPrisonStatus</b> enum  - indicates if prisoner is still actively cared for by a prison, and alias for ACTIVE/INACTION
-                  <ul>
-                    <li><b>UNDER_PRISON_CARE</b> even if the prison is out of prison they are still attached to a prison and has not been discharged</li>
-                    <li><b>NOT_UNDER_PRISON_CARE</b> prisoner has been discharged from prison</li>
-                  </ul>
-                </li>
-                <li><b>prisonId</b> string - the current prison where the prisoner was last located</li>
-                <li><b>nomisMovementReasonCode</b> string - the reason code for the last movement. Since this is the literal NOMIS reference data that can change clients should be cautious of tightly integrating with this value. MOVE_RSN is the reference data domain in NOMIS</li>
-              </ul>
-        </li>
-        <li>
-          <b>prison-offender-events.prisoner.merged</b> is raised when a prisoner is merged into an exists prisoner record. This will mean that the prisoner will be
-          now attached to the original NOMS (prisoner) number and the new one removed from NOMIS
-          <h3>Additional Information</h3>
-              <ul>
-                <li><b>reason</b> enum -
-                  <ul>
-                    <li><b>MERGE</b> indicates the prisoner records have been merged</li>
-                  </ul>
-                </li>
-                <li><b>nomsNumber</b> string - NOMS number of the prisoner (this will be the value that the prisoner record now holds)</li>
-                <li><b>removedNomsNumber</b> string - NOMS number that was MERGED into <em>nomsNumber</em> and then removed</li>
-              </ul>
-        </li>
+      <li>
+        <b>prison-offender-events.prisoner.released</b> is raised when a prisoner is released from prison, this includes temporary releases
+        such as court appearances and transfers. We would recommend consumers to ensure their service is idempotent, there are scenarios where multiple events maybe raised for same release.
+        <h3>Additional Information</h3>
+            <ul>
+              <li><b>nomsNumber</b> string - NOMIS offender number</li>
+              <li><b>reason</b> enum - reason for the release. Will be one of these values
+                <ul>
+                  <li><b>TEMPORARY_ABSENCE_RELEASE</b> prisoner has been temporarily released and is expected to return</li>
+                  <li><b>RELEASED_TO_HOSPITAL</b> prisoner has been discharged in to the care of a hospital</li>
+                  <li><b>RELEASED</b> prisoner has been discharged, typically into the care of probation</li>
+                  <li><b>SENT_TO_COURT</b> prisoner has sent to court</li>
+                  <li><b>TRANSFERRED</b> prisoner is being transferred to another prison</li>
+                  <li><b>UNKNOWN</b> not sure why the prisoner has been released</li>
+                </ul>
+              </li>
+              <li><b>detail</b> string - further human readable information about the reason. The contents is developer focused and not to be relied on. Example <b>Movement reason code YY</b>
+              <li><b>currentLocation</b> enum  - indicates if prisoner is in or out of prison
+                <ul>
+                  <li><b>IN_PRISON</b> prisoner in a prison</li>
+                  <li><b>OUTSIDE_PRISON</b> prisoner no longer in a prison</li>
+                </ul>
+              </li>
+              <li><b>currentPrisonStatus</b> enum  - indicates if prisoner is still actively cared for by a prison, and alias for ACTIVE/INACTION
+                <ul>
+                  <li><b>UNDER_PRISON_CARE</b> even if the prison is out of prison they are still attached to a prison and has not been discharged</li>
+                  <li><b>NOT_UNDER_PRISON_CARE</b> prisoner has been discharged from prison</li>
+                </ul>
+              </li>
+              <li><b>prisonId</b> string - the current prison where the prisoner was last located</li>
+              <li><b>nomisMovementReasonCode</b> string - the reason code for the last movement. Since this is the literal NOMIS reference data that can change clients should be cautious of tightly integrating with this value. MOVE_RSN is the reference data domain in NOMIS</li>
+            </ul>
+      </li>
+      <li>
+        <b>prison-offender-events.prisoner.received</b> is raised when a prisoner is received to prison, this may be due to remand, a conviction or a recall from a broken licence. Also included are returns from temporary absences and transfers.
+        We would recommend consumers to ensure their service is idempotent, there are scenarios where multiple events maybe raised for same receive.
+        <h3>Additional Information</h3>
+            <ul>
+              <li><b>nomsNumber</b> string - NOMIS offender number</li>
+              <li><b>reason</b> enum - reason for the receive. Will be one of these values below. It has been observed that administration mistakes in NOMIS can cause the reason for RECALL and CONVICTED to be not always be accurate.
+                <ul>
+                  <li><b>ADMISSION</b> prisoner is entering prison due to a new court order or recall</li>
+                  <li><b>TEMPORARY_ABSENCE_RETURN</b> prisoner is returning from temporary absence e.g. day release</li>
+                  <li><b>RETURN_FROM_COURT</b> prisoner is returning from court</li>
+                  <li><b>TRANSFERRED</b> prisoner has been transferred from another prison</li>
+                </ul>
+              </li>
+              <li><b>detail</b> string - further human readable information about the reason. The contents is developer focused and not to be relied on. Example<b>Recall referral date 2021-06-13</b>
+              </li>
+              <li><b>currentLocation</b> enum  - indicates if prisoner is in or out of prison
+                <ul>
+                  <li><b>IN_PRISON</b> prisoner in a prison</li>
+                  <li><b>OUTSIDE_PRISON</b> prisoner no longer in a prison</li>
+                </ul>
+              </li>
+              <li><b>currentPrisonStatus</b> enum  - indicates if prisoner is still actively cared for by a prison, and alias for ACTIVE/INACTION
+                <ul>
+                  <li><b>UNDER_PRISON_CARE</b> even if the prison is out of prison they are still attached to a prison and has not been discharged</li>
+                  <li><b>NOT_UNDER_PRISON_CARE</b> prisoner has been discharged from prison</li>
+                </ul>
+              </li>
+              <li><b>prisonId</b> string - the current prison where the prisoner was last located</li>
+              <li><b>nomisMovementReasonCode</b> string - the reason code for the last movement. Since this is the literal NOMIS reference data that can change clients should be cautious of tightly integrating with this value. MOVE_RSN is the reference data domain in NOMIS</li>
+            </ul>
+      </li>
+      <li>
+        <b>prison-offender-events.prisoner.merged</b> is raised when a prisoner is merged into an exists prisoner record. This will mean that the prisoner will be
+        now attached to the original NOMS (prisoner) number and the new one removed from NOMIS
+        <h3>Additional Information</h3>
+            <ul>
+              <li><b>reason</b> enum -
+                <ul>
+                  <li><b>MERGE</b> indicates the prisoner records have been merged</li>
+                </ul>
+              </li>
+              <li><b>nomsNumber</b> string - NOMS number of the prisoner (this will be the value that the prisoner record now holds)</li>
+              <li><b>removedNomsNumber</b> string - NOMS number that was MERGED into <em>nomsNumber</em> and then removed</li>
+            </ul>
+      </li>
       <li>
         <b>prison-offender-events.prisoner.non-association-detail.changed</b> is raised when a prisoner non-association is created/updated/deleted.
         These events occur in pairs because the non-association is created both ways round.
@@ -271,6 +271,18 @@ conservative <b>offender.events</b>.
           <li><b>expiryDate</b> string - optional end date</li>
           <li><b>comment</b> string - optional comment</li>
           <li><b>enteredById</b> string - NOMIS staff id of creator</li>
+        </ul>
+      </li>
+      <li>
+        <b>prison-offender-events.prisoner.contact-added</b> is raised when a person is added as priosner contact
+        <h3>Additional Information</h3>
+        <ul>
+          <li><b>nomsNumber</b> string - Prisoner number of the prisoner that has the contact</li>
+          <li><b>bookingId</b> number - id of the booking record in NOMIS that contains the contact </li>
+          <li><b>personId</b> number - id of the person record in NOMIS that contains information about the person, e.g. name, date of birth etc</li>
+          <li><b>contactId</b> number - id of the contact record in NOMIS that contains information about the relationship, e.g. social, official, brother etc</li>
+          <li><b>approvedVisitor</b> boolean - flag to indicate if the contact was an approved visitor at the point the event was triggered</li>
+          <li><b>username</b> string - NOMIS user that made the change</li>
         </ul>
       </li>
       <li>
