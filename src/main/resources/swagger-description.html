@@ -273,6 +273,41 @@ conservative <b>offender.events</b>.
           <li><b>enteredById</b> string - NOMIS staff id of creator</li>
         </ul>
       </li>
+      <li>
+        <b>prison-offender-events.prisoner.contact-removed</b> is raised when a person has been removed as contact to a prisoner. Only the relationship is removed not the actual person
+        <h3>Additional Information</h3>
+        <ul>
+          <li><b>nomsNumber</b> string - Prisoner number of the prisoner that has the contact</li>
+          <li><b>bookingId</b> number - id of the booking record in NOMIS that contains the contact </li>
+          <li><b>personId</b> number - id of the person record in NOMIS that contains information about the person, e.g. name, date of birth etc</li>
+          <li><b>contactId</b> number - id of the contact record in NOMIS that contains information about the relationship, e.g. social, official, brother etc</li>
+          <li><b>approvedVisitor</b> boolean - flag to indicate if the contact was an approved visitor at the point the event was triggered</li>
+        </ul>
+      </li>
+      <li>
+        <b>prison-offender-events.prisoner.contact-approved</b> is raised when a contact has been approved as visitor to the prisoner
+        <h3>Additional Information</h3>
+        <ul>
+          <li><b>nomsNumber</b> string - Prisoner number of the prisoner that has the contact</li>
+          <li><b>bookingId</b> number - id of the booking record in NOMIS that contains the contact </li>
+          <li><b>personId</b> number - id of the person record in NOMIS that contains information about the person, e.g. name, date of birth etc</li>
+          <li><b>contactId</b> number - id of the contact record in NOMIS that contains information about the relationship, e.g. social, official, brother etc</li>
+          <li><b>approvedVisitor</b> boolean - flag to indicate if the contact was an approved visitor at the point the event was triggered - will be true</li>
+          <li><b>username</b> string - NOMIS user that made the change</li>
+        </ul>
+      </li>
+      <li>
+        <b>prison-offender-events.prisoner.contact-unapproved</b> is raised when a contact has had their approval to visit the prisoner revoked
+        <h3>Additional Information</h3>
+        <ul>
+          <li><b>nomsNumber</b> string - Prisoner number of the prisoner that has the contact</li>
+          <li><b>bookingId</b> number - id of the booking record in NOMIS that contains the contact </li>
+          <li><b>personId</b> number - id of the person record in NOMIS that contains information about the person, e.g. name, date of birth etc</li>
+          <li><b>contactId</b> number - id of the contact record in NOMIS that contains information about the relationship, e.g. social, official, brother etc</li>
+          <li><b>approvedVisitor</b> boolean - flag to indicate if the contact was an approved visitor at the point the event was triggered - will be false</li>
+          <li><b>username</b> string - NOMIS user that made the change</li>
+        </ul>
+      </li>
     </ul>
 </div>
 <h2>Topic subscription</h2>
