@@ -9,7 +9,7 @@ RUN ./gradlew --no-daemon assemble
 
 # Grab AWS RDS Root cert
 RUN apt-get update && apt-get install -y curl
-RUN curl https://s3.amazonaws.com/rds-downloads/rds-ca-2019-root.pem  > root.crt
+RUN curl https://truststore.pki.rds.amazonaws.com/global/global-bundle.pem  > root.crt
 
 FROM eclipse-temurin:21-jre-jammy
 LABEL maintainer="HMPPS Digital Studio <info@digital.justice.gov.uk>"
