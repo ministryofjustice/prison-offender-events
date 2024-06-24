@@ -31,3 +31,4 @@ helm_deploy/*/Chart.lock
 helm_deploy/*/charts/
 sonar-project.properties
 volume
+.kotlin
