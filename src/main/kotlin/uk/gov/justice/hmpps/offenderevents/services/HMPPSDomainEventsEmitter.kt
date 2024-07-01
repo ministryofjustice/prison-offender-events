@@ -75,9 +75,9 @@ class HMPPSDomainEventsEmitter(
       is PrisonerAppointmentUpdateEvent -> toAppointmentChanged(offenderEvent).toList()
       is ImprisonmentStatusChangedEvent -> toImprisonmentStatusChanged(offenderEvent).toListOrEmptyWhenNull()
       is SentenceDatesChangedEvent -> toSentenceDatesChanged(offenderEvent).toList()
-      is OffenderContactEventInserted -> offenderEvent.toDomainEvent().toList()
-      is OffenderContactEventUpdated -> offenderEvent.toDomainEvent().toList()
-      is OffenderContactEventDeleted -> offenderEvent.toDomainEvent().toList()
+      is OffenderContactEventInserted -> offenderEvent.toDomainEvent().toListOrEmptyWhenNull()
+      is OffenderContactEventUpdated -> offenderEvent.toDomainEvent().toListOrEmptyWhenNull()
+      is OffenderContactEventDeleted -> offenderEvent.toDomainEvent().toListOrEmptyWhenNull()
 
       else -> emptyList()
     }
@@ -385,7 +385,7 @@ class HMPPSDomainEventsEmitter(
 private fun HmppsDomainEvent.toList() = listOf(this)
 private fun HmppsDomainEvent?.toListOrEmptyWhenNull() = this?.toList() ?: emptyList()
 
-private fun OffenderContactEventInserted.toDomainEvent(): HmppsDomainEvent = this.toDomainEvent(
+private fun OffenderContactEventInserted.toDomainEvent(): HmppsDomainEvent? = this.toDomainEvent(
   eventType = "prison-offender-events.prisoner.contact-added",
   description = "A contact has been added to a prisoner",
 )
@@ -399,13 +399,18 @@ private fun OffenderContactEventUpdated.toDomainEvent() = this.toDomainEvent(
   eventType = if (this.approvedVisitor) "prison-offender-events.prisoner.contact-approved" else "prison-offender-events.prisoner.contact-unapproved",
   description = "A contact for a prisoner has been ${ if (this.approvedVisitor) "approved" else "unapproved"}",
 )
-private fun OffenderContactEvent.toDomainEvent(eventType: String, description: String) = HmppsDomainEvent(
-  eventType = eventType,
-  description = description,
-  occurredAt = toOccurredAt(),
-  publishedAt = OffsetDateTime.now().toString(),
-  personReference = PersonReference(offenderIdDisplay),
-).withContactAdditionalInformation(this)
+private fun OffenderContactEvent.toDomainEvent(eventType: String, description: String) =
+  if (personId != null) {
+    HmppsDomainEvent(
+      eventType = eventType,
+      description = description,
+      occurredAt = toOccurredAt(),
+      publishedAt = OffsetDateTime.now().toString(),
+      personReference = PersonReference(offenderIdDisplay),
+    ).withContactAdditionalInformation(this)
+  } else {
+    null
+  }
 
 private fun HmppsDomainEvent.withContactAdditionalInformation(xtagEvent: OffenderContactEvent): HmppsDomainEvent =
   this.withAdditionalInformation("nomsNumber", xtagEvent.offenderIdDisplay)

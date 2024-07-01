@@ -195,7 +195,7 @@ class SentenceDatesChangedEvent(
 abstract class OffenderContactEvent(
   eventDatetime: LocalDateTime,
   override val offenderIdDisplay: String,
-  val personId: Long,
+  val personId: Long?,
   val contactId: Long,
   val approvedVisitor: Boolean,
   val username: String?,
@@ -208,7 +208,7 @@ abstract class OffenderContactEvent(
 class OffenderContactEventInserted(
   eventDatetime: LocalDateTime,
   offenderIdDisplay: String,
-  personId: Long,
+  personId: Long?,
   contactId: Long,
   approvedVisitor: Boolean,
   username: String?,
@@ -226,7 +226,7 @@ class OffenderContactEventInserted(
 class OffenderContactEventUpdated(
   eventDatetime: LocalDateTime,
   offenderIdDisplay: String,
-  personId: Long,
+  personId: Long?,
   contactId: Long,
   approvedVisitor: Boolean,
   username: String?,
@@ -244,7 +244,7 @@ class OffenderContactEventUpdated(
 class OffenderContactEventDeleted(
   eventDatetime: LocalDateTime,
   offenderIdDisplay: String,
-  personId: Long,
+  personId: Long?,
   contactId: Long,
   approvedVisitor: Boolean,
   username: String?,
