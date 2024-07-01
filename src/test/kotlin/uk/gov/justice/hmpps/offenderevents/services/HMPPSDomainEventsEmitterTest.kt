@@ -1844,6 +1844,30 @@ internal class HMPPSDomainEventsEmitterTest(@Autowired private val objectMapper:
       }
     }
 
+    private fun processNullPersonIdXtagEvent(eventType: String, approved: Boolean = true) {
+      Mockito.reset(hmppsEventSnsClient, telemetryClient)
+      emitter.convertAndSendWhenSignificant(
+        eventType,
+        // language=JSON
+        """
+        {
+          "nomisEventType":"$eventType",
+          "contactId":7550868,
+          "eventDatetime":"${LocalDateTime.parse("2022-12-04T10:00:00")}",
+          "offenderIdDisplay":"A1234BC",
+          "approvedVisitor":"$approved",
+          "eventType":"$eventType",
+          "auditModuleName":"OIDVIRES",
+          "username": "J_SMITH",
+          "bookingId":1215922
+        }
+        """.trimIndent(),
+      )
+      argumentCaptor<PublishRequest>().apply {
+        verifyNoInteractions(hmppsEventSnsClient)
+      }
+    }
+
     @ParameterizedTest
     @MethodSource("contactEventMap")
     fun `will raise a contact event type`(prisonEventType: String, eventType: String, approved: Boolean) {
@@ -1902,6 +1926,12 @@ internal class HMPPSDomainEventsEmitterTest(@Autowired private val objectMapper:
       assertThat(telemetryAttributes).containsEntry("nomsNumber", "A1234BC")
       assertThat(telemetryAttributes).containsEntry("personId", "4729911")
       assertThat(telemetryAttributes).containsEntry("contactId", "7550868")
+    }
+
+    @ParameterizedTest
+    @MethodSource("contactEventMap")
+    fun `will not raise an event for a null personId`(prisonEventType: String, eventType: String, approved: Boolean) {
+      processNullPersonIdXtagEvent(prisonEventType, approved = approved)
     }
 
     private fun contactEventMap() = listOf(
