@@ -408,10 +408,9 @@ private fun OffenderContactEvent.toDomainEvent(eventType: String, description: S
       publishedAt = OffsetDateTime.now().toString(),
       personReference = PersonReference(offenderIdDisplay),
     ).withContactAdditionalInformation(this)
-  }else {
+  } else {
     null
   }
-
 
 private fun HmppsDomainEvent.withContactAdditionalInformation(xtagEvent: OffenderContactEvent): HmppsDomainEvent =
   this.withAdditionalInformation("nomsNumber", xtagEvent.offenderIdDisplay)
