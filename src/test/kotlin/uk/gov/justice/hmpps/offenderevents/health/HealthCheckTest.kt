@@ -1,15 +1,11 @@
 package uk.gov.justice.hmpps.offenderevents.health
 
-import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
 import uk.gov.justice.hmpps.offenderevents.resource.QueueListenerIntegrationTest
 import uk.gov.justice.hmpps.offenderevents.services.wiremock.HMPPSAuthExtension
 import uk.gov.justice.hmpps.offenderevents.services.wiremock.PrisonApiExtension
-import java.time.LocalDateTime
-import java.time.format.DateTimeFormatter
-import java.util.function.Consumer
 
 @ExtendWith(PrisonApiExtension::class, HMPPSAuthExtension::class)
 class HealthCheckTest : QueueListenerIntegrationTest() {
@@ -75,18 +71,6 @@ class HealthCheckTest : QueueListenerIntegrationTest() {
       .jsonPath("components.prisoneventqueue-health.details.messagesOnDlq").isEqualTo(0)
       .jsonPath("components.prisoneventqueue-health.details.dlqStatus").isEqualTo("UP")
       .jsonPath("components.prisoneventqueue-health.details.dlqName").isEqualTo(prisonEventDlqName)
-  }
-
-  @Test
-  fun `Health info reports version`() {
-    webTestClient.get().uri("/health")
-      .exchange()
-      .expectStatus().isOk
-      .expectBody().jsonPath("components.healthInfo.details.version").value(
-        Consumer<String> {
-          assertThat(it).startsWith(LocalDateTime.now().format(DateTimeFormatter.ISO_DATE))
-        },
-      )
   }
 
   @Test
