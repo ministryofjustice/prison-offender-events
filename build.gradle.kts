@@ -25,7 +25,7 @@ dependencies {
   annotationProcessor("org.projectlombok:lombok:1.18.32")
   compileOnly("org.projectlombok:lombok:1.18.32")
 
-  implementation("uk.gov.justice.service.hmpps:hmpps-kotlin-spring-boot-starter:1.0.1")
+  implementation("uk.gov.justice.service.hmpps:hmpps-kotlin-spring-boot-starter:1.0.2-beta-3")
   implementation("org.springframework.boot:spring-boot-starter-webflux")
 
   implementation("uk.gov.justice.service.hmpps:hmpps-sqs-spring-boot-starter:4.0.1")
@@ -39,7 +39,7 @@ dependencies {
 
   implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:2.5.0")
 
-  testImplementation("uk.gov.justice.service.hmpps:hmpps-kotlin-spring-boot-starter-test:1.0.2-beta")
+  testImplementation("uk.gov.justice.service.hmpps:hmpps-kotlin-spring-boot-starter-test:1.0.2-beta-3")
   testAnnotationProcessor("org.springframework.boot:spring-boot-configuration-processor")
   testAnnotationProcessor("org.projectlombok:lombok:1.18.32")
   testCompileOnly("org.projectlombok:lombok:1.18.32")
