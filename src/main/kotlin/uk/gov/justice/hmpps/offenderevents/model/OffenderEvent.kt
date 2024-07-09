@@ -23,6 +23,7 @@ abstract class OffenderEvent(
       "OFFENDER_MOVEMENT-RECEPTION" to PrisonerReceivedOffenderEvent::class.java,
       "OFFENDER_MOVEMENT-DISCHARGE" to PrisonerDischargedOffenderEvent::class.java,
       "BOOKING_NUMBER-CHANGED" to PrisonerMergedOffenderEvent::class.java,
+      "OFFENDER_BOOKING-REASSIGNED" to PrisonerBookingMovedOffenderEvent::class.java,
       "NON_ASSOCIATION_DETAIL-UPSERTED" to NonAssociationDetailsOffenderEvent::class.java,
       "NON_ASSOCIATION_DETAIL-DELETED" to NonAssociationDetailsOffenderEvent::class.java,
       "RESTRICTION-UPSERTED" to RestrictionOffenderEvent::class.java,
@@ -71,6 +72,13 @@ class PrisonerDischargedOffenderEvent(
 class PrisonerMergedOffenderEvent(
   eventDatetime: LocalDateTime,
   offenderIdDisplay: String? = null,
+  val bookingId: Long,
+) : OffenderEvent(eventDatetime = eventDatetime, offenderIdDisplay = offenderIdDisplay)
+
+class PrisonerBookingMovedOffenderEvent(
+  eventDatetime: LocalDateTime,
+  override val offenderIdDisplay: String,
+  val previousOffenderIdDisplay: String,
   val bookingId: Long,
 ) : OffenderEvent(eventDatetime = eventDatetime, offenderIdDisplay = offenderIdDisplay)
 

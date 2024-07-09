@@ -7,7 +7,7 @@ import net.javacrumbs.jsonunit.assertj.JsonAssertions.assertThatJson
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.within
 import org.assertj.core.api.ThrowingConsumer
-import org.awaitility.Awaitility
+import org.awaitility.Awaitility.await
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Nested
@@ -65,12 +65,10 @@ class HMPPSDomainEventsTest : QueueListenerIntegrationTest() {
       .toList()
   }
 
-  private fun toSQSMessage(message: String): SQSMessage {
-    return try {
-      objectMapper.readValue(message, SQSMessage::class.java)
-    } catch (e: JsonProcessingException) {
-      throw AssertionFailedError(String.format("Message %s is not parseable", message))
-    }
+  private fun toSQSMessage(message: String): SQSMessage = try {
+    objectMapper.readValue(message, SQSMessage::class.java)
+  } catch (e: JsonProcessingException) {
+    throw AssertionFailedError(String.format("Message %s is not parseable", message))
   }
 
   @JvmRecord
@@ -119,8 +117,8 @@ class HMPPSDomainEventsTest : QueueListenerIntegrationTest() {
       @Test
       @DisplayName("will publish prison event and hmpps domain event for reception")
       fun willPublishPrisonEventForReception() {
-        Awaitility.await().until { getNumberOfMessagesCurrentlyOnPrisonEventTestQueue() == 1 }
-        Awaitility.await().until { getNumberOfMessagesCurrentlyOnHMPPSEventTestQueue() == 1 }
+        await().until { getNumberOfMessagesCurrentlyOnPrisonEventTestQueue() == 1 }
+        await().until { getNumberOfMessagesCurrentlyOnHMPPSEventTestQueue() == 1 }
       }
 
       @Test
@@ -130,7 +128,7 @@ class HMPPSDomainEventsTest : QueueListenerIntegrationTest() {
         InterruptedException::class,
       )
       fun willPublishPrisonEvent() {
-        Awaitility.await().until { getNumberOfMessagesCurrentlyOnPrisonEventTestQueue() == 1 }
+        await().until { getNumberOfMessagesCurrentlyOnPrisonEventTestQueue() == 1 }
         val prisonEventMessages = geMessagesCurrentlyOnTestQueue()
         assertThat(prisonEventMessages)
           .singleElement()
@@ -150,7 +148,7 @@ class HMPPSDomainEventsTest : QueueListenerIntegrationTest() {
         InterruptedException::class,
       )
       fun willPublishHMPPSDomainEvent() {
-        Awaitility.await().until { getNumberOfMessagesCurrentlyOnHMPPSEventTestQueue() == 1 }
+        await().until { getNumberOfMessagesCurrentlyOnHMPPSEventTestQueue() == 1 }
         val hmppsEventMessages = geMessagesCurrentlyOnHMPPSTestQueue()
         assertThat(hmppsEventMessages).singleElement().satisfies(
           ThrowingConsumer { event: String? ->
@@ -211,8 +209,8 @@ class HMPPSDomainEventsTest : QueueListenerIntegrationTest() {
       @Test
       @DisplayName("will publish prison event and hmpps domain event for release transfer")
       fun willPublishPrisonEventForTransferRelease() {
-        Awaitility.await().until { getNumberOfMessagesCurrentlyOnPrisonEventTestQueue() == 1 }
-        Awaitility.await().until { getNumberOfMessagesCurrentlyOnHMPPSEventTestQueue() == 1 }
+        await().until { getNumberOfMessagesCurrentlyOnPrisonEventTestQueue() == 1 }
+        await().until { getNumberOfMessagesCurrentlyOnHMPPSEventTestQueue() == 1 }
       }
 
       @Test
@@ -222,7 +220,7 @@ class HMPPSDomainEventsTest : QueueListenerIntegrationTest() {
         InterruptedException::class,
       )
       fun willPublishPrisonEvent() {
-        Awaitility.await().until { getNumberOfMessagesCurrentlyOnPrisonEventTestQueue() == 1 }
+        await().until { getNumberOfMessagesCurrentlyOnPrisonEventTestQueue() == 1 }
         val prisonEventMessages = geMessagesCurrentlyOnTestQueue()
         assertThat(prisonEventMessages)
           .singleElement()
@@ -242,7 +240,7 @@ class HMPPSDomainEventsTest : QueueListenerIntegrationTest() {
         InterruptedException::class,
       )
       fun willPublishHMPPSDomainEvent() {
-        Awaitility.await().until { getNumberOfMessagesCurrentlyOnHMPPSEventTestQueue() == 1 }
+        await().until { getNumberOfMessagesCurrentlyOnHMPPSEventTestQueue() == 1 }
         val hmppsEventMessages = geMessagesCurrentlyOnHMPPSTestQueue()
         assertThat(hmppsEventMessages).singleElement().satisfies(
           ThrowingConsumer { event: String? ->
@@ -286,7 +284,7 @@ class HMPPSDomainEventsTest : QueueListenerIntegrationTest() {
         InterruptedException::class,
       )
       fun willPublishHMPPSDomainEvent() {
-        Awaitility.await().until { getNumberOfMessagesCurrentlyOnHMPPSEventTestQueue() == 1 }
+        await().until { getNumberOfMessagesCurrentlyOnHMPPSEventTestQueue() == 1 }
         val hmppsEventMessages = geMessagesCurrentlyOnHMPPSTestQueue()
         assertThat(hmppsEventMessages).singleElement().satisfies(
           ThrowingConsumer { event: String? ->
@@ -335,8 +333,8 @@ class HMPPSDomainEventsTest : QueueListenerIntegrationTest() {
       @Test
       @DisplayName("will publish prison event and hmpps domain event for release transfer")
       fun willPublishPrisonEventForTransferRelease() {
-        Awaitility.await().until { getNumberOfMessagesCurrentlyOnPrisonEventTestQueue() == 1 }
-        Awaitility.await().until { getNumberOfMessagesCurrentlyOnHMPPSEventTestQueue() == 1 }
+        await().until { getNumberOfMessagesCurrentlyOnPrisonEventTestQueue() == 1 }
+        await().until { getNumberOfMessagesCurrentlyOnHMPPSEventTestQueue() == 1 }
       }
 
       @Test
@@ -346,7 +344,7 @@ class HMPPSDomainEventsTest : QueueListenerIntegrationTest() {
         InterruptedException::class,
       )
       fun willPublishPrisonEvent() {
-        Awaitility.await().until { getNumberOfMessagesCurrentlyOnPrisonEventTestQueue() == 1 }
+        await().until { getNumberOfMessagesCurrentlyOnPrisonEventTestQueue() == 1 }
         val prisonEventMessages = geMessagesCurrentlyOnTestQueue()
         assertThat(prisonEventMessages)
           .singleElement()
@@ -366,7 +364,7 @@ class HMPPSDomainEventsTest : QueueListenerIntegrationTest() {
         InterruptedException::class,
       )
       fun willPublishHMPPSDomainEvent() {
-        Awaitility.await().until { getNumberOfMessagesCurrentlyOnHMPPSEventTestQueue() == 1 }
+        await().until { getNumberOfMessagesCurrentlyOnHMPPSEventTestQueue() == 1 }
         val hmppsEventMessages = geMessagesCurrentlyOnHMPPSTestQueue()
         assertThat(hmppsEventMessages).singleElement().satisfies(
           ThrowingConsumer { event: String? ->
@@ -418,9 +416,9 @@ class HMPPSDomainEventsTest : QueueListenerIntegrationTest() {
     @DisplayName("will ignore a deleted or non-existent offender")
     fun willIgnoreNonExistentOffender() {
       // Wait for messages to have been sent to the prisoneventqueue
-      Awaitility.await().until { getNumberOfMessagesCurrentlyOnPrisonEventTestQueue() == 2 }
+      await().until { getNumberOfMessagesCurrentlyOnPrisonEventTestQueue() == 2 }
       // Wait for messages to have been consumed by JMS
-      Awaitility.await().until { getNumberOfMessagesCurrentlyOnPrisonEventQueue() == 0 }
+      await().until { getNumberOfMessagesCurrentlyOnPrisonEventQueue() == 0 }
       // Check that no hmpps event messages were generated from them
       assertThat(getNumberOfMessagesCurrentlyOnHMPPSEventTestQueue()).isEqualTo(0)
       PrisonApiExtension.server.verifyPrisonerDetails404("NONEXISTENT")
@@ -455,7 +453,7 @@ class HMPPSDomainEventsTest : QueueListenerIntegrationTest() {
     fun willNotPublishPrisonEvent() {
       // Only the one original message sent by the test
       // assertThat(getNumberOfMessagesCurrentlyOnPrisonEventTestQueue()).isEqualTo(1);
-      Awaitility.await().until { getNumberOfMessagesCurrentlyOnPrisonEventTestQueue() == 1 }
+      await().until { getNumberOfMessagesCurrentlyOnPrisonEventTestQueue() == 1 }
     }
 
     @Test
@@ -465,7 +463,7 @@ class HMPPSDomainEventsTest : QueueListenerIntegrationTest() {
       InterruptedException::class,
     )
     fun willPublishHMPPSDomainEvent() {
-      Awaitility.await().until { getNumberOfMessagesCurrentlyOnHMPPSEventTestQueue() == 1 }
+      await().until { getNumberOfMessagesCurrentlyOnHMPPSEventTestQueue() == 1 }
       val hmppsEventMessages = geMessagesCurrentlyOnHMPPSTestQueue()
       assertThat(hmppsEventMessages).singleElement().satisfies(
         ThrowingConsumer { event: String? ->
@@ -489,6 +487,84 @@ class HMPPSDomainEventsTest : QueueListenerIntegrationTest() {
           assertThatJson(event).node("additionalInformation.caseNoteId").isEqualTo("\"1301234\"")
         },
       )
+    }
+  }
+
+  @Nested
+  @DisplayName("OFFENDER_BOOKING-REASSIGNED")
+  internal inner class OffenderBookingReassigned {
+    @Nested
+    internal inner class WhenMovedBetweenAliases {
+      @BeforeEach
+      fun setUp() {
+        sendToTopic(
+          "OFFENDER_BOOKING-REASSIGNED",
+          // language=JSON
+          """
+          {
+            "eventType":"OFFENDER_BOOKING-REASSIGNED",
+            "bookingId":"2936648",
+            "eventDatetime":"2024-07-08T14:28:10.0000000Z",
+            "offenderIdDisplay":"A9999CA",
+            "nomisEventType":"OFF_BKB_UPD",
+            "offenderId":"2620073",
+            "previousOffenderIdDisplay":"A9999CA",
+            "previousOffenderId":"5260560"
+          }
+                """
+            .trimIndent(),
+        )
+      }
+
+      @Test
+      fun `will not publish a domain event`() {
+        // Wait for messages to have been sent to the prisoneventqueue
+        await().until { getNumberOfMessagesCurrentlyOnPrisonEventTestQueue() == 1 }
+        // Wait for messages to have been consumed by JMS
+        await().until { getNumberOfMessagesCurrentlyOnPrisonEventQueue() == 0 }
+        // Check that no hmpps event messages were generated from them
+        assertThat(getNumberOfMessagesCurrentlyOnHMPPSEventTestQueue()).isEqualTo(0)
+      }
+    }
+
+    @Nested
+    internal inner class WhenMovedBetweenPrisoners {
+      @BeforeEach
+      fun setUp() {
+        sendToTopic(
+          "OFFENDER_BOOKING-REASSIGNED",
+          // language=JSON
+          """
+          {
+            "eventType":"OFFENDER_BOOKING-REASSIGNED",
+            "bookingId":"2936648",
+            "eventDatetime":"2024-07-08T14:28:10.0000000Z",
+            "offenderIdDisplay":"A9999CA",
+            "nomisEventType":"OFF_BKB_UPD",
+            "offenderId":"2620073",
+            "previousOffenderIdDisplay":"A1111CL",
+            "previousOffenderId":"5260560"
+          }
+                """
+            .trimIndent(),
+        )
+      }
+
+      @Test
+      fun `will publish a domain event`() {
+        await().until { getNumberOfMessagesCurrentlyOnHMPPSEventTestQueue() == 1 }
+        val hmppsEventMessages = geMessagesCurrentlyOnHMPPSTestQueue()
+        assertThat(hmppsEventMessages).singleElement().satisfies(
+          ThrowingConsumer { event: String? ->
+            assertThatJson(event).node("eventType").isEqualTo("prison-offender-events.prisoner.booking.moved")
+            assertThatJson(event).node("additionalInformation.movedToNomsNumber").isEqualTo("A9999CA")
+            assertThatJson(event).node("additionalInformation.movedFromNomsNumber").isEqualTo("A1111CL")
+            assertThatJson(event).node("personReference.identifiers[0].value").isEqualTo("A9999CA")
+            assertThatJson(event).node("personReference.identifiers[0].type").isEqualTo("NOMS")
+            assertThatJson(event).node("additionalInformation.bookingId").asString().isEqualTo("2936648")
+          },
+        )
+      }
     }
   }
 }

@@ -24,6 +24,7 @@ import uk.gov.justice.hmpps.offenderevents.model.OffenderEvent
 import uk.gov.justice.hmpps.offenderevents.model.PersonRestrictionOffenderEvent
 import uk.gov.justice.hmpps.offenderevents.model.PrisonerActivityUpdateEvent
 import uk.gov.justice.hmpps.offenderevents.model.PrisonerAppointmentUpdateEvent
+import uk.gov.justice.hmpps.offenderevents.model.PrisonerBookingMovedOffenderEvent
 import uk.gov.justice.hmpps.offenderevents.model.PrisonerDischargedOffenderEvent
 import uk.gov.justice.hmpps.offenderevents.model.PrisonerMergedOffenderEvent
 import uk.gov.justice.hmpps.offenderevents.model.PrisonerReceivedOffenderEvent
@@ -78,6 +79,7 @@ class HMPPSDomainEventsEmitter(
       is OffenderContactEventInserted -> offenderEvent.toDomainEvent().toListOrEmptyWhenNull()
       is OffenderContactEventUpdated -> offenderEvent.toDomainEvent().toListOrEmptyWhenNull()
       is OffenderContactEventDeleted -> offenderEvent.toDomainEvent().toListOrEmptyWhenNull()
+      is PrisonerBookingMovedOffenderEvent -> offenderEvent.toDomainEvent().toListOrEmptyWhenNull()
 
       else -> emptyList()
     }
@@ -419,3 +421,16 @@ private fun HmppsDomainEvent.withContactAdditionalInformation(xtagEvent: Offende
     .withAdditionalInformation("contactId", xtagEvent.contactId)
     .withAdditionalInformation("approvedVisitor", xtagEvent.approvedVisitor)
     .withAdditionalInformation("username", xtagEvent.username)
+
+private fun PrisonerBookingMovedOffenderEvent.toDomainEvent(): HmppsDomainEvent? = this.takeIf { offenderIdDisplay != previousOffenderIdDisplay }?.let {
+  HmppsDomainEvent(
+    eventType = "prison-offender-events.prisoner.booking.moved",
+    description = "a NOMIS booking has moved between prisoners",
+    occurredAt = toOccurredAt(),
+    publishedAt = OffsetDateTime.now().toString(),
+    personReference = PersonReference(offenderIdDisplay),
+  )
+    .withAdditionalInformation("bookingId", bookingId)
+    .withAdditionalInformation("movedToNomsNumber", offenderIdDisplay)
+    .withAdditionalInformation("movedFromNomsNumber", previousOffenderIdDisplay)
+}
