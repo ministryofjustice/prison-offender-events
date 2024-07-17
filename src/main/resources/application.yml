@@ -78,8 +78,13 @@ hmpps.sqs:
   topics:
     prisoneventtopic:
       asyncClient: true
+      propagateTracing: true
     hmppseventtopic:
       asyncClient: true
+      propagateTracing: true
+  queues:
+    prisoneventqueue:
+      propagateTracing: true
 
 application:
   listener:
