@@ -28,8 +28,8 @@ abstract class OffenderEvent(
       "NON_ASSOCIATION_DETAIL-DELETED" to NonAssociationDetailsOffenderEvent::class.java,
       "RESTRICTION-UPSERTED" to RestrictionOffenderEvent::class.java,
       "RESTRICTION-DELETED" to RestrictionOffenderEvent::class.java,
-      "PERSON_RESTRICTION-UPSERTED" to PersonRestrictionOffenderEvent::class.java,
-      "PERSON_RESTRICTION-DELETED" to PersonRestrictionOffenderEvent::class.java,
+      "PERSON_RESTRICTION-UPSERTED" to PersonRestrictionOffenderEventUpserted::class.java,
+      "PERSON_RESTRICTION-DELETED" to PersonRestrictionOffenderEventDeleted::class.java,
       "VISITOR_RESTRICTION-UPSERTED" to VisitorRestrictionOffenderEvent::class.java,
       "VISITOR_RESTRICTION-DELETED" to VisitorRestrictionOffenderEvent::class.java,
       "PRISONER_ACTIVITY-UPDATE" to PrisonerActivityUpdateEvent::class.java,
@@ -119,7 +119,7 @@ class RestrictionOffenderEvent(
   offenderIdDisplay = offenderIdDisplay,
 )
 
-class PersonRestrictionOffenderEvent(
+abstract class PersonRestrictionOffenderEvent(
   eventDatetime: LocalDateTime,
   offenderIdDisplay: String? = null,
 
@@ -134,6 +134,54 @@ class PersonRestrictionOffenderEvent(
 ) : OffenderEvent(
   eventDatetime = eventDatetime,
   offenderIdDisplay = offenderIdDisplay,
+)
+
+class PersonRestrictionOffenderEventUpserted(
+  eventDatetime: LocalDateTime,
+  offenderIdDisplay: String? = null,
+  contactPersonId: Long?,
+  offenderPersonRestrictionId: Long?,
+  restrictionType: String?,
+  effectiveDate: LocalDate?,
+  expiryDate: LocalDate?,
+  authorisedById: Long?,
+  comment: String?,
+  enteredById: Long?,
+) : PersonRestrictionOffenderEvent(
+  eventDatetime,
+  offenderIdDisplay,
+  contactPersonId,
+  offenderPersonRestrictionId,
+  restrictionType,
+  effectiveDate,
+  expiryDate,
+  authorisedById,
+  comment,
+  enteredById,
+)
+
+class PersonRestrictionOffenderEventDeleted(
+  eventDatetime: LocalDateTime,
+  offenderIdDisplay: String? = null,
+  contactPersonId: Long?,
+  offenderPersonRestrictionId: Long?,
+  restrictionType: String?,
+  effectiveDate: LocalDate?,
+  expiryDate: LocalDate?,
+  authorisedById: Long?,
+  comment: String?,
+  enteredById: Long?,
+) : PersonRestrictionOffenderEvent(
+  eventDatetime,
+  offenderIdDisplay,
+  contactPersonId,
+  offenderPersonRestrictionId,
+  restrictionType,
+  effectiveDate,
+  expiryDate,
+  authorisedById,
+  comment,
+  enteredById,
 )
 
 class VisitorRestrictionOffenderEvent(

@@ -22,6 +22,8 @@ import uk.gov.justice.hmpps.offenderevents.model.OffenderContactEventInserted
 import uk.gov.justice.hmpps.offenderevents.model.OffenderContactEventUpdated
 import uk.gov.justice.hmpps.offenderevents.model.OffenderEvent
 import uk.gov.justice.hmpps.offenderevents.model.PersonRestrictionOffenderEvent
+import uk.gov.justice.hmpps.offenderevents.model.PersonRestrictionOffenderEventDeleted
+import uk.gov.justice.hmpps.offenderevents.model.PersonRestrictionOffenderEventUpserted
 import uk.gov.justice.hmpps.offenderevents.model.PrisonerActivityUpdateEvent
 import uk.gov.justice.hmpps.offenderevents.model.PrisonerAppointmentUpdateEvent
 import uk.gov.justice.hmpps.offenderevents.model.PrisonerBookingMovedOffenderEvent
@@ -69,7 +71,8 @@ class HMPPSDomainEventsEmitter(
       is PrisonerMergedOffenderEvent -> toMergedOffenderNumbers(offenderEvent)
       is CellMoveOffenderEvent -> toCellMove(offenderEvent).toList()
       is NonAssociationDetailsOffenderEvent -> toNonAssociationDetails(offenderEvent).toList()
-      is PersonRestrictionOffenderEvent -> toPersonRestriction(offenderEvent).toList()
+      is PersonRestrictionOffenderEventUpserted -> toPersonRestrictionUpserted(offenderEvent)
+      is PersonRestrictionOffenderEventDeleted -> toPersonRestrictionDeleted(offenderEvent)
       is VisitorRestrictionOffenderEvent -> toVisitorRestriction(offenderEvent).toList()
       is RestrictionOffenderEvent -> toRestriction(offenderEvent).toList()
       is PrisonerActivityUpdateEvent -> toActivityChanged(offenderEvent).toList()
@@ -283,22 +286,35 @@ class HMPPSDomainEventsEmitter(
     .withAdditionalInformation("authorisedById", event.authorisedById)
     .withAdditionalInformation("enteredById", event.enteredById)
 
-  private fun toPersonRestriction(event: PersonRestrictionOffenderEvent): HmppsDomainEvent = HmppsDomainEvent(
-    eventType = "prison-offender-events.prisoner.person-restriction.changed",
-    description = "A prisoner person restriction record has changed",
-    occurredAt = event.toOccurredAt(),
-    publishedAt = OffsetDateTime.now().toString(),
-    personReference = PersonReference(event.offenderIdDisplay ?: ""),
-  )
-    .withAdditionalInformation("nomsNumber", event.offenderIdDisplay)
-    .withAdditionalInformation("contactPersonId", event.contactPersonId)
-    .withAdditionalInformation("offenderPersonRestrictionId", event.offenderPersonRestrictionId)
-    .withAdditionalInformation("restrictionType", event.restrictionType)
-    .withAdditionalInformation("effectiveDate", event.effectiveDate)
-    .withAdditionalInformation("expiryDate", event.expiryDate)
-    .withAdditionalInformation("authorisedById", event.authorisedById)
-    .withAdditionalInformation("enteredById", event.enteredById)
-    .withAdditionalInformation("comment", event.comment)
+  private fun toPersonRestrictionUpserted(event: PersonRestrictionOffenderEventUpserted): List<HmppsDomainEvent> =
+    listOf(
+      createPersonRestrictionEvent(event, "prison-offender-events.prisoner.person-restriction.upserted", "A prisoner person restriction record has been created or updated"),
+      createPersonRestrictionEvent(event, "prison-offender-events.prisoner.person-restriction.changed", "A prisoner person restriction record has changed"),
+    )
+
+  private fun toPersonRestrictionDeleted(event: PersonRestrictionOffenderEventDeleted): List<HmppsDomainEvent> =
+    listOf(
+      createPersonRestrictionEvent(event, "prison-offender-events.prisoner.person-restriction.deleted", "A prisoner person restriction record has been deleted"),
+      createPersonRestrictionEvent(event, "prison-offender-events.prisoner.person-restriction.changed", "A prisoner person restriction record has changed"),
+    )
+
+  private fun createPersonRestrictionEvent(event: PersonRestrictionOffenderEvent, eventType: String, description: String) =
+    HmppsDomainEvent(
+      eventType = eventType,
+      description = description,
+      occurredAt = event.toOccurredAt(),
+      publishedAt = OffsetDateTime.now().toString(),
+      personReference = PersonReference(event.offenderIdDisplay ?: ""),
+    )
+      .withAdditionalInformation("nomsNumber", event.offenderIdDisplay)
+      .withAdditionalInformation("contactPersonId", event.contactPersonId)
+      .withAdditionalInformation("offenderPersonRestrictionId", event.offenderPersonRestrictionId)
+      .withAdditionalInformation("restrictionType", event.restrictionType)
+      .withAdditionalInformation("effectiveDate", event.effectiveDate)
+      .withAdditionalInformation("expiryDate", event.expiryDate)
+      .withAdditionalInformation("authorisedById", event.authorisedById)
+      .withAdditionalInformation("enteredById", event.enteredById)
+      .withAdditionalInformation("comment", event.comment)
 
   private fun toVisitorRestriction(event: VisitorRestrictionOffenderEvent): HmppsDomainEvent =
     HmppsDomainEvent(
@@ -399,8 +415,9 @@ private fun OffenderContactEventDeleted.toDomainEvent() = this.toDomainEvent(
 
 private fun OffenderContactEventUpdated.toDomainEvent() = this.toDomainEvent(
   eventType = if (this.approvedVisitor) "prison-offender-events.prisoner.contact-approved" else "prison-offender-events.prisoner.contact-unapproved",
-  description = "A contact for a prisoner has been ${ if (this.approvedVisitor) "approved" else "unapproved"}",
+  description = "A contact for a prisoner has been ${if (this.approvedVisitor) "approved" else "unapproved"}",
 )
+
 private fun OffenderContactEvent.toDomainEvent(eventType: String, description: String) =
   if (personId != null) {
     HmppsDomainEvent(
