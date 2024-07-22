@@ -1263,7 +1263,6 @@ internal class HMPPSDomainEventsEmitterTest(@Autowired private val objectMapper:
         verify(hmppsEventSnsClient, times(2)).publish(capture())
         payload1 = firstValue.message()
         payload2 = secondValue.message()
-
       }
       argumentCaptor<Map<String, String>>().apply {
         verify(telemetryClient, times(2)).trackEvent(any(), capture(), isNull())
@@ -1330,7 +1329,7 @@ internal class HMPPSDomainEventsEmitterTest(@Autowired private val objectMapper:
     fun `will add correct fields to telemetry event`() {
       assertThat(telemetryAttributes1).containsEntry(
         "eventType",
-        "prison-offender-events.prisoner.person-restriction.upserted"
+        "prison-offender-events.prisoner.person-restriction.upserted",
       )
       assertThat(telemetryAttributes1).containsEntry("nomsNumber", "A1234GH")
       assertThat(telemetryAttributes1).containsEntry("occurredAt", "2022-12-04T10:00:00Z")
@@ -1338,7 +1337,7 @@ internal class HMPPSDomainEventsEmitterTest(@Autowired private val objectMapper:
       assertThat(telemetryAttributes1).containsEntry("comment", "a test")
       assertThat(telemetryAttributes2).containsEntry(
         "eventType",
-        "prison-offender-events.prisoner.person-restriction.changed"
+        "prison-offender-events.prisoner.person-restriction.changed",
       )
       assertThat(telemetryAttributes2).containsEntry("nomsNumber", "A1234GH")
       assertThat(telemetryAttributes2).containsEntry("occurredAt", "2022-12-04T10:00:00Z")
@@ -1395,7 +1394,6 @@ internal class HMPPSDomainEventsEmitterTest(@Autowired private val objectMapper:
         verify(hmppsEventSnsClient, times(2)).publish(capture())
         payload1 = firstValue.message()
         payload2 = secondValue.message()
-
       }
       argumentCaptor<Map<String, String>>().apply {
         verify(telemetryClient, times(2)).trackEvent(any(), capture(), isNull())
@@ -1484,7 +1482,7 @@ internal class HMPPSDomainEventsEmitterTest(@Autowired private val objectMapper:
         "authorisedById",
         "enteredById",
         "comment",
-        )
+      )
       assertThat(telemetryAttributes1).containsOnlyKeys(keys)
       assertThat(telemetryAttributes2).containsOnlyKeys(keys)
     }
