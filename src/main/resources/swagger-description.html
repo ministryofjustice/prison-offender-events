@@ -85,7 +85,7 @@ conservative <b>offender.events</b>.
 <div>
     <ul>
       <li class="pt2">
-        <b class="f4">prison-offender-events.prisoner.released</b> is raised when a prisoner is released from prison, this includes temporary releases
+        <b>prison-offender-events.prisoner.released</b> is raised when a prisoner is released from prison, this includes temporary releases
         such as court appearances and transfers. We would recommend consumers to ensure their service is idempotent, there are scenarios where multiple events maybe raised for same release.
         <h3>Additional Information</h3>
             <ul>
@@ -117,8 +117,8 @@ conservative <b>offender.events</b>.
               <li><b>nomisMovementReasonCode</b> string - the reason code for the last movement. Since this is the literal NOMIS reference data that can change clients should be cautious of tightly integrating with this value. MOVE_RSN is the reference data domain in NOMIS</li>
             </ul>
       </li>
-      <li class="pt4">
-        <b class="f4">prison-offender-events.prisoner.received</b> is raised when a prisoner is received to prison, this may be due to remand, a conviction or a recall from a broken licence. Also included are returns from temporary absences and transfers.
+      <li>
+        <b>prison-offender-events.prisoner.received</b> is raised when a prisoner is received to prison, this may be due to remand, a conviction or a recall from a broken licence. Also included are returns from temporary absences and transfers.
         We would recommend consumers to ensure their service is idempotent, there are scenarios where multiple events maybe raised for same receive.
         <h3>Additional Information</h3>
             <ul>
@@ -149,8 +149,8 @@ conservative <b>offender.events</b>.
               <li><b>nomisMovementReasonCode</b> string - the reason code for the last movement. Since this is the literal NOMIS reference data that can change clients should be cautious of tightly integrating with this value. MOVE_RSN is the reference data domain in NOMIS</li>
             </ul>
       </li>
-      <li class="pt4">
-        <b class="f4">prison-offender-events.prisoner.merged</b> is raised when a prisoner is merged into an exists prisoner record. This will mean that the prisoner will be
+      <li>
+        <b>prison-offender-events.prisoner.merged</b> is raised when a prisoner is merged into an exists prisoner record. This will mean that the prisoner will be
         now attached to the original NOMS (prisoner) number and the new one removed from NOMIS
         <h3>Additional Information</h3>
             <ul>
@@ -163,8 +163,8 @@ conservative <b>offender.events</b>.
               <li><b>removedNomsNumber</b> string - NOMS number that was MERGED into <em>nomsNumber</em> and then removed</li>
             </ul>
       </li>
-      <li class="pt4">
-        <b class="f4">prison-offender-events.prisoner.non-association-detail.changed</b> is raised when a prisoner non-association is created/updated/deleted.
+      <li>
+        <b>prison-offender-events.prisoner.non-association-detail.changed</b> is raised when a prisoner non-association is created/updated/deleted.
         These events occur in pairs because the non-association is created both ways round.
         <h3>Additional Information</h3>
         <ul>
@@ -194,8 +194,8 @@ conservative <b>offender.events</b>.
           <li><b>comment</b> string - optional comment</li>
         </ul>
       </li>
-      <li class="pt4">
-        <b class="f4">prison-offender-events.prisoner.restriction.changed</b> is raised when a prisoner visits restriction is created/updated/deleted.
+      <li>
+        <b>prison-offender-events.prisoner.restriction.changed</b> is raised when a prisoner visits restriction is created/updated/deleted.
         <h3>Additional Information</h3>
         <ul>
           <li><b>nomsNumber</b> string - NOMS number of the prisoner</li>
@@ -221,8 +221,8 @@ conservative <b>offender.events</b>.
           <li><b>enteredById</b> string - NOMIS staff id of creator</li>
         </ul>
       </li>
-      <li class="pt4">
-        <b class="f4">prison-offender-events.prisoner.person-restriction.changed</b> is raised when a global visitor restriction is created/updated/deleted.
+      <li>
+        <b>prison-offender-events.prisoner.person-restriction.changed</b> is raised when a global visitor restriction is created/updated/deleted.
         <p>NOTE: Deprecated: please use prison-offender-events.prisoner.restriction.upserted or prison-offender-events.prisoner.restriction.deleted</p>
         <h3>Additional Information</h3>
         <ul>
@@ -248,8 +248,8 @@ conservative <b>offender.events</b>.
           <li><b>enteredById</b> string - NOMIS staff id of creator</li>
         </ul>
       </li>
-      <li class="pt4">
-        <b class="f4">prison-offender-events.prisoner.person-restriction.upserted</b> is raised when a global visitor restriction is created or updated.
+      <li>
+        <b>prison-offender-events.prisoner.person-restriction.upserted</b> is raised when a global visitor restriction is created or updated.
         <h3>Additional Information</h3>
         <ul>
           <li><b>contactPersonId</b> string - NOMIS person id of the visitor</li>
@@ -274,8 +274,8 @@ conservative <b>offender.events</b>.
           <li><b>enteredById</b> string - NOMIS staff id of creator</li>
         </ul>
       </li>
-      <li class="pt4">
-        <b class="f4">prison-offender-events.prisoner.person-restriction.changed</b> is raised when a global visitor restriction is deleted.
+      <li>
+        <b>prison-offender-events.prisoner.person-restriction.deleted</b> is raised when a global visitor restriction is deleted.
         <h3>Additional Information</h3>
         <ul>
           <li><b>contactPersonId</b> string - NOMIS person id of the visitor</li>
@@ -300,8 +300,8 @@ conservative <b>offender.events</b>.
           <li><b>enteredById</b> string - NOMIS staff id of creator</li>
         </ul>
       </li>
-      <li class="pt4">
-        <b class="f4">prison-offender-events.visitor.restriction.changed</b> is raised when a global visitor restriction is created/updated/deleted.
+      <li>
+        <b>prison-offender-events.visitor.restriction.changed</b> is raised when a global visitor restriction is created/updated/deleted.
         <h3>Additional Information</h3>
         <ul>
           <li><b>contactPersonId</b> string - NOMIS person id of the visitor</li>
@@ -325,8 +325,8 @@ conservative <b>offender.events</b>.
           <li><b>enteredById</b> string - NOMIS staff id of creator</li>
         </ul>
       </li>
-      <li class="pt4">
-        <b class="f4">prison-offender-events.prisoner.contact-added</b> is raised when a person is added as priosner contact
+      <li>
+        <b>prison-offender-events.prisoner.contact-added</b> is raised when a person is added as priosner contact
         <h3>Additional Information</h3>
         <ul>
           <li><b>nomsNumber</b> string - Prisoner number of the prisoner that has the contact</li>
@@ -337,8 +337,8 @@ conservative <b>offender.events</b>.
           <li><b>username</b> string - NOMIS user that made the change</li>
         </ul>
       </li>
-      <li class="pt4">
-        <b class="f4">prison-offender-events.prisoner.contact-removed</b> is raised when a person has been removed as contact to a prisoner. Only the relationship is removed not the actual person
+      <li>
+        <b>prison-offender-events.prisoner.contact-removed</b> is raised when a person has been removed as contact to a prisoner. Only the relationship is removed not the actual person
         <h3>Additional Information</h3>
         <ul>
           <li><b>nomsNumber</b> string - Prisoner number of the prisoner that has the contact</li>
@@ -348,8 +348,8 @@ conservative <b>offender.events</b>.
           <li><b>approvedVisitor</b> boolean - flag to indicate if the contact was an approved visitor at the point the event was triggered</li>
         </ul>
       </li>
-      <li class="pt4">
-        <b class="f4">prison-offender-events.prisoner.contact-approved</b> is raised when a contact has been approved as visitor to the prisoner
+      <li>
+        <b>prison-offender-events.prisoner.contact-approved</b> is raised when a contact has been approved as visitor to the prisoner
         <h3>Additional Information</h3>
         <ul>
           <li><b>nomsNumber</b> string - Prisoner number of the prisoner that has the contact</li>
@@ -360,8 +360,8 @@ conservative <b>offender.events</b>.
           <li><b>username</b> string - NOMIS user that made the change</li>
         </ul>
       </li>
-      <li class="pt4">
-        <b class="f4">prison-offender-events.prisoner.contact-unapproved</b> is raised when a contact has had their approval to visit the prisoner revoked
+      <li>
+        <b>prison-offender-events.prisoner.contact-unapproved</b> is raised when a contact has had their approval to visit the prisoner revoked
         <h3>Additional Information</h3>
         <ul>
           <li><b>nomsNumber</b> string - Prisoner number of the prisoner that has the contact</li>
