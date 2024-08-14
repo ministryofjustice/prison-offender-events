@@ -11,10 +11,10 @@ import io.opentelemetry.instrumentation.annotations.WithSpan
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Service
-import software.amazon.awssdk.services.sqs.model.MessageAttributeValue
 import software.amazon.awssdk.services.sqs.model.SendMessageRequest
 import uk.gov.justice.hmpps.offenderevents.services.HMPPSDomainEventsEmitter
 import uk.gov.justice.hmpps.sqs.HmppsQueueService
+import uk.gov.justice.hmpps.sqs.eventTypeMessageAttributes
 import java.time.Duration
 import java.time.OffsetDateTime
 
@@ -47,7 +47,7 @@ class PrisonerEventsListener(
           SendMessageRequest.builder()
             .queueUrl(attributes.queueUrl)
             .messageBody(message)
-            .messageAttributes(mapOf("eventType" to MessageAttributeValue.builder().dataType("String").stringValue(eventType).build()))
+            .eventTypeMessageAttributes(eventType)
             .delaySeconds(delay.toSeconds().toInt())
             .build(),
         )
