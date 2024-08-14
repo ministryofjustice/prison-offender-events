@@ -82,6 +82,7 @@ then you may as well listen on the search events, if on the other hand your serv
 conservative <b>offender.events</b>.
 </div>
 <h4>Event details</h4>
+<p>Fields marked with <span style="color: red">*</span> are mandatory in the event message, otherwise they are nullable.</p>
 <div>
     <ul>
       <li>
@@ -89,8 +90,8 @@ conservative <b>offender.events</b>.
         such as court appearances and transfers. We would recommend consumers to ensure their service is idempotent, there are scenarios where multiple events maybe raised for same release.
         <h3>Additional Information</h3>
             <ul>
-              <li><b>nomsNumber</b> string - NOMIS offender number</li>
-              <li><b>reason</b> enum - reason for the release. Will be one of these values
+              <li><b>nomsNumber <span style="color: red">*</span></b> string - NOMIS offender number</li>
+              <li><b>reason <span style="color: red">*</span></b> enum - reason for the release. Will be one of these values
                 <ul>
                   <li><b>TEMPORARY_ABSENCE_RELEASE</b> prisoner has been temporarily released and is expected to return</li>
                   <li><b>RELEASED_TO_HOSPITAL</b> prisoner has been discharged in to the care of a hospital</li>
@@ -100,11 +101,12 @@ conservative <b>offender.events</b>.
                   <li><b>UNKNOWN</b> not sure why the prisoner has been released</li>
                 </ul>
               </li>
-              <li><b>detail</b> string - further human readable information about the reason. The contents is developer focused and not to be relied on. Example <b>Movement reason code YY</b>
+              <li><b>details</b> string - further human readable information about the reason. The contents is developer focused and not to be relied on. Example <b>Movement reason code YY</b>
               <li><b>currentLocation</b> enum  - indicates if prisoner is in or out of prison
                 <ul>
                   <li><b>IN_PRISON</b> prisoner in a prison</li>
                   <li><b>OUTSIDE_PRISON</b> prisoner no longer in a prison</li>
+                  <li><b>BEING_TRANSFERRED</b> prisoner is being transferred</li>
                 </ul>
               </li>
               <li><b>currentPrisonStatus</b> enum  - indicates if prisoner is still actively cared for by a prison, and alias for ACTIVE/INACTION
@@ -113,8 +115,8 @@ conservative <b>offender.events</b>.
                   <li><b>NOT_UNDER_PRISON_CARE</b> prisoner has been discharged from prison</li>
                 </ul>
               </li>
-              <li><b>prisonId</b> string - the current prison where the prisoner was last located</li>
-              <li><b>nomisMovementReasonCode</b> string - the reason code for the last movement. Since this is the literal NOMIS reference data that can change clients should be cautious of tightly integrating with this value. MOVE_RSN is the reference data domain in NOMIS</li>
+              <li><b>prisonId <span style="color: red">*</span></b> string - the current prison where the prisoner was last located</li>
+              <li><b>nomisMovementReasonCode <span style="color: red">*</span></b> string - the reason code for the last movement. Since this is the literal NOMIS reference data that can change clients should be cautious of tightly integrating with this value. MOVE_RSN is the reference data domain in NOMIS</li>
             </ul>
       </li>
       <li>
@@ -122,8 +124,8 @@ conservative <b>offender.events</b>.
         We would recommend consumers to ensure their service is idempotent, there are scenarios where multiple events maybe raised for same receive.
         <h3>Additional Information</h3>
             <ul>
-              <li><b>nomsNumber</b> string - NOMIS offender number</li>
-              <li><b>reason</b> enum - reason for the receive. Will be one of these values below. It has been observed that administration mistakes in NOMIS can cause the reason for RECALL and CONVICTED to be not always be accurate.
+              <li><b>nomsNumber <span style="color: red">*</span></b> string - NOMIS offender number</li>
+              <li><b>reason <span style="color: red">*</span></b> enum - reason for the receive. Will be one of these values below. It has been observed that administration mistakes in NOMIS can cause the reason for RECALL and CONVICTED to be not always be accurate.
                 <ul>
                   <li><b>ADMISSION</b> prisoner is entering prison due to a new court order or recall</li>
                   <li><b>TEMPORARY_ABSENCE_RETURN</b> prisoner is returning from temporary absence e.g. day release</li>
@@ -131,12 +133,13 @@ conservative <b>offender.events</b>.
                   <li><b>TRANSFERRED</b> prisoner has been transferred from another prison</li>
                 </ul>
               </li>
-              <li><b>detail</b> string - further human readable information about the reason. The contents is developer focused and not to be relied on. Example<b>Recall referral date 2021-06-13</b>
+              <li><b>details</b> string - further human readable information about the reason. The contents is developer focused and not to be relied on. Example<b>Recall referral date 2021-06-13</b>
               </li>
               <li><b>currentLocation</b> enum  - indicates if prisoner is in or out of prison
                 <ul>
                   <li><b>IN_PRISON</b> prisoner in a prison</li>
                   <li><b>OUTSIDE_PRISON</b> prisoner no longer in a prison</li>
+                  <li><b>BEING_TRANSFERRED</b> prisoner is being transferred</li>
                 </ul>
               </li>
               <li><b>currentPrisonStatus</b> enum  - indicates if prisoner is still actively cared for by a prison, and alias for ACTIVE/INACTION
@@ -145,8 +148,8 @@ conservative <b>offender.events</b>.
                   <li><b>NOT_UNDER_PRISON_CARE</b> prisoner has been discharged from prison</li>
                 </ul>
               </li>
-              <li><b>prisonId</b> string - the current prison where the prisoner was last located</li>
-              <li><b>nomisMovementReasonCode</b> string - the reason code for the last movement. Since this is the literal NOMIS reference data that can change clients should be cautious of tightly integrating with this value. MOVE_RSN is the reference data domain in NOMIS</li>
+              <li><b>prisonId <span style="color: red">*</span></b> string - the current prison where the prisoner was last located</li>
+              <li><b>nomisMovementReasonCode <span style="color: red">*</span></b> string - the reason code for the last movement. Since this is the literal NOMIS reference data that can change clients should be cautious of tightly integrating with this value. MOVE_RSN is the reference data domain in NOMIS</li>
             </ul>
       </li>
       <li>
