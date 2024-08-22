@@ -1143,7 +1143,6 @@ internal class HMPPSDomainEventsEmitterTest(@Autowired private val objectMapper:
            "restrictionType": "SEC",
            "effectiveDate": "${LocalDate.parse("2022-12-04")}",
            "expiryDate": "${LocalDate.parse("2022-12-05")}",
-           "comment": "a test",
            "authorisedById": 2,
            "enteredById": 3,
            "eventDatetime": "${LocalDateTime.parse("2022-12-04T10:00:00")}"
@@ -1196,7 +1195,6 @@ internal class HMPPSDomainEventsEmitterTest(@Autowired private val objectMapper:
       assertThatJson(payload).node("additionalInformation.restrictionType").isEqualTo("\"SEC\"")
       assertThatJson(payload).node("additionalInformation.effectiveDate").isEqualTo("\"2022-12-04\"")
       assertThatJson(payload).node("additionalInformation.expiryDate").isEqualTo("\"2022-12-05\"")
-      assertThatJson(payload).node("additionalInformation.comment").isEqualTo("\"a test\"")
       assertThatJson(payload).node("additionalInformation.authorisedById").isEqualTo("\"2\"")
       assertThatJson(payload).node("additionalInformation.enteredById").isEqualTo("\"3\"")
     }
@@ -1212,7 +1210,6 @@ internal class HMPPSDomainEventsEmitterTest(@Autowired private val objectMapper:
       assertThat(telemetryAttributes).containsEntry("nomsNumber", "A1234GH")
       assertThat(telemetryAttributes).containsEntry("occurredAt", "2022-12-04T10:00:00Z")
       assertThat(telemetryAttributes).containsEntry("restrictionType", "SEC")
-      assertThat(telemetryAttributes).containsEntry("comment", "a test")
     }
 
     @Test
@@ -1227,7 +1224,6 @@ internal class HMPPSDomainEventsEmitterTest(@Autowired private val objectMapper:
         "offenderRestrictionId",
         "effectiveDate",
         "expiryDate",
-        "comment",
         "authorisedById",
         "enteredById",
       )
@@ -1249,12 +1245,12 @@ internal class HMPPSDomainEventsEmitterTest(@Autowired private val objectMapper:
         {
            "offenderIdDisplay": "A1234GH",
            "offenderPersonRestrictionId": 1,
+           "personId": 4,
            "restrictionType": "SEC",
            "effectiveDate": "${LocalDate.parse("2022-12-04")}",
            "expiryDate": "${LocalDate.parse("2022-12-05")}",
            "authorisedById": 2,
            "enteredById": 3,
-           "comment": "a test",
            "eventDatetime": "${LocalDateTime.parse("2022-12-04T10:00:00")}"
         } 
         """.trimIndent(),
@@ -1313,9 +1309,11 @@ internal class HMPPSDomainEventsEmitterTest(@Autowired private val objectMapper:
       assertThatJson(payload1).node("additionalInformation.offenderPersonRestrictionId").isEqualTo("\"1\"")
       assertThatJson(payload1).node("additionalInformation.restrictionType").isEqualTo("\"SEC\"")
       assertThatJson(payload1).node("additionalInformation.effectiveDate").isEqualTo("\"2022-12-04\"")
+      assertThatJson(payload1).node("additionalInformation.personId").isEqualTo("\"4\"")
       assertThatJson(payload2).node("additionalInformation.offenderPersonRestrictionId").isEqualTo("\"1\"")
       assertThatJson(payload2).node("additionalInformation.restrictionType").isEqualTo("\"SEC\"")
       assertThatJson(payload2).node("additionalInformation.effectiveDate").isEqualTo("\"2022-12-04\"")
+      assertThatJson(payload2).node("additionalInformation.personId").isEqualTo("\"4\"")
     }
 
     @Test
@@ -1334,7 +1332,6 @@ internal class HMPPSDomainEventsEmitterTest(@Autowired private val objectMapper:
       assertThat(telemetryAttributes1).containsEntry("nomsNumber", "A1234GH")
       assertThat(telemetryAttributes1).containsEntry("occurredAt", "2022-12-04T10:00:00Z")
       assertThat(telemetryAttributes1).containsEntry("restrictionType", "SEC")
-      assertThat(telemetryAttributes1).containsEntry("comment", "a test")
       assertThat(telemetryAttributes2).containsEntry(
         "eventType",
         "prison-offender-events.prisoner.person-restriction.changed",
@@ -1342,7 +1339,6 @@ internal class HMPPSDomainEventsEmitterTest(@Autowired private val objectMapper:
       assertThat(telemetryAttributes2).containsEntry("nomsNumber", "A1234GH")
       assertThat(telemetryAttributes2).containsEntry("occurredAt", "2022-12-04T10:00:00Z")
       assertThat(telemetryAttributes2).containsEntry("restrictionType", "SEC")
-      assertThat(telemetryAttributes2).containsEntry("comment", "a test")
     }
 
     @Test
@@ -1353,12 +1349,12 @@ internal class HMPPSDomainEventsEmitterTest(@Autowired private val objectMapper:
         "occurredAt",
         "publishedAt",
         "offenderPersonRestrictionId",
+        "personId",
         "restrictionType",
         "effectiveDate",
         "expiryDate",
         "authorisedById",
         "enteredById",
-        "comment",
       )
       assertThat(telemetryAttributes1).containsOnlyKeys(keys)
       assertThat(telemetryAttributes2).containsOnlyKeys(keys)
@@ -1385,7 +1381,6 @@ internal class HMPPSDomainEventsEmitterTest(@Autowired private val objectMapper:
            "expiryDate": "${LocalDate.parse("2022-12-05")}",
            "authorisedById": 2,
            "enteredById": 3,
-           "comment": "a test",
            "eventDatetime": "${LocalDateTime.parse("2022-12-04T10:00:00")}"
         } 
         """.trimIndent(),
@@ -1460,12 +1455,10 @@ internal class HMPPSDomainEventsEmitterTest(@Autowired private val objectMapper:
       assertThat(telemetryAttributes1).containsEntry("nomsNumber", "A1234GH")
       assertThat(telemetryAttributes1).containsEntry("occurredAt", "2022-12-04T10:00:00Z")
       assertThat(telemetryAttributes1).containsEntry("restrictionType", "SEC")
-      assertThat(telemetryAttributes1).containsEntry("comment", "a test")
       assertThat(telemetryAttributes2).containsEntry("eventType", "prison-offender-events.prisoner.person-restriction.changed")
       assertThat(telemetryAttributes2).containsEntry("nomsNumber", "A1234GH")
       assertThat(telemetryAttributes2).containsEntry("occurredAt", "2022-12-04T10:00:00Z")
       assertThat(telemetryAttributes2).containsEntry("restrictionType", "SEC")
-      assertThat(telemetryAttributes2).containsEntry("comment", "a test")
     }
 
     @Test
@@ -1481,7 +1474,6 @@ internal class HMPPSDomainEventsEmitterTest(@Autowired private val objectMapper:
         "expiryDate",
         "authorisedById",
         "enteredById",
-        "comment",
       )
       assertThat(telemetryAttributes1).containsOnlyKeys(keys)
       assertThat(telemetryAttributes2).containsOnlyKeys(keys)
@@ -1567,7 +1559,6 @@ internal class HMPPSDomainEventsEmitterTest(@Autowired private val objectMapper:
     fun `will add correct fields to telemetry event`() {
       assertThat(telemetryAttributes).containsEntry("occurredAt", "2022-12-04T10:00:00Z")
       assertThat(telemetryAttributes).containsEntry("restrictionType", "SEC")
-      assertThat(telemetryAttributes).containsEntry("comment", "a test")
     }
 
     @Test
@@ -1580,7 +1571,6 @@ internal class HMPPSDomainEventsEmitterTest(@Autowired private val objectMapper:
         "restrictionType",
         "effectiveDate",
         "expiryDate",
-        "comment",
         "visitorRestrictionId",
         "enteredById",
       )
