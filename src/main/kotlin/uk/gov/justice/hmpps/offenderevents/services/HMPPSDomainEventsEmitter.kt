@@ -282,7 +282,6 @@ class HMPPSDomainEventsEmitter(
     .withAdditionalInformation("restrictionType", event.restrictionType)
     .withAdditionalInformation("effectiveDate", event.effectiveDate)
     .withAdditionalInformation("expiryDate", event.expiryDate)
-    .withAdditionalInformation("comment", event.comment)
     .withAdditionalInformation("authorisedById", event.authorisedById)
     .withAdditionalInformation("enteredById", event.enteredById)
 
@@ -314,7 +313,7 @@ class HMPPSDomainEventsEmitter(
       .withAdditionalInformation("expiryDate", event.expiryDate)
       .withAdditionalInformation("authorisedById", event.authorisedById)
       .withAdditionalInformation("enteredById", event.enteredById)
-      .withAdditionalInformation("comment", event.comment)
+      .withAdditionalInformation("personId", event.personId)
 
   private fun toVisitorRestriction(event: VisitorRestrictionOffenderEvent): HmppsDomainEvent =
     HmppsDomainEvent(
@@ -328,7 +327,6 @@ class HMPPSDomainEventsEmitter(
       .withAdditionalInformation("restrictionType", event.restrictionType)
       .withAdditionalInformation("effectiveDate", event.effectiveDate)
       .withAdditionalInformation("expiryDate", event.expiryDate)
-      .withAdditionalInformation("comment", event.comment)
       .withAdditionalInformation("visitorRestrictionId", event.visitorRestrictionId)
       .withAdditionalInformation("enteredById", event.enteredById)
 
