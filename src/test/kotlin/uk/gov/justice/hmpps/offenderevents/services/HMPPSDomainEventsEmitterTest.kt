@@ -28,6 +28,7 @@ import org.springframework.boot.test.autoconfigure.json.JsonTest
 import software.amazon.awssdk.services.sns.SnsAsyncClient
 import software.amazon.awssdk.services.sns.model.MessageAttributeValue
 import software.amazon.awssdk.services.sns.model.PublishRequest
+import software.amazon.awssdk.services.sns.model.PublishResponse
 import uk.gov.justice.hmpps.offenderevents.config.OffenderEventsProperties
 import uk.gov.justice.hmpps.offenderevents.services.CurrentLocation.IN_PRISON
 import uk.gov.justice.hmpps.offenderevents.services.CurrentLocation.OUTSIDE_PRISON
@@ -45,6 +46,7 @@ import java.time.LocalDateTime
 import java.time.OffsetDateTime
 import java.time.temporal.ChronoUnit.SECONDS
 import java.util.Optional
+import java.util.concurrent.CompletableFuture
 import java.util.function.Consumer
 
 @JsonTest
@@ -65,6 +67,7 @@ internal class HMPPSDomainEventsEmitterTest(@Autowired private val objectMapper:
     whenever(hmppsQueueService.findByTopicId("hmppseventtopic"))
       .thenReturn(HmppsTopic("hmppseventtopic", "sometopicarn", hmppsEventSnsClient))
 
+    whenever(hmppsEventSnsClient.publish(any<PublishRequest>())).thenReturn(CompletableFuture.completedFuture(PublishResponse.builder().build()))
     emitter = HMPPSDomainEventsEmitter(
       hmppsQueueService,
       objectMapper,
@@ -1714,6 +1717,8 @@ internal class HMPPSDomainEventsEmitterTest(@Autowired private val objectMapper:
 
     private fun processXtagEvent(eventType: String, approved: Boolean = true) {
       Mockito.reset(hmppsEventSnsClient, telemetryClient)
+      whenever(hmppsEventSnsClient.publish(any<PublishRequest>())).thenReturn(CompletableFuture.completedFuture(PublishResponse.builder().build()))
+
       emitter.convertAndSendWhenSignificant(
         eventType,
         // language=JSON

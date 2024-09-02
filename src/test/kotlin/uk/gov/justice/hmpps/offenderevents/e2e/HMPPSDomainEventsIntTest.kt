@@ -7,19 +7,26 @@ import net.javacrumbs.jsonunit.assertj.JsonAssertions.assertThatJson
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.within
 import org.assertj.core.api.ThrowingConsumer
+import org.assertj.core.data.TemporalUnitOffset
 import org.awaitility.Awaitility.await
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
+import org.mockito.kotlin.any
+import org.mockito.kotlin.check
+import org.mockito.kotlin.verify
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
+import org.springframework.boot.test.mock.mockito.SpyBean
+import org.springframework.test.util.JsonPathExpectationsHelper
 import software.amazon.awssdk.services.sns.model.MessageAttributeValue
 import software.amazon.awssdk.services.sns.model.PublishRequest
 import software.amazon.awssdk.services.sqs.model.Message
 import software.amazon.awssdk.services.sqs.model.ReceiveMessageRequest
 import uk.gov.justice.hmpps.offenderevents.resource.QueueListenerIntegrationTest
+import uk.gov.justice.hmpps.offenderevents.services.HMPPSDomainEventsEmitter
 import uk.gov.justice.hmpps.offenderevents.services.wiremock.HMPPSAuthExtension
 import uk.gov.justice.hmpps.offenderevents.services.wiremock.PrisonApiExtension
 import java.time.OffsetDateTime
@@ -28,9 +35,12 @@ import java.util.concurrent.ExecutionException
 
 @ExtendWith(PrisonApiExtension::class, HMPPSAuthExtension::class)
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-class HMPPSDomainEventsTest : QueueListenerIntegrationTest() {
+class HMPPSDomainEventsIntTest : QueueListenerIntegrationTest() {
   @Autowired
   private lateinit var objectMapper: ObjectMapper
+
+  @SpyBean
+  private lateinit var emitter: HMPPSDomainEventsEmitter
 
   @BeforeEach
   fun setUp() {
@@ -327,35 +337,13 @@ class HMPPSDomainEventsTest : QueueListenerIntegrationTest() {
            """
             .trimIndent(),
         )
-        // send control message so we can check messages have been processed
-        sendToTopic(
-          "OFFENDER_BOOKING-REASSIGNED",
-          // language=JSON
-          """
-            {
-              "eventType":"OFFENDER_BOOKING-REASSIGNED",
-              "bookingId":"1201234",
-              "eventDatetime":"2024-07-08T14:28:10.0000000Z",
-              "offenderIdDisplay":"A9999CA",
-              "nomisEventType":"OFF_BKB_UPD",
-              "offenderId":"2620073",
-              "previousOffenderIdDisplay":"A5694DR",
-              "previousOffenderId":"5260560"
-            }
-            """
-            .trimIndent(),
-        )
 
-        await().until { getNumberOfMessagesCurrentlyOnHMPPSEventTestQueue() == 1 }
+        await().untilAsserted { verify(emitter).sendEvents(any()) }
       }
 
       @Test
-      fun `will not publish a merge event only control message`() {
-        await().until { getNumberOfMessagesCurrentlyOnHMPPSEventTestQueue() == 1 }
-        val hmppsEventMessages = geMessagesCurrentlyOnHMPPSTestQueue()
-        assertThat(hmppsEventMessages).hasSize(1)
-        val domainEvent = hmppsEventMessages.first()
-        assertThatJson(domainEvent).node("eventType").isEqualTo("prison-offender-events.prisoner.booking.moved")
+      fun `will not publish a merge event`() {
+        verify(emitter).sendEvents(check { it.isEmpty() })
       }
     }
 
@@ -379,33 +367,12 @@ class HMPPSDomainEventsTest : QueueListenerIntegrationTest() {
           """
             .trimIndent(),
         )
-        // send control message so we can check messages have been processed
-        sendToTopic(
-          "OFFENDER_BOOKING-REASSIGNED",
-          // language=JSON
-          """
-            {
-              "eventType":"OFFENDER_BOOKING-REASSIGNED",
-              "bookingId":"2936648",
-              "eventDatetime":"2024-07-08T14:28:10.0000000Z",
-              "offenderIdDisplay":"A9999CA",
-              "nomisEventType":"OFF_BKB_UPD",
-              "offenderId":"2620073",
-              "previousOffenderIdDisplay":"A1111CL",
-              "previousOffenderId":"5260560"
-            }
-            """
-            .trimIndent(),
-        )
-        await().until { getNumberOfMessagesCurrentlyOnHMPPSEventTestQueue() == 1 }
+        await().untilAsserted { verify(emitter).sendEvents(any()) }
       }
 
       @Test
-      fun `will not publish a merge event only control message`() {
-        val hmppsEventMessages = geMessagesCurrentlyOnHMPPSTestQueue()
-        assertThat(hmppsEventMessages).hasSize(1)
-        val domainEvent = hmppsEventMessages.first()
-        assertThatJson(domainEvent).node("eventType").isEqualTo("prison-offender-events.prisoner.booking.moved")
+      fun `will not publish a merge event`() {
+        verify(emitter).sendEvents(check { it.isEmpty() })
       }
     }
 
@@ -431,50 +398,21 @@ class HMPPSDomainEventsTest : QueueListenerIntegrationTest() {
           """
             .trimIndent(),
         )
-        // send control message so we can check messages have been processed
-        sendToTopic(
-          "OFFENDER_BOOKING-REASSIGNED",
-          // language=JSON
-          """
-            {
-              "eventType":"OFFENDER_BOOKING-REASSIGNED",
-              "bookingId":"1201234",
-              "eventDatetime":"2021-02-08T14:41:11.526762Z",
-              "offenderIdDisplay":"A9999CA",
-              "nomisEventType":"OFF_BKB_UPD",
-              "offenderId":"2620073",
-              "previousOffenderIdDisplay":"A5694DR",
-              "previousOffenderId":"5260560"
-            }
-            """
-            .trimIndent(),
-        )
-        await().until { getNumberOfMessagesCurrentlyOnHMPPSEventTestQueue() == 2 }
+        await().until { getNumberOfMessagesCurrentlyOnHMPPSEventTestQueue() == 1 }
       }
 
       @Test
-      fun `will publish a merge event (along with a control message)`() {
-        val hmppsEventMessages = geMessagesCurrentlyOnHMPPSTestQueue()
-        assertThat(hmppsEventMessages).hasSize(1)
-        val mergeDomainEvent = hmppsEventMessages.first()
+      fun `will publish a merge event`() {
+        val mergeDomainEvent = geMessagesCurrentlyOnHMPPSTestQueue().first()
 
-        assertThatJson(mergeDomainEvent).node("eventType").isEqualTo("prison-offender-events.prisoner.merged")
-        assertThatJson(mergeDomainEvent).node("occurredAt").asString()
-          .satisfies(
-            ThrowingConsumer { dateTime: String? ->
-              assertThat(dateTime).isEqualTo("2022-11-02T00:39:05.070936Z")
-            },
-          )
-        assertThatJson(mergeDomainEvent).node("publishedAt").asString()
-          .satisfies(
-            ThrowingConsumer { dateTime: String? ->
-              assertThat(OffsetDateTime.parse(dateTime))
-                .isCloseTo(OffsetDateTime.now(), within(10, ChronoUnit.SECONDS))
-            },
-          )
-        assertThatJson(mergeDomainEvent).node("additionalInformation.reason").isEqualTo("MERGE")
-        assertThatJson(mergeDomainEvent).node("additionalInformation.removedNomsNumber").isEqualTo("A5694DR")
-        assertThatJson(mergeDomainEvent).node("additionalInformation.bookingId").asString().isEqualTo("1201234")
+        with(mergeDomainEvent) {
+          assertJsonPath("eventType", "prison-offender-events.prisoner.merged")
+          assertJsonPath("occurredAt", "2022-11-02T00:39:05.070936Z")
+          assertJsonPathDateTimeIsCloseTo("publishedAt", OffsetDateTime.now(), within(10, ChronoUnit.SECONDS))
+          assertJsonPath("additionalInformation.reason", "MERGE")
+          assertJsonPath("additionalInformation.removedNomsNumber", "A5694DR")
+          assertJsonPath("additionalInformation.bookingId", "1201234")
+        }
       }
     }
   }
@@ -655,4 +593,13 @@ class HMPPSDomainEventsTest : QueueListenerIntegrationTest() {
       }
     }
   }
+}
+
+private fun String.assertJsonPath(path: String, expectedValue: Any) = JsonPathExpectationsHelper(path).assertValue(this, expectedValue)
+
+private fun String.assertJsonPathDateTimeIsCloseTo(path: String, other: OffsetDateTime, offset: TemporalUnitOffset) {
+  val value = JsonPathExpectationsHelper(path).evaluateJsonPath(this)
+  assertThat(value).isNotNull
+  assertThat(OffsetDateTime.parse(value!!.toString()))
+    .isCloseTo(other, offset)
 }
