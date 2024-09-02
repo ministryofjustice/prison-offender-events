@@ -7,7 +7,6 @@ import net.javacrumbs.jsonunit.assertj.JsonAssertions.assertThatJson
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.within
 import org.assertj.core.api.ThrowingConsumer
-import org.assertj.core.data.TemporalUnitOffset
 import org.awaitility.Awaitility.await
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.DisplayName
@@ -20,11 +19,12 @@ import org.mockito.kotlin.verify
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.boot.test.mock.mockito.SpyBean
-import org.springframework.test.util.JsonPathExpectationsHelper
 import software.amazon.awssdk.services.sns.model.MessageAttributeValue
 import software.amazon.awssdk.services.sns.model.PublishRequest
 import software.amazon.awssdk.services.sqs.model.Message
 import software.amazon.awssdk.services.sqs.model.ReceiveMessageRequest
+import uk.gov.justice.hmpps.offenderevents.helpers.assertJsonPath
+import uk.gov.justice.hmpps.offenderevents.helpers.assertJsonPathDateTimeIsCloseTo
 import uk.gov.justice.hmpps.offenderevents.resource.QueueListenerIntegrationTest
 import uk.gov.justice.hmpps.offenderevents.services.HMPPSDomainEventsEmitter
 import uk.gov.justice.hmpps.offenderevents.services.wiremock.HMPPSAuthExtension
@@ -593,13 +593,4 @@ class HMPPSDomainEventsIntTest : QueueListenerIntegrationTest() {
       }
     }
   }
-}
-
-private fun String.assertJsonPath(path: String, expectedValue: Any) = JsonPathExpectationsHelper(path).assertValue(this, expectedValue)
-
-private fun String.assertJsonPathDateTimeIsCloseTo(path: String, other: OffsetDateTime, offset: TemporalUnitOffset) {
-  val value = JsonPathExpectationsHelper(path).evaluateJsonPath(this)
-  assertThat(value).isNotNull
-  assertThat(OffsetDateTime.parse(value!!.toString()))
-    .isCloseTo(other, offset)
 }
