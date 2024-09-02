@@ -33,7 +33,6 @@ import uk.gov.justice.hmpps.offenderevents.model.PrisonerReceivedOffenderEvent
 import uk.gov.justice.hmpps.offenderevents.model.RestrictionOffenderEvent
 import uk.gov.justice.hmpps.offenderevents.model.SentenceDatesChangedEvent
 import uk.gov.justice.hmpps.offenderevents.model.VisitorRestrictionOffenderEvent
-import uk.gov.justice.hmpps.offenderevents.services.MergeRecordDiscriminator.MergeOutcome
 import uk.gov.justice.hmpps.offenderevents.services.ReceivePrisonerReasonCalculator.ReceiveReason
 import uk.gov.justice.hmpps.offenderevents.services.ReleasePrisonerReasonCalculator.ReleaseReason
 import uk.gov.justice.hmpps.sqs.HmppsQueueService
@@ -48,7 +47,6 @@ class HMPPSDomainEventsEmitter(
   private val objectMapper: ObjectMapper,
   private val receivePrisonerReasonCalculator: ReceivePrisonerReasonCalculator,
   private val releasePrisonerReasonCalculator: ReleasePrisonerReasonCalculator,
-  private val mergeRecordDiscriminator: MergeRecordDiscriminator,
   private val telemetryClient: TelemetryClient,
   private val offenderEventsProperties: OffenderEventsProperties,
   private val prisonApiService: PrisonApiService,
@@ -164,23 +162,24 @@ class HMPPSDomainEventsEmitter(
       .withAdditionalInformation("currentPrisonStatus", receivedReason.currentPrisonStatus?.name)
   }
 
-  private fun toMergedOffenderNumbers(event: PrisonerMergedOffenderEvent): List<HmppsDomainEvent> {
-    val mergeResults = mergeRecordDiscriminator.identifyMergedPrisoner(event.bookingId)
-    return mergeResults
-      .map { mergeResult: MergeOutcome ->
+  private fun toMergedOffenderNumbers(event: PrisonerMergedOffenderEvent): List<HmppsDomainEvent> =
+    when (event.type) {
+      "MERGE" -> listOf(
         HmppsDomainEvent(
           eventType = "prison-offender-events.prisoner.merged",
-          description = "A prisoner has been merged from ${mergeResult.mergedNumber} to ${mergeResult.remainingNumber}",
+          description = "A prisoner has been merged from ${event.offenderIdDisplay} to ${event.previousOffenderIdDisplay}",
           occurredAt = event.toOccurredAt(),
           publishedAt = OffsetDateTime.now().toString(),
-          personReference = PersonReference(mergeResult.remainingNumber),
+          personReference = PersonReference(event.offenderIdDisplay!!),
         )
           .withAdditionalInformation("bookingId", event.bookingId)
-          .withAdditionalInformation("nomsNumber", mergeResult.remainingNumber)
-          .withAdditionalInformation("removedNomsNumber", mergeResult.mergedNumber)
-          .withAdditionalInformation("reason", "MERGE")
-      }
-  }
+          .withAdditionalInformation("nomsNumber", event.offenderIdDisplay)
+          .withAdditionalInformation("removedNomsNumber", event.previousOffenderIdDisplay)
+          .withAdditionalInformation("reason", "MERGE"),
+      )
+
+      else -> emptyList()
+    }
 
   private fun toPrisonerReleased(event: PrisonerDischargedOffenderEvent): HmppsDomainEvent? {
     val offenderNumber = event.offenderIdDisplay

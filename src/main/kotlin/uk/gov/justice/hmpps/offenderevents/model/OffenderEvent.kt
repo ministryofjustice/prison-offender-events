@@ -72,6 +72,8 @@ class PrisonerDischargedOffenderEvent(
 class PrisonerMergedOffenderEvent(
   eventDatetime: LocalDateTime,
   offenderIdDisplay: String? = null,
+  val previousOffenderIdDisplay: String? = null,
+  val type: String,
   val bookingId: Long,
 ) : OffenderEvent(eventDatetime = eventDatetime, offenderIdDisplay = offenderIdDisplay)
 

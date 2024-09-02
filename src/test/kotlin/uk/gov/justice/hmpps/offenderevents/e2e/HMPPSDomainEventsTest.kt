@@ -304,89 +304,177 @@ class HMPPSDomainEventsTest : QueueListenerIntegrationTest() {
 
   @Nested
   internal inner class MergePrisoner {
-    @BeforeEach
-    fun setUp() {
-      sendToTopic(
-        "BOOKING_NUMBER-CHANGED",
-        """
-                {
-                    "eventType":"BOOKING_NUMBER-CHANGED",
-                    "eventDatetime":"2021-02-08T14:41:11.526762",
-                    "bookingId":1201234,
-                    "previousBookingNumber": "38430A",
-                    "nomisEventType":"BOOK_UPD_OASYS"
-                    }
-                
-                """
-          .trimIndent(),
-      )
+
+    @Nested
+    inner class TypeIsBookNumberChanged {
+      @BeforeEach
+      fun setUp() {
+        sendToTopic(
+          "BOOKING_NUMBER-CHANGED",
+          // language=JSON
+          """
+
+            {
+              "eventType":"BOOKING_NUMBER-CHANGED",
+              "type":"BOOK_NUMBER_CHANGE",
+              "bookingId":"2952268",
+              "nomisEventType":"P1_RESULT",
+              "eventDatetime":"2024-08-30T15:14:06.0000000Z",
+              "offenderId":"5109860",
+              "bookingNumber":"11141F",
+              "previousBookingNumber":"31226G"
+            }
+           """
+            .trimIndent(),
+        )
+        // send control message so we can check messages have been processed
+        sendToTopic(
+          "OFFENDER_BOOKING-REASSIGNED",
+          // language=JSON
+          """
+            {
+              "eventType":"OFFENDER_BOOKING-REASSIGNED",
+              "bookingId":"1201234",
+              "eventDatetime":"2024-07-08T14:28:10.0000000Z",
+              "offenderIdDisplay":"A9999CA",
+              "nomisEventType":"OFF_BKB_UPD",
+              "offenderId":"2620073",
+              "previousOffenderIdDisplay":"A5694DR",
+              "previousOffenderId":"5260560"
+            }
+            """
+            .trimIndent(),
+        )
+
+        await().until { getNumberOfMessagesCurrentlyOnHMPPSEventTestQueue() == 1 }
+      }
+
+      @Test
+      fun `will not publish a merge event only control message`() {
+        await().until { getNumberOfMessagesCurrentlyOnHMPPSEventTestQueue() == 1 }
+        val hmppsEventMessages = geMessagesCurrentlyOnHMPPSTestQueue()
+        assertThat(hmppsEventMessages).hasSize(1)
+        val domainEvent = hmppsEventMessages.first()
+        assertThatJson(domainEvent).node("eventType").isEqualTo("prison-offender-events.prisoner.booking.moved")
+      }
     }
 
     @Nested
-    internal inner class WhenIsReportedAsTransfer {
+    inner class TypeIsBookNumberChangedDuplicate {
       @BeforeEach
       fun setUp() {
-        PrisonApiExtension.server.stubBasicPrisonerDetails("A5194DY", 1201234L)
-        PrisonApiExtension.server.stubPrisonerIdentifiers("A5694DR", 1201234L)
-      }
-
-      @Test
-      @DisplayName("will publish prison event and hmpps domain event for release transfer")
-      fun willPublishPrisonEventForTransferRelease() {
-        await().until { getNumberOfMessagesCurrentlyOnPrisonEventTestQueue() == 1 }
+        sendToTopic(
+          "BOOKING_NUMBER-CHANGED",
+          // language=JSON
+          """
+            {
+              "eventType":"BOOKING_NUMBER-CHANGED",
+              "type":"BOOK_NUMBER_CHANGE_DUPLICATE",
+              "bookingId":"2952268",
+              "nomisEventType":"BOOK_UPD_OASYS",
+              "eventDatetime":"2024-08-30T15:14:06.0000000Z",
+              "offenderId":"5109860",
+              "previousBookingNumber":"31226G"
+            }
+          """
+            .trimIndent(),
+        )
+        // send control message so we can check messages have been processed
+        sendToTopic(
+          "OFFENDER_BOOKING-REASSIGNED",
+          // language=JSON
+          """
+            {
+              "eventType":"OFFENDER_BOOKING-REASSIGNED",
+              "bookingId":"2936648",
+              "eventDatetime":"2024-07-08T14:28:10.0000000Z",
+              "offenderIdDisplay":"A9999CA",
+              "nomisEventType":"OFF_BKB_UPD",
+              "offenderId":"2620073",
+              "previousOffenderIdDisplay":"A1111CL",
+              "previousOffenderId":"5260560"
+            }
+            """
+            .trimIndent(),
+        )
         await().until { getNumberOfMessagesCurrentlyOnHMPPSEventTestQueue() == 1 }
       }
 
       @Test
-      @DisplayName("will publish BOOKING_NUMBER-CHANGED prison event")
-      @Throws(
-        ExecutionException::class,
-        InterruptedException::class,
-      )
-      fun willPublishPrisonEvent() {
-        await().until { getNumberOfMessagesCurrentlyOnPrisonEventTestQueue() == 1 }
-        val prisonEventMessages = geMessagesCurrentlyOnTestQueue()
-        assertThat(prisonEventMessages)
-          .singleElement()
+      fun `will not publish a merge event only control message`() {
+        val hmppsEventMessages = geMessagesCurrentlyOnHMPPSTestQueue()
+        assertThat(hmppsEventMessages).hasSize(1)
+        val domainEvent = hmppsEventMessages.first()
+        assertThatJson(domainEvent).node("eventType").isEqualTo("prison-offender-events.prisoner.booking.moved")
+      }
+    }
+
+    @Nested
+    inner class TypeIsMerge {
+      @BeforeEach
+      fun setUp() {
+        sendToTopic(
+          "BOOKING_NUMBER-CHANGED",
+          // language=JSON
+          """
+            {
+              "eventType":"BOOKING_NUMBER-CHANGED",
+              "type":"MERGE",
+              "bookingId":"1201234",
+              "nomisEventType":"BOOK_UPD_OASYS",
+              "eventDatetime":"2022-11-02T00:39:05.0709360Z",
+              "offenderIdDisplay":"A0851FE",
+              "offenderId":"5282038",
+              "previousOffenderIdDisplay":"A5694DR",
+              "previousBookingNumber":"35607E"
+            }
+          """
+            .trimIndent(),
+        )
+        // send control message so we can check messages have been processed
+        sendToTopic(
+          "OFFENDER_BOOKING-REASSIGNED",
+          // language=JSON
+          """
+            {
+              "eventType":"OFFENDER_BOOKING-REASSIGNED",
+              "bookingId":"1201234",
+              "eventDatetime":"2021-02-08T14:41:11.526762Z",
+              "offenderIdDisplay":"A9999CA",
+              "nomisEventType":"OFF_BKB_UPD",
+              "offenderId":"2620073",
+              "previousOffenderIdDisplay":"A5694DR",
+              "previousOffenderId":"5260560"
+            }
+            """
+            .trimIndent(),
+        )
+        await().until { getNumberOfMessagesCurrentlyOnHMPPSEventTestQueue() == 2 }
+      }
+
+      @Test
+      fun `will publish a merge event (along with a control message)`() {
+        val hmppsEventMessages = geMessagesCurrentlyOnHMPPSTestQueue()
+        assertThat(hmppsEventMessages).hasSize(1)
+        val mergeDomainEvent = hmppsEventMessages.first()
+
+        assertThatJson(mergeDomainEvent).node("eventType").isEqualTo("prison-offender-events.prisoner.merged")
+        assertThatJson(mergeDomainEvent).node("occurredAt").asString()
           .satisfies(
-            ThrowingConsumer { event: String? ->
-              assertThatJson(event)
-                .node("eventType")
-                .isEqualTo("BOOKING_NUMBER-CHANGED")
+            ThrowingConsumer { dateTime: String? ->
+              assertThat(dateTime).isEqualTo("2022-11-02T00:39:05.070936Z")
             },
           )
-      }
-
-      @Test
-      @DisplayName("will publish prison-offender-events.prisoner.merged HMPPS domain event")
-      @Throws(
-        ExecutionException::class,
-        InterruptedException::class,
-      )
-      fun willPublishHMPPSDomainEvent() {
-        await().until { getNumberOfMessagesCurrentlyOnHMPPSEventTestQueue() == 1 }
-        val hmppsEventMessages = geMessagesCurrentlyOnHMPPSTestQueue()
-        assertThat(hmppsEventMessages).singleElement().satisfies(
-          ThrowingConsumer { event: String? ->
-            assertThatJson(event).node("eventType").isEqualTo("prison-offender-events.prisoner.merged")
-            assertThatJson(event).node("occurredAt").asString()
-              .satisfies(
-                ThrowingConsumer { dateTime: String? ->
-                  assertThat(dateTime).isEqualTo("2021-02-08T14:41:11.526762Z")
-                },
-              )
-            assertThatJson(event).node("publishedAt").asString()
-              .satisfies(
-                ThrowingConsumer { dateTime: String? ->
-                  assertThat(OffsetDateTime.parse(dateTime))
-                    .isCloseTo(OffsetDateTime.now(), within(10, ChronoUnit.SECONDS))
-                },
-              )
-            assertThatJson(event).node("additionalInformation.reason").isEqualTo("MERGE")
-            assertThatJson(event).node("additionalInformation.removedNomsNumber").isEqualTo("A5694DR")
-            assertThatJson(event).node("additionalInformation.bookingId").asString().isEqualTo("1201234")
-          },
-        )
+        assertThatJson(mergeDomainEvent).node("publishedAt").asString()
+          .satisfies(
+            ThrowingConsumer { dateTime: String? ->
+              assertThat(OffsetDateTime.parse(dateTime))
+                .isCloseTo(OffsetDateTime.now(), within(10, ChronoUnit.SECONDS))
+            },
+          )
+        assertThatJson(mergeDomainEvent).node("additionalInformation.reason").isEqualTo("MERGE")
+        assertThatJson(mergeDomainEvent).node("additionalInformation.removedNomsNumber").isEqualTo("A5694DR")
+        assertThatJson(mergeDomainEvent).node("additionalInformation.bookingId").asString().isEqualTo("1201234")
       }
     }
   }
