@@ -38,7 +38,6 @@ import uk.gov.justice.hmpps.offenderevents.services.ReleasePrisonerReasonCalcula
 import uk.gov.justice.hmpps.sqs.HmppsQueueService
 import java.time.OffsetDateTime
 import java.time.format.DateTimeFormatter
-import java.util.function.Consumer
 import kotlin.jvm.optionals.getOrNull
 
 @Service
@@ -62,7 +61,7 @@ class HMPPSDomainEventsEmitter(
 
   fun convertAndSendWhenSignificant(event: String, message: String) {
     val mapping = OffenderEvent.eventMappings[event] ?: return
-    val hmppsEvents = when (val offenderEvent = objectMapper.readValue(message, mapping)) {
+    when (val offenderEvent = objectMapper.readValue(message, mapping)) {
       is CaseNoteOffenderEvent -> toCaseNotePublished(offenderEvent).toListOrEmptyWhenNull()
       is PrisonerReceivedOffenderEvent -> toPrisonerReceived(offenderEvent).toListOrEmptyWhenNull()
       is PrisonerDischargedOffenderEvent -> toPrisonerReleased(offenderEvent).toListOrEmptyWhenNull()
@@ -83,14 +82,9 @@ class HMPPSDomainEventsEmitter(
       is PrisonerBookingMovedOffenderEvent -> offenderEvent.toDomainEvent().toListOrEmptyWhenNull()
 
       else -> emptyList()
+    }.also {
+      sendEvents(it)
     }
-
-    hmppsEvents.forEach(
-      Consumer { hmppsDomainEvent: HmppsDomainEvent ->
-        sendEvent(hmppsDomainEvent)
-        telemetryClient.trackEvent(hmppsDomainEvent.eventType, hmppsDomainEvent.asTelemetryMap(), null)
-      },
-    )
   }
 
   private fun toCellMove(event: CellMoveOffenderEvent): HmppsDomainEvent = HmppsDomainEvent(
@@ -379,6 +373,12 @@ class HMPPSDomainEventsEmitter(
     .withAdditionalInformation("bookingId", event.bookingId)
     .withAdditionalInformation("sentenceCalculationId", event.sentenceCalculationId)
 
+  fun sendEvents(events: List<HmppsDomainEvent>) {
+    events.forEach {
+      sendEvent(it)
+      telemetryClient.trackEvent(it.eventType, it.asTelemetryMap(), null)
+    }
+  }
   fun sendEvent(payload: HmppsDomainEvent) {
     try {
       hmppsEventsTopicSnsClient.publish(
@@ -386,7 +386,7 @@ class HMPPSDomainEventsEmitter(
           .topicArn(topicArn)
           .message(objectMapper.writeValueAsString(payload))
           .messageAttributes(payload.asMetadataMap()).build(),
-      )
+      ).get()
     } catch (e: JsonProcessingException) {
       log.error("Failed to convert payload {} to json", payload)
     }
