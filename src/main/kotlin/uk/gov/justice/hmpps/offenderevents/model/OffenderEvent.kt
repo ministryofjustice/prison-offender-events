@@ -30,8 +30,8 @@ abstract class OffenderEvent(
       "RESTRICTION-DELETED" to RestrictionOffenderEvent::class.java,
       "PERSON_RESTRICTION-UPSERTED" to PersonRestrictionOffenderEventUpserted::class.java,
       "PERSON_RESTRICTION-DELETED" to PersonRestrictionOffenderEventDeleted::class.java,
-      "VISITOR_RESTRICTION-UPSERTED" to VisitorRestrictionOffenderEvent::class.java,
-      "VISITOR_RESTRICTION-DELETED" to VisitorRestrictionOffenderEvent::class.java,
+      "VISITOR_RESTRICTION-UPSERTED" to VisitorRestrictionOffenderEventUpserted::class.java,
+      "VISITOR_RESTRICTION-DELETED" to VisitorRestrictionOffenderEventDeleted::class.java,
       "PRISONER_ACTIVITY-UPDATE" to PrisonerActivityUpdateEvent::class.java,
       "PRISONER_APPOINTMENT-UPDATE" to PrisonerAppointmentUpdateEvent::class.java,
       "IMPRISONMENT_STATUS-CHANGED" to ImprisonmentStatusChangedEvent::class.java,
@@ -185,10 +185,52 @@ class PersonRestrictionOffenderEventDeleted(
   enteredById = enteredById,
 )
 
-class VisitorRestrictionOffenderEvent(
+@JsonInclude(JsonInclude.Include.NON_NULL)
+class VisitorRestrictionOffenderEventUpserted(
   eventDatetime: LocalDateTime,
   offenderIdDisplay: String? = null,
+  personId: Long?,
+  restrictionType: String?,
+  effectiveDate: LocalDate?,
+  expiryDate: LocalDate?,
+  visitorRestrictionId: Long?,
+  enteredById: Long?,
+) : VisitorRestrictionOffenderEvent(
+  personId = personId,
+  restrictionType = restrictionType,
+  effectiveDate = effectiveDate,
+  expiryDate = expiryDate,
+  visitorRestrictionId = visitorRestrictionId,
+  enteredById = enteredById,
+  eventDatetime = eventDatetime,
+  offenderIdDisplay = offenderIdDisplay,
+)
 
+@JsonInclude(JsonInclude.Include.NON_NULL)
+class VisitorRestrictionOffenderEventDeleted(
+  eventDatetime: LocalDateTime,
+  offenderIdDisplay: String? = null,
+  personId: Long?,
+  restrictionType: String?,
+  effectiveDate: LocalDate?,
+  expiryDate: LocalDate?,
+  visitorRestrictionId: Long?,
+  enteredById: Long?,
+) : VisitorRestrictionOffenderEvent(
+  personId = personId,
+  restrictionType = restrictionType,
+  effectiveDate = effectiveDate,
+  expiryDate = expiryDate,
+  visitorRestrictionId = visitorRestrictionId,
+  enteredById = enteredById,
+  eventDatetime = eventDatetime,
+  offenderIdDisplay = offenderIdDisplay,
+)
+
+@JsonInclude(JsonInclude.Include.NON_NULL)
+abstract class VisitorRestrictionOffenderEvent(
+  eventDatetime: LocalDateTime,
+  offenderIdDisplay: String? = null,
   val personId: Long?,
   val restrictionType: String?,
   val effectiveDate: LocalDate?,
