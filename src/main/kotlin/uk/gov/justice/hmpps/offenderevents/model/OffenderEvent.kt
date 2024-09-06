@@ -42,7 +42,9 @@ class CaseNoteOffenderEvent(
   val caseNoteId: Long,
   val caseNoteType: String,
   val caseNoteSubType: String,
-) : OffenderEvent(eventDatetime = eventDatetime, offenderIdDisplay = offenderIdDisplay)
+) : OffenderEvent(eventDatetime = eventDatetime, offenderIdDisplay = offenderIdDisplay) {
+  companion object
+}
 
 class CellMoveOffenderEvent(
   eventDatetime: LocalDateTime,
@@ -50,17 +52,23 @@ class CellMoveOffenderEvent(
   val livingUnitId: Long,
   val bedAssignmentSeq: Int,
   val bookingId: String,
-) : OffenderEvent(eventDatetime = eventDatetime, offenderIdDisplay = offenderIdDisplay)
+) : OffenderEvent(eventDatetime = eventDatetime, offenderIdDisplay = offenderIdDisplay) {
+  companion object
+}
 
 class PrisonerReceivedOffenderEvent(
   eventDatetime: LocalDateTime,
   override val offenderIdDisplay: String,
-) : OffenderEvent(eventDatetime = eventDatetime, offenderIdDisplay = offenderIdDisplay)
+) : OffenderEvent(eventDatetime = eventDatetime, offenderIdDisplay = offenderIdDisplay) {
+  companion object
+}
 
 class PrisonerDischargedOffenderEvent(
   eventDatetime: LocalDateTime,
   override val offenderIdDisplay: String,
-) : OffenderEvent(eventDatetime = eventDatetime, offenderIdDisplay = offenderIdDisplay)
+) : OffenderEvent(eventDatetime = eventDatetime, offenderIdDisplay = offenderIdDisplay) {
+  companion object
+}
 
 class PrisonerMergedOffenderEvent(
   eventDatetime: LocalDateTime,
@@ -99,8 +107,9 @@ class NonAssociationDetailsOffenderEvent(
 ) : OffenderEvent(
   eventDatetime = eventDatetime,
   offenderIdDisplay = offenderIdDisplay,
-)
-
+) {
+  companion object
+}
 class RestrictionOffenderEvent(
   eventDatetime: LocalDateTime,
   offenderIdDisplay: String? = null,
@@ -115,7 +124,9 @@ class RestrictionOffenderEvent(
 ) : OffenderEvent(
   eventDatetime = eventDatetime,
   offenderIdDisplay = offenderIdDisplay,
-)
+) {
+  companion object
+}
 
 abstract class PersonRestrictionOffenderEvent(
   eventDatetime: LocalDateTime,
@@ -156,7 +167,9 @@ class PersonRestrictionOffenderEventUpserted(
   expiryDate = expiryDate,
   authorisedById = authorisedById,
   enteredById = enteredById,
-)
+) {
+  companion object
+}
 
 class PersonRestrictionOffenderEventDeleted(
   eventDatetime: LocalDateTime,
@@ -180,7 +193,9 @@ class PersonRestrictionOffenderEventDeleted(
   expiryDate = expiryDate,
   authorisedById = authorisedById,
   enteredById = enteredById,
-)
+) {
+  companion object
+}
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 class VisitorRestrictionOffenderEventUpserted(
@@ -254,7 +269,9 @@ class PrisonerActivityUpdateEvent(
 ) : OffenderEvent(
   eventDatetime = eventDatetime,
   offenderIdDisplay = offenderIdDisplay,
-)
+) {
+  companion object
+}
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 class PrisonerAppointmentUpdateEvent(
@@ -267,7 +284,9 @@ class PrisonerAppointmentUpdateEvent(
 ) : OffenderEvent(
   eventDatetime = eventDatetime,
   offenderIdDisplay = offenderIdDisplay,
-)
+) {
+  companion object
+}
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 class ImprisonmentStatusChangedEvent(
@@ -277,7 +296,9 @@ class ImprisonmentStatusChangedEvent(
 ) : OffenderEvent(
   eventDatetime = eventDatetime,
   offenderIdDisplay = null,
-)
+) {
+  companion object
+}
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 class SentenceDatesChangedEvent(
@@ -288,7 +309,9 @@ class SentenceDatesChangedEvent(
 ) : OffenderEvent(
   eventDatetime = eventDatetime,
   offenderIdDisplay = offenderIdDisplay,
-)
+) {
+  companion object
+}
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 abstract class OffenderContactEvent(
