@@ -2,8 +2,6 @@ package uk.gov.justice.hmpps.offenderevents.services
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.microsoft.applicationinsights.TelemetryClient
-import net.javacrumbs.jsonunit.assertj.JsonAssertions.assertThatJson
-import org.assertj.core.api.Assertions
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.within
 import org.junit.jupiter.api.BeforeEach
@@ -33,6 +31,7 @@ import software.amazon.awssdk.services.sns.model.PublishResponse
 import uk.gov.justice.hmpps.offenderevents.config.OffenderEventsProperties
 import uk.gov.justice.hmpps.offenderevents.helpers.assertJsonPath
 import uk.gov.justice.hmpps.offenderevents.helpers.assertJsonPathDateTimeIsCloseTo
+import uk.gov.justice.hmpps.offenderevents.helpers.assertJsonPathIsArray
 import uk.gov.justice.hmpps.offenderevents.services.CurrentLocation.IN_PRISON
 import uk.gov.justice.hmpps.offenderevents.services.CurrentLocation.OUTSIDE_PRISON
 import uk.gov.justice.hmpps.offenderevents.services.CurrentPrisonStatus.NOT_UNDER_PRISON_CARE
@@ -44,13 +43,11 @@ import uk.gov.justice.hmpps.offenderevents.services.ReleasePrisonerReasonCalcula
 import uk.gov.justice.hmpps.offenderevents.services.ReleasePrisonerReasonCalculator.ReleaseReason
 import uk.gov.justice.hmpps.sqs.HmppsQueueService
 import uk.gov.justice.hmpps.sqs.HmppsTopic
-import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.OffsetDateTime
 import java.time.temporal.ChronoUnit.SECONDS
 import java.util.Optional
 import java.util.concurrent.CompletableFuture
-import java.util.function.Consumer
 
 @JsonTest
 internal class HMPPSDomainEventsEmitterTest(@Autowired private val objectMapper: ObjectMapper) {
@@ -122,8 +119,8 @@ internal class HMPPSDomainEventsEmitterTest(@Autowired private val objectMapper:
       verify(hmppsEventSnsClient, times(1)).publish(capture())
       val payload = firstValue.message()
       val messageAttributes = firstValue.messageAttributes()
-      assertThatJson(payload).node("eventType").isEqualTo(eventType)
-      assertThatJson(payload).node("version").isEqualTo(1)
+      payload.assertJsonPath("eventType").isEqualTo(eventType)
+      payload.assertJsonPath("version").isEqualTo(1)
       assertThat(
         messageAttributes["eventType"],
       )
@@ -157,10 +154,11 @@ internal class HMPPSDomainEventsEmitterTest(@Autowired private val objectMapper:
 
       emitter.convertAndSendWhenSignificant(
         "OFFENDER_MOVEMENT-RECEPTION",
+        // language=JSON
         """
         {
            "offenderIdDisplay": "A1234GH",
-           "eventDatetime": "${LocalDateTime.parse("2020-12-04T10:42:43")}" 
+           "eventDatetime": "2020-12-04T10:42:43" 
         } 
         """.trimIndent(),
       )
@@ -179,60 +177,52 @@ internal class HMPPSDomainEventsEmitterTest(@Autowired private val objectMapper:
     @Test
     @DisplayName("will use event datetime for occurred at time")
     fun willUseEventDatetimeForOccurredAtTime() {
-      assertThatJson(payload).node("occurredAt").isEqualTo("2020-12-04T10:42:43Z")
+      payload.assertJsonPath("occurredAt", "2020-12-04T10:42:43Z")
     }
 
     @Test
     @DisplayName("will user current time as publishedAt")
     fun willUserCurrentTimeAsPublishedAt() {
-      assertThatJson(payload)
-        .node("publishedAt")
-        .asString()
-        .satisfies(
-          Consumer { publishedAt: String ->
-            assertThat(OffsetDateTime.parse(publishedAt))
-              .isCloseTo(OffsetDateTime.now(), Assertions.within(10, SECONDS))
-          },
-        )
+      payload.assertJsonPathDateTimeIsCloseTo("publishedAt", OffsetDateTime.now(), within(10, SECONDS))
     }
 
     @Test
     @DisplayName("additionalInformation will contain offenderNumber as NOMS number")
     fun additionalInformationWillContainOffenderNumberAsNOMSNumber() {
-      assertThatJson(payload).node("additionalInformation.nomsNumber").isEqualTo("A1234GH")
+      payload.assertJsonPath("additionalInformation.nomsNumber", "A1234GH")
     }
 
     @Test
     @DisplayName("will describe the prisoners last (or current) location")
     fun additionalInformationWillContainPrisonId() {
-      assertThatJson(payload).node("additionalInformation.prisonId").isEqualTo("MDI")
+      payload.assertJsonPath("additionalInformation.prisonId", "MDI")
     }
 
     @Test
     @DisplayName("will indicate the reason for a prisoners entry")
     fun willIndicateTheReasonForAPrisonersEntry() {
-      assertThatJson(payload).node("additionalInformation.reason").isEqualTo("ADMISSION")
+      payload.assertJsonPath("additionalInformation.reason", "ADMISSION")
     }
 
     @Test
     @DisplayName("will describe the event as a receive")
     fun willDescribeTheEventAsAReceive() {
-      assertThatJson(payload).node("description")
+      payload.assertJsonPath("description")
         .isEqualTo("A prisoner has been received into prison")
     }
 
     @Test
     @DisplayName("will pass through the nomis movement reason code")
     fun willPassThroughNOMISReasonCode() {
-      assertThatJson(payload).node("additionalInformation.nomisMovementReasonCode")
+      payload.assertJsonPath("additionalInformation.nomisMovementReasonCode")
         .isEqualTo("N")
     }
 
     @Test
     @DisplayName("will describe the prisoners current location and status")
     fun willDescribeThePrisonersCurrentLocation() {
-      assertThatJson(payload).node("additionalInformation.currentLocation").isEqualTo("IN_PRISON")
-      assertThatJson(payload).node("additionalInformation.currentPrisonStatus")
+      payload.assertJsonPath("additionalInformation.currentLocation").isEqualTo("IN_PRISON")
+      payload.assertJsonPath("additionalInformation.currentPrisonStatus")
         .isEqualTo("UNDER_PRISON_CARE")
     }
 
@@ -288,10 +278,11 @@ internal class HMPPSDomainEventsEmitterTest(@Autowired private val objectMapper:
 
       emitter.convertAndSendWhenSignificant(
         "OFFENDER_MOVEMENT-RECEPTION",
+        // language=JSON
         """
         {
            "offenderIdDisplay": "A1234GH",
-           "eventDatetime": "${LocalDateTime.parse("2020-12-04T10:42:43")}" 
+           "eventDatetime": "2020-12-04T10:42:43" 
         } 
         """.trimIndent(),
       )
@@ -357,10 +348,11 @@ internal class HMPPSDomainEventsEmitterTest(@Autowired private val objectMapper:
 
       emitter.convertAndSendWhenSignificant(
         "OFFENDER_MOVEMENT-DISCHARGE",
+        // language=JSON
         """
         {
            "offenderIdDisplay": "A1234GH",
-           "eventDatetime": "${LocalDateTime.parse("2020-07-04T10:42:43")}" 
+           "eventDatetime": "2020-07-04T10:42:43" 
         } 
         """.trimIndent(),
       )
@@ -377,63 +369,54 @@ internal class HMPPSDomainEventsEmitterTest(@Autowired private val objectMapper:
     @Test
     @DisplayName("will use event datetime for occurred at time")
     fun willUseEventDatetimeForOccurredAtTime() {
-      assertThatJson(payload).node("occurredAt").isEqualTo("2020-07-04T10:42:43+01:00")
+      payload.assertJsonPath("occurredAt").isEqualTo("2020-07-04T10:42:43+01:00")
     }
 
     @Test
     @DisplayName("will user current time as publishedAt")
     fun willUserCurrentTimeAsPublishedAt() {
-      assertThatJson(payload)
-        .node("publishedAt")
-        .asString()
-        .satisfies(
-          Consumer { publishedAt: String ->
-            assertThat(OffsetDateTime.parse(publishedAt))
-              .isCloseTo(OffsetDateTime.now(), Assertions.within(10, SECONDS))
-          },
-        )
+      payload.assertJsonPathDateTimeIsCloseTo("publishedAt", OffsetDateTime.now(), within(10, SECONDS))
     }
 
     @Test
     @DisplayName("additionalInformation will contain offenderNumber as NOMS number")
     fun additionalInformationWillContainOffenderNumberAsNOMSNumber() {
-      assertThatJson(payload).node("additionalInformation.nomsNumber").isEqualTo("A1234GH")
+      payload.assertJsonPath("additionalInformation.nomsNumber").isEqualTo("A1234GH")
     }
 
     @Test
     @DisplayName("will describe the prisoners last (or current) location")
     fun additionalInformationWillContainPrisonId() {
-      assertThatJson(payload).node("additionalInformation.prisonId").isEqualTo("MDI")
+      payload.assertJsonPath("additionalInformation.prisonId").isEqualTo("MDI")
     }
 
     @Test
     @DisplayName("will indicate the reason for a prisoners exit")
     fun willIndicateTheReasonForAPrisonersExit() {
-      assertThatJson(payload).node("additionalInformation.reason")
+      payload.assertJsonPath("additionalInformation.reason")
         .isEqualTo("TEMPORARY_ABSENCE_RELEASE")
     }
 
     @Test
     @DisplayName("will pass through the nomis movement reason code")
     fun willPassThroughNOMISReasonCode() {
-      assertThatJson(payload).node("additionalInformation.nomisMovementReasonCode")
+      payload.assertJsonPath("additionalInformation.nomisMovementReasonCode")
         .isEqualTo("N")
     }
 
     @Test
     @DisplayName("will describe the event as a release")
     fun willDescribeTheEventAsAReceive() {
-      assertThatJson(payload).node("description")
+      payload.assertJsonPath("description")
         .isEqualTo("A prisoner has been released from prison")
     }
 
     @Test
     @DisplayName("will describe the prisoners current location and status")
     fun willDescribeThePrisonersCurrentLocation() {
-      assertThatJson(payload).node("additionalInformation.currentLocation")
+      payload.assertJsonPath("additionalInformation.currentLocation")
         .isEqualTo("OUTSIDE_PRISON")
-      assertThatJson(payload)
-        .node("additionalInformation.currentPrisonStatus")
+      payload.assertJsonPath("additionalInformation.currentPrisonStatus")
         .isEqualTo("NOT_UNDER_PRISON_CARE")
     }
 
@@ -490,10 +473,11 @@ internal class HMPPSDomainEventsEmitterTest(@Autowired private val objectMapper:
 
       emitter.convertAndSendWhenSignificant(
         "OFFENDER_MOVEMENT-DISCHARGE",
+        // language=JSON
         """
         {
            "offenderIdDisplay": "A1234GH",
-           "eventDatetime": "${LocalDateTime.parse("2020-12-04T10:42:43")}" 
+           "eventDatetime": "2020-12-04T10:42:43" 
         } 
         """.trimIndent(),
       )
@@ -546,6 +530,7 @@ internal class HMPPSDomainEventsEmitterTest(@Autowired private val objectMapper:
       whenever(offenderEventsProperties.casenotesApiBaseUrl).thenReturn("http://localhost:1234")
       emitter.convertAndSendWhenSignificant(
         "OFFENDER_CASE_NOTES-INSERTED",
+        // language=JSON
         """
         {
            "offenderIdDisplay": "A1234GH",
@@ -553,7 +538,7 @@ internal class HMPPSDomainEventsEmitterTest(@Autowired private val objectMapper:
            "caseNoteType": "CHAP",
            "caseNoteSubType": "MAIL ROOM",
            "caseNoteId": -12345,
-           "eventDatetime": "${LocalDateTime.parse("2022-12-04T10:00:00")}" 
+           "eventDatetime": "2022-12-04T10:00:00" 
         } 
         """.trimIndent(),
       )
@@ -570,51 +555,43 @@ internal class HMPPSDomainEventsEmitterTest(@Autowired private val objectMapper:
     @Test
     @DisplayName("will use event datetime for occurred at time")
     fun willUseEventDatetimeForOccurredAtTime() {
-      assertThatJson(payload).node("occurredAt").isEqualTo("2022-12-04T10:00:00Z")
+      payload.assertJsonPath("occurredAt").isEqualTo("2022-12-04T10:00:00Z")
     }
 
     @Test
     @DisplayName("will user current time as publishedAt")
     fun willUseCurrentTimeAsPublishedAt() {
-      assertThatJson(payload)
-        .node("publishedAt")
-        .asString()
-        .satisfies(
-          Consumer { publishedAt: String ->
-            assertThat(OffsetDateTime.parse(publishedAt))
-              .isCloseTo(OffsetDateTime.now(), Assertions.within(10, SECONDS))
-          },
-        )
+      payload.assertJsonPathDateTimeIsCloseTo("publishedAt", OffsetDateTime.now(), within(10, SECONDS))
     }
 
     @Test
     @DisplayName("person reference will contain offenderNumber as NOMS number")
     fun personReferenceWillContainOffenderNumberAsNOMSNumber() {
-      assertThatJson(payload).node("personReference.identifiers").isArray.hasSize(1)
-      assertThatJson(payload).node("personReference.identifiers[0].type").isEqualTo("NOMS")
-      assertThatJson(payload).node("personReference.identifiers[0].value").isEqualTo("A1234GH")
+      payload.assertJsonPathIsArray("personReference.identifiers").hasSize(1)
+      payload.assertJsonPath("personReference.identifiers[0].type").isEqualTo("NOMS")
+      payload.assertJsonPath("personReference.identifiers[0].value").isEqualTo("A1234GH")
     }
 
     @Test
     @DisplayName("additional information will contain the case note type, id, raw type and subtype")
     fun additionalInformationWillContainCaseNoteType() {
-      assertThatJson(payload).node("additionalInformation.caseNoteType").isEqualTo("CHAP-MAIL")
-      assertThatJson(payload).node("additionalInformation.caseNoteId").isEqualTo("\"-12345\"")
-      assertThatJson(payload).node("additionalInformation.type").isEqualTo("\"CHAP\"")
-      assertThatJson(payload).node("additionalInformation.subType").isEqualTo("\"MAIL ROOM\"")
+      payload.assertJsonPath("additionalInformation.caseNoteType").isEqualTo("CHAP-MAIL")
+      payload.assertJsonPath("additionalInformation.caseNoteId").isEqualTo("-12345")
+      payload.assertJsonPath("additionalInformation.type").isEqualTo("CHAP")
+      payload.assertJsonPath("additionalInformation.subType").isEqualTo("MAIL ROOM")
     }
 
     @Test
     @DisplayName("detail url will be set to the offender-case-notes endpoint")
     fun detailUrlWillBeSetToCaseNotesService() {
-      assertThatJson(payload).node("detailUrl")
+      payload.assertJsonPath("detailUrl")
         .isEqualTo("http://localhost:1234/case-notes/A1234GH/-12345")
     }
 
     @Test
     @DisplayName("will describe the event as a case note")
     fun willDescribeTheEventAsACaseNote() {
-      assertThatJson(payload).node("description")
+      payload.assertJsonPath("description")
         .isEqualTo("A prison case note has been created or amended")
     }
 
@@ -651,13 +628,14 @@ internal class HMPPSDomainEventsEmitterTest(@Autowired private val objectMapper:
     fun setUp() {
       emitter.convertAndSendWhenSignificant(
         "OFFENDER_CASE_NOTES-DELETED",
+        //language=JSON
         """
         {
            "bookingId": 1234,
            "caseNoteType": "CHAP",
            "caseNoteSubType": "MAIL ROOM",
            "caseNoteId": -12345,
-           "eventDatetime": "${LocalDateTime.parse("2022-12-04T10:00:00")}" 
+           "eventDatetime": "2022-12-04T10:00:00" 
         } 
         """.trimIndent(),
       )
@@ -683,13 +661,14 @@ internal class HMPPSDomainEventsEmitterTest(@Autowired private val objectMapper:
     fun setUp() {
       emitter.convertAndSendWhenSignificant(
         "BED_ASSIGNMENT_HISTORY-INSERTED",
+        //language=JSON
         """
         {
            "offenderIdDisplay": "A1234GH",
            "bookingId": 1234,
            "bedAssignmentSeq": 1,
            "livingUnitId": 4012,
-           "eventDatetime": "${LocalDateTime.parse("2022-12-04T10:00:00")}" 
+           "eventDatetime": "2022-12-04T10:00:00" 
         } 
         """.trimIndent(),
       )
@@ -710,43 +689,35 @@ internal class HMPPSDomainEventsEmitterTest(@Autowired private val objectMapper:
     @Test
     @DisplayName("will use event datetime for occurred at time")
     fun willUseEventDatetimeForOccurredAtTime() {
-      assertThatJson(payload).node("occurredAt").isEqualTo("2022-12-04T10:00:00Z")
+      payload.assertJsonPath("occurredAt").isEqualTo("2022-12-04T10:00:00Z")
     }
 
     @Test
     @DisplayName("will user current time as publishedAt")
     fun willUseCurrentTimeAsPublishedAt() {
-      assertThatJson(payload)
-        .node("publishedAt")
-        .asString()
-        .satisfies(
-          Consumer { publishedAt: String ->
-            assertThat(OffsetDateTime.parse(publishedAt))
-              .isCloseTo(OffsetDateTime.now(), Assertions.within(10, SECONDS))
-          },
-        )
+      payload.assertJsonPathDateTimeIsCloseTo("publishedAt", OffsetDateTime.now(), within(10, SECONDS))
     }
 
     @Test
     @DisplayName("person reference will contain offenderNumber as NOMS number")
     fun personReferenceWillContainOffenderNumberAsNOMSNumber() {
-      assertThatJson(payload).node("personReference.identifiers").isArray.hasSize(1)
-      assertThatJson(payload).node("personReference.identifiers[0].type").isEqualTo("NOMS")
-      assertThatJson(payload).node("personReference.identifiers[0].value").isEqualTo("A1234GH")
+      payload.assertJsonPathIsArray("personReference.identifiers").hasSize(1)
+      payload.assertJsonPath("personReference.identifiers[0].type").isEqualTo("NOMS")
+      payload.assertJsonPath("personReference.identifiers[0].value").isEqualTo("A1234GH")
     }
 
     @Test
     @DisplayName("additional information will contain the  bed assignment and living id")
     fun additionalInformationWillContainCaseNoteType() {
-      assertThatJson(payload).node("additionalInformation.bedAssignmentSeq").isEqualTo("\"1\"")
-      assertThatJson(payload).node("additionalInformation.livingUnitId").isEqualTo("\"4012\"")
-      assertThatJson(payload).node("additionalInformation.bookingId").isEqualTo("\"1234\"")
+      payload.assertJsonPath("additionalInformation.bedAssignmentSeq").isEqualTo("1")
+      payload.assertJsonPath("additionalInformation.livingUnitId").isEqualTo("4012")
+      payload.assertJsonPath("additionalInformation.bookingId").isEqualTo("1234")
     }
 
     @Test
     @DisplayName("will describe the event as a cell move")
     fun willDescribeTheEventAsACaseNote() {
-      assertThatJson(payload).node("description")
+      payload.assertJsonPath("description")
         .isEqualTo("A prisoner has been moved to a different cell")
     }
 
@@ -783,6 +754,7 @@ internal class HMPPSDomainEventsEmitterTest(@Autowired private val objectMapper:
     fun setUp() {
       emitter.convertAndSendWhenSignificant(
         "NON_ASSOCIATION_DETAIL-UPSERTED",
+        //language=JSON
         """
         {
            "offenderIdDisplay": "A1234GH",
@@ -793,11 +765,11 @@ internal class HMPPSDomainEventsEmitterTest(@Autowired private val objectMapper:
            "levelCode": "LEVEL",
            "nsType": "WING",
            "typeSeq": 3,
-           "effectiveDate": "${LocalDate.parse("2022-12-04")}",
-           "expiryDate": "${LocalDate.parse("2022-12-05")}",
+           "effectiveDate": "2022-12-04",
+           "expiryDate": "2022-12-05",
            "authorisedBy": "me",
            "comment": "a test",
-           "eventDatetime": "${LocalDateTime.parse("2022-12-04T10:00:00")}"
+           "eventDatetime": "2022-12-04T10:00:00"
         } 
         """.trimIndent(),
       )
@@ -817,47 +789,39 @@ internal class HMPPSDomainEventsEmitterTest(@Autowired private val objectMapper:
 
     @Test
     fun `will use event datetime for occurred at time`() {
-      assertThatJson(payload).node("occurredAt").isEqualTo("2022-12-04T10:00:00Z")
+      payload.assertJsonPath("occurredAt").isEqualTo("2022-12-04T10:00:00Z")
     }
 
     @Test
     fun `will user current time as publishedAt`() {
-      assertThatJson(payload)
-        .node("publishedAt")
-        .asString()
-        .satisfies(
-          Consumer { publishedAt: String ->
-            assertThat(OffsetDateTime.parse(publishedAt))
-              .isCloseTo(OffsetDateTime.now(), Assertions.within(10, SECONDS))
-          },
-        )
+      payload.assertJsonPathDateTimeIsCloseTo("publishedAt", OffsetDateTime.now(), within(10, SECONDS))
     }
 
     @Test
     fun `person reference will contain offenderNumber as NOMS number`() {
-      assertThatJson(payload).node("personReference.identifiers").isArray.hasSize(1)
-      assertThatJson(payload).node("personReference.identifiers[0].type").isEqualTo("NOMS")
-      assertThatJson(payload).node("personReference.identifiers[0].value").isEqualTo("A1234GH")
+      payload.assertJsonPathIsArray("personReference.identifiers").hasSize(1)
+      payload.assertJsonPath("personReference.identifiers[0].type").isEqualTo("NOMS")
+      payload.assertJsonPath("personReference.identifiers[0].value").isEqualTo("A1234GH")
     }
 
     @Test
     fun `additional information will contain the correct fields`() {
-      assertThatJson(payload).node("additionalInformation.bookingId").isEqualTo("\"1234\"")
-      assertThatJson(payload).node("additionalInformation.nonAssociationNomsNumber").isEqualTo("\"G5678HJ\"")
-      assertThatJson(payload).node("additionalInformation.nonAssociationBookingId").isEqualTo("\"5678\"")
-      assertThatJson(payload).node("additionalInformation.reasonCode").isEqualTo("\"REASON\"")
-      assertThatJson(payload).node("additionalInformation.levelCode").isEqualTo("\"LEVEL\"")
-      assertThatJson(payload).node("additionalInformation.nonAssociationType").isEqualTo("\"WING\"")
-      assertThatJson(payload).node("additionalInformation.typeSeq").isEqualTo("\"3\"")
-      assertThatJson(payload).node("additionalInformation.effectiveDate").isEqualTo("\"2022-12-04\"")
-      assertThatJson(payload).node("additionalInformation.expiryDate").isEqualTo("\"2022-12-05\"")
-      assertThatJson(payload).node("additionalInformation.authorisedBy").isEqualTo("\"me\"")
-      assertThatJson(payload).node("additionalInformation.comment").isEqualTo("\"a test\"")
+      payload.assertJsonPath("additionalInformation.bookingId").isEqualTo("1234")
+      payload.assertJsonPath("additionalInformation.nonAssociationNomsNumber").isEqualTo("G5678HJ")
+      payload.assertJsonPath("additionalInformation.nonAssociationBookingId").isEqualTo("5678")
+      payload.assertJsonPath("additionalInformation.reasonCode").isEqualTo("REASON")
+      payload.assertJsonPath("additionalInformation.levelCode").isEqualTo("LEVEL")
+      payload.assertJsonPath("additionalInformation.nonAssociationType").isEqualTo("WING")
+      payload.assertJsonPath("additionalInformation.typeSeq").isEqualTo("3")
+      payload.assertJsonPath("additionalInformation.effectiveDate").isEqualTo("2022-12-04")
+      payload.assertJsonPath("additionalInformation.expiryDate").isEqualTo("2022-12-05")
+      payload.assertJsonPath("additionalInformation.authorisedBy").isEqualTo("me")
+      payload.assertJsonPath("additionalInformation.comment").isEqualTo("a test")
     }
 
     @Test
     fun `will describe the event as a non-association`() {
-      assertThatJson(payload).node("description")
+      payload.assertJsonPath("description")
         .isEqualTo("A prisoner non-association detail record has changed")
     }
 
@@ -900,17 +864,18 @@ internal class HMPPSDomainEventsEmitterTest(@Autowired private val objectMapper:
     fun setUp() {
       emitter.convertAndSendWhenSignificant(
         "RESTRICTION-UPSERTED",
+        //language=JSON
         """
         {
            "offenderIdDisplay": "A1234GH",
            "bookingId": 1234,
            "offenderRestrictionId": 1,
            "restrictionType": "SEC",
-           "effectiveDate": "${LocalDate.parse("2022-12-04")}",
-           "expiryDate": "${LocalDate.parse("2022-12-05")}",
+           "effectiveDate": "2022-12-04",
+           "expiryDate": "2022-12-05",
            "authorisedById": 2,
            "enteredById": 3,
-           "eventDatetime": "${LocalDateTime.parse("2022-12-04T10:00:00")}"
+           "eventDatetime": "2022-12-04T10:00:00"
         } 
         """.trimIndent(),
       )
@@ -930,43 +895,35 @@ internal class HMPPSDomainEventsEmitterTest(@Autowired private val objectMapper:
 
     @Test
     fun `will use event datetime for occurred at time`() {
-      assertThatJson(payload).node("occurredAt").isEqualTo("2022-12-04T10:00:00Z")
+      payload.assertJsonPath("occurredAt").isEqualTo("2022-12-04T10:00:00Z")
     }
 
     @Test
     fun `will user current time as publishedAt`() {
-      assertThatJson(payload)
-        .node("publishedAt")
-        .asString()
-        .satisfies(
-          Consumer { publishedAt: String ->
-            assertThat(OffsetDateTime.parse(publishedAt))
-              .isCloseTo(OffsetDateTime.now(), Assertions.within(10, SECONDS))
-          },
-        )
+      payload.assertJsonPathDateTimeIsCloseTo("publishedAt", OffsetDateTime.now(), within(10, SECONDS))
     }
 
     @Test
     fun `person reference will contain offenderNumber as NOMS number`() {
-      assertThatJson(payload).node("personReference.identifiers").isArray.hasSize(1)
-      assertThatJson(payload).node("personReference.identifiers[0].type").isEqualTo("NOMS")
-      assertThatJson(payload).node("personReference.identifiers[0].value").isEqualTo("A1234GH")
+      payload.assertJsonPathIsArray("personReference.identifiers").hasSize(1)
+      payload.assertJsonPath("personReference.identifiers[0].type").isEqualTo("NOMS")
+      payload.assertJsonPath("personReference.identifiers[0].value").isEqualTo("A1234GH")
     }
 
     @Test
     fun `additional information will contain the correct fields`() {
-      assertThatJson(payload).node("additionalInformation.bookingId").isEqualTo("\"1234\"")
-      assertThatJson(payload).node("additionalInformation.offenderRestrictionId").isEqualTo("\"1\"")
-      assertThatJson(payload).node("additionalInformation.restrictionType").isEqualTo("\"SEC\"")
-      assertThatJson(payload).node("additionalInformation.effectiveDate").isEqualTo("\"2022-12-04\"")
-      assertThatJson(payload).node("additionalInformation.expiryDate").isEqualTo("\"2022-12-05\"")
-      assertThatJson(payload).node("additionalInformation.authorisedById").isEqualTo("\"2\"")
-      assertThatJson(payload).node("additionalInformation.enteredById").isEqualTo("\"3\"")
+      payload.assertJsonPath("additionalInformation.bookingId").isEqualTo("1234")
+      payload.assertJsonPath("additionalInformation.offenderRestrictionId").isEqualTo("1")
+      payload.assertJsonPath("additionalInformation.restrictionType").isEqualTo("SEC")
+      payload.assertJsonPath("additionalInformation.effectiveDate").isEqualTo("2022-12-04")
+      payload.assertJsonPath("additionalInformation.expiryDate").isEqualTo("2022-12-05")
+      payload.assertJsonPath("additionalInformation.authorisedById").isEqualTo("2")
+      payload.assertJsonPath("additionalInformation.enteredById").isEqualTo("3")
     }
 
     @Test
     fun `will describe the event as a restriction`() {
-      assertThatJson(payload).node("description")
+      payload.assertJsonPath("description")
         .isEqualTo("A prisoner restriction record has changed")
     }
 
@@ -1012,11 +969,11 @@ internal class HMPPSDomainEventsEmitterTest(@Autowired private val objectMapper:
            "offenderPersonRestrictionId": 1,
            "personId": 4,
            "restrictionType": "SEC",
-           "effectiveDate": "${LocalDate.parse("2022-12-04")}",
-           "expiryDate": "${LocalDate.parse("2022-12-05")}",
+           "effectiveDate": "2022-12-04",
+           "expiryDate": "2022-12-05",
            "authorisedById": 2,
            "enteredById": 3,
-           "eventDatetime": "${LocalDateTime.parse("2022-12-04T10:00:00")}"
+           "eventDatetime": "2022-12-04T10:00:00"
         } 
         """.trimIndent(),
       )
@@ -1034,58 +991,42 @@ internal class HMPPSDomainEventsEmitterTest(@Autowired private val objectMapper:
 
     @Test
     fun `will have the correct basic fields`() {
-      assertThatJson(payload1).node("eventType")
+      payload1.assertJsonPath("eventType")
         .isEqualTo("prison-offender-events.prisoner.person-restriction.upserted")
-      assertThatJson(payload2).node("eventType").isEqualTo("prison-offender-events.prisoner.person-restriction.changed")
-      assertThatJson(payload1).node("occurredAt").isEqualTo("2022-12-04T10:00:00Z")
-      assertThatJson(payload2).node("occurredAt").isEqualTo("2022-12-04T10:00:00Z")
-      assertThatJson(payload1)
-        .node("publishedAt")
-        .asString()
-        .satisfies(
-          Consumer { publishedAt: String ->
-            assertThat(OffsetDateTime.parse(publishedAt))
-              .isCloseTo(OffsetDateTime.now(), Assertions.within(10, SECONDS))
-          },
-        )
-      assertThatJson(payload2)
-        .node("publishedAt")
-        .asString()
-        .satisfies(
-          Consumer { publishedAt: String ->
-            assertThat(OffsetDateTime.parse(publishedAt))
-              .isCloseTo(OffsetDateTime.now(), Assertions.within(10, SECONDS))
-          },
-        )
+      payload2.assertJsonPath("eventType").isEqualTo("prison-offender-events.prisoner.person-restriction.changed")
+      payload1.assertJsonPath("occurredAt").isEqualTo("2022-12-04T10:00:00Z")
+      payload2.assertJsonPath("occurredAt").isEqualTo("2022-12-04T10:00:00Z")
+      payload1.assertJsonPathDateTimeIsCloseTo("publishedAt", OffsetDateTime.now(), within(10, SECONDS))
+      payload2.assertJsonPathDateTimeIsCloseTo("publishedAt", OffsetDateTime.now(), within(10, SECONDS))
     }
 
     @Test
     fun `person reference will contain offenderNumber as NOMS number`() {
-      assertThatJson(payload1).node("personReference.identifiers").isArray.hasSize(1)
-      assertThatJson(payload1).node("personReference.identifiers[0].type").isEqualTo("NOMS")
-      assertThatJson(payload1).node("personReference.identifiers[0].value").isEqualTo("A1234GH")
-      assertThatJson(payload2).node("personReference.identifiers").isArray.hasSize(1)
-      assertThatJson(payload2).node("personReference.identifiers[0].type").isEqualTo("NOMS")
-      assertThatJson(payload2).node("personReference.identifiers[0].value").isEqualTo("A1234GH")
+      payload1.assertJsonPathIsArray("personReference.identifiers") // .isArray.hasSize(1)
+      payload1.assertJsonPath("personReference.identifiers[0].type").isEqualTo("NOMS")
+      payload1.assertJsonPath("personReference.identifiers[0].value").isEqualTo("A1234GH")
+      payload2.assertJsonPathIsArray("personReference.identifiers") // .isArray.hasSize(1)
+      payload2.assertJsonPath("personReference.identifiers[0].type").isEqualTo("NOMS")
+      payload2.assertJsonPath("personReference.identifiers[0].value").isEqualTo("A1234GH")
     }
 
     @Test
     fun `additional information will contain the correct fields`() {
-      assertThatJson(payload1).node("additionalInformation.offenderPersonRestrictionId").isEqualTo("\"1\"")
-      assertThatJson(payload1).node("additionalInformation.restrictionType").isEqualTo("\"SEC\"")
-      assertThatJson(payload1).node("additionalInformation.effectiveDate").isEqualTo("\"2022-12-04\"")
-      assertThatJson(payload1).node("additionalInformation.personId").isEqualTo("\"4\"")
-      assertThatJson(payload2).node("additionalInformation.offenderPersonRestrictionId").isEqualTo("\"1\"")
-      assertThatJson(payload2).node("additionalInformation.restrictionType").isEqualTo("\"SEC\"")
-      assertThatJson(payload2).node("additionalInformation.effectiveDate").isEqualTo("\"2022-12-04\"")
-      assertThatJson(payload2).node("additionalInformation.personId").isEqualTo("\"4\"")
+      payload1.assertJsonPath("additionalInformation.offenderPersonRestrictionId").isEqualTo("1")
+      payload1.assertJsonPath("additionalInformation.restrictionType").isEqualTo("SEC")
+      payload1.assertJsonPath("additionalInformation.effectiveDate").isEqualTo("2022-12-04")
+      payload1.assertJsonPath("additionalInformation.personId").isEqualTo("4")
+      payload2.assertJsonPath("additionalInformation.offenderPersonRestrictionId").isEqualTo("1")
+      payload2.assertJsonPath("additionalInformation.restrictionType").isEqualTo("SEC")
+      payload2.assertJsonPath("additionalInformation.effectiveDate").isEqualTo("2022-12-04")
+      payload2.assertJsonPath("additionalInformation.personId").isEqualTo("4")
     }
 
     @Test
     fun `will describe the event as a restriction`() {
-      assertThatJson(payload1).node("description")
+      payload1.assertJsonPath("description")
         .isEqualTo("A prisoner person restriction record has been created or updated")
-      assertThatJson(payload2).node("description").isEqualTo("A prisoner person restriction record has changed")
+      payload2.assertJsonPath("description").isEqualTo("A prisoner person restriction record has changed")
     }
 
     @Test
@@ -1137,16 +1078,17 @@ internal class HMPPSDomainEventsEmitterTest(@Autowired private val objectMapper:
     fun setUp() {
       emitter.convertAndSendWhenSignificant(
         "PERSON_RESTRICTION-DELETED",
+        //language=JSON
         """
         {
            "offenderIdDisplay": "A1234GH",
            "offenderPersonRestrictionId": 1,
            "restrictionType": "SEC",
-           "effectiveDate": "${LocalDate.parse("2022-12-04")}",
-           "expiryDate": "${LocalDate.parse("2022-12-05")}",
+           "effectiveDate": "2022-12-04",
+           "expiryDate": "2022-12-05",
            "authorisedById": 2,
            "enteredById": 3,
-           "eventDatetime": "${LocalDateTime.parse("2022-12-04T10:00:00")}"
+           "eventDatetime": "2022-12-04T10:00:00"
         } 
         """.trimIndent(),
       )
@@ -1164,54 +1106,38 @@ internal class HMPPSDomainEventsEmitterTest(@Autowired private val objectMapper:
 
     @Test
     fun `will have the correct basic fields`() {
-      assertThatJson(payload1).node("eventType").isEqualTo("prison-offender-events.prisoner.person-restriction.deleted")
-      assertThatJson(payload2).node("eventType").isEqualTo("prison-offender-events.prisoner.person-restriction.changed")
-      assertThatJson(payload1).node("occurredAt").isEqualTo("2022-12-04T10:00:00Z")
-      assertThatJson(payload2).node("occurredAt").isEqualTo("2022-12-04T10:00:00Z")
-      assertThatJson(payload1)
-        .node("publishedAt")
-        .asString()
-        .satisfies(
-          Consumer { publishedAt: String ->
-            assertThat(OffsetDateTime.parse(publishedAt))
-              .isCloseTo(OffsetDateTime.now(), Assertions.within(10, SECONDS))
-          },
-        )
-      assertThatJson(payload2)
-        .node("publishedAt")
-        .asString()
-        .satisfies(
-          Consumer { publishedAt: String ->
-            assertThat(OffsetDateTime.parse(publishedAt))
-              .isCloseTo(OffsetDateTime.now(), Assertions.within(10, SECONDS))
-          },
-        )
+      payload1.assertJsonPath("eventType").isEqualTo("prison-offender-events.prisoner.person-restriction.deleted")
+      payload2.assertJsonPath("eventType").isEqualTo("prison-offender-events.prisoner.person-restriction.changed")
+      payload1.assertJsonPath("occurredAt").isEqualTo("2022-12-04T10:00:00Z")
+      payload2.assertJsonPath("occurredAt").isEqualTo("2022-12-04T10:00:00Z")
+      payload1.assertJsonPathDateTimeIsCloseTo("publishedAt", OffsetDateTime.now(), within(10, SECONDS))
+      payload2.assertJsonPathDateTimeIsCloseTo("publishedAt", OffsetDateTime.now(), within(10, SECONDS))
     }
 
     @Test
     fun `person reference will contain offenderNumber as NOMS number`() {
-      assertThatJson(payload1).node("personReference.identifiers").isArray.hasSize(1)
-      assertThatJson(payload1).node("personReference.identifiers[0].type").isEqualTo("NOMS")
-      assertThatJson(payload1).node("personReference.identifiers[0].value").isEqualTo("A1234GH")
-      assertThatJson(payload2).node("personReference.identifiers").isArray.hasSize(1)
-      assertThatJson(payload2).node("personReference.identifiers[0].type").isEqualTo("NOMS")
-      assertThatJson(payload2).node("personReference.identifiers[0].value").isEqualTo("A1234GH")
+      payload1.assertJsonPathIsArray("personReference.identifiers").hasSize(1)
+      payload1.assertJsonPath("personReference.identifiers[0].type").isEqualTo("NOMS")
+      payload1.assertJsonPath("personReference.identifiers[0].value").isEqualTo("A1234GH")
+      payload2.assertJsonPathIsArray("personReference.identifiers").hasSize(1)
+      payload2.assertJsonPath("personReference.identifiers[0].type").isEqualTo("NOMS")
+      payload2.assertJsonPath("personReference.identifiers[0].value").isEqualTo("A1234GH")
     }
 
     @Test
     fun `additional information will contain the correct fields`() {
-      assertThatJson(payload1).node("additionalInformation.offenderPersonRestrictionId").isEqualTo("\"1\"")
-      assertThatJson(payload1).node("additionalInformation.restrictionType").isEqualTo("\"SEC\"")
-      assertThatJson(payload1).node("additionalInformation.effectiveDate").isEqualTo("\"2022-12-04\"")
-      assertThatJson(payload2).node("additionalInformation.offenderPersonRestrictionId").isEqualTo("\"1\"")
-      assertThatJson(payload2).node("additionalInformation.restrictionType").isEqualTo("\"SEC\"")
-      assertThatJson(payload2).node("additionalInformation.effectiveDate").isEqualTo("\"2022-12-04\"")
+      payload1.assertJsonPath("additionalInformation.offenderPersonRestrictionId").isEqualTo("1")
+      payload1.assertJsonPath("additionalInformation.restrictionType").isEqualTo("SEC")
+      payload1.assertJsonPath("additionalInformation.effectiveDate").isEqualTo("2022-12-04")
+      payload2.assertJsonPath("additionalInformation.offenderPersonRestrictionId").isEqualTo("1")
+      payload2.assertJsonPath("additionalInformation.restrictionType").isEqualTo("SEC")
+      payload2.assertJsonPath("additionalInformation.effectiveDate").isEqualTo("2022-12-04")
     }
 
     @Test
     fun `will describe the event as a restriction`() {
-      assertThatJson(payload1).node("description").isEqualTo("A prisoner person restriction record has been deleted")
-      assertThatJson(payload2).node("description").isEqualTo("A prisoner person restriction record has changed")
+      payload1.assertJsonPath("description").isEqualTo("A prisoner person restriction record has been deleted")
+      payload2.assertJsonPath("description").isEqualTo("A prisoner person restriction record has changed")
     }
 
     @Test
@@ -1288,7 +1214,7 @@ internal class HMPPSDomainEventsEmitterTest(@Autowired private val objectMapper:
       with(upsertedPayload) {
         assertJsonPath("eventType", "prison-offender-events.visitor.restriction.upserted")
         assertJsonPath("occurredAt", "2022-12-04T10:00:00Z")
-        assertJsonPathDateTimeIsCloseTo("publishedAt", java.time.OffsetDateTime.now(), within(10, java.time.temporal.ChronoUnit.SECONDS))
+        assertJsonPathDateTimeIsCloseTo("publishedAt", OffsetDateTime.now(), within(10, java.time.temporal.ChronoUnit.SECONDS))
         assertJsonPath("personReference.identifiers[0].type", "PERSON")
         assertJsonPath("personReference.identifiers[0].value", "4")
         assertJsonPath("additionalInformation.visitorRestrictionId", "1")
@@ -1305,7 +1231,7 @@ internal class HMPPSDomainEventsEmitterTest(@Autowired private val objectMapper:
       with(changedPayload) {
         assertJsonPath("eventType", "prison-offender-events.visitor.restriction.changed")
         assertJsonPath("occurredAt", "2022-12-04T10:00:00Z")
-        assertJsonPathDateTimeIsCloseTo("publishedAt", java.time.OffsetDateTime.now(), within(10, java.time.temporal.ChronoUnit.SECONDS))
+        assertJsonPathDateTimeIsCloseTo("publishedAt", OffsetDateTime.now(), within(10, java.time.temporal.ChronoUnit.SECONDS))
         assertJsonPath("personReference.identifiers[0].type", "PERSON")
         assertJsonPath("personReference.identifiers[0].value", "4")
         assertJsonPath("additionalInformation.visitorRestrictionId", "1")
@@ -1366,7 +1292,7 @@ internal class HMPPSDomainEventsEmitterTest(@Autowired private val objectMapper:
       with(deletedPayload) {
         assertJsonPath("eventType", "prison-offender-events.visitor.restriction.deleted")
         assertJsonPath("occurredAt", "2022-12-04T10:00:00Z")
-        assertJsonPathDateTimeIsCloseTo("publishedAt", java.time.OffsetDateTime.now(), within(10, java.time.temporal.ChronoUnit.SECONDS))
+        assertJsonPathDateTimeIsCloseTo("publishedAt", OffsetDateTime.now(), within(10, java.time.temporal.ChronoUnit.SECONDS))
         assertJsonPath("personReference.identifiers[0].type", "PERSON")
         assertJsonPath("personReference.identifiers[0].value", "4")
         assertJsonPath("additionalInformation.visitorRestrictionId", "1")
@@ -1383,7 +1309,7 @@ internal class HMPPSDomainEventsEmitterTest(@Autowired private val objectMapper:
       with(changedPayload) {
         assertJsonPath("eventType", "prison-offender-events.visitor.restriction.changed")
         assertJsonPath("occurredAt", "2022-12-04T10:00:00Z")
-        assertJsonPathDateTimeIsCloseTo("publishedAt", java.time.OffsetDateTime.now(), within(10, java.time.temporal.ChronoUnit.SECONDS))
+        assertJsonPathDateTimeIsCloseTo("publishedAt", OffsetDateTime.now(), within(10, java.time.temporal.ChronoUnit.SECONDS))
         assertJsonPath("personReference.identifiers[0].type", "PERSON")
         assertJsonPath("personReference.identifiers[0].value", "4")
         assertJsonPath("additionalInformation.visitorRestrictionId", "1")
@@ -1410,13 +1336,14 @@ internal class HMPPSDomainEventsEmitterTest(@Autowired private val objectMapper:
     fun setUp() {
       emitter.convertAndSendWhenSignificant(
         "PRISONER_ACTIVITY-UPDATE",
+        //language=JSON
         """
         {
            "offenderIdDisplay": "A1234BC",
            "prisonId": "LEI",
            "user": "SOME_USER",
            "action": "SUSPEND",
-           "eventDatetime": "${LocalDateTime.parse("2022-12-04T10:00:00")}"
+           "eventDatetime": "2022-12-04T10:00:00"
         } 
         """.trimIndent(),
       )
@@ -1436,39 +1363,31 @@ internal class HMPPSDomainEventsEmitterTest(@Autowired private val objectMapper:
 
     @Test
     fun `will use event datetime for occurred at time`() {
-      assertThatJson(payload).node("occurredAt").isEqualTo("2022-12-04T10:00:00Z")
+      payload.assertJsonPath("occurredAt").isEqualTo("2022-12-04T10:00:00Z")
     }
 
     @Test
     fun `will use current time as publishedAt`() {
-      assertThatJson(payload)
-        .node("publishedAt")
-        .asString()
-        .satisfies(
-          Consumer { publishedAt: String ->
-            assertThat(OffsetDateTime.parse(publishedAt))
-              .isCloseTo(OffsetDateTime.now(), Assertions.within(10, SECONDS))
-          },
-        )
+      payload.assertJsonPathDateTimeIsCloseTo("publishedAt", OffsetDateTime.now(), within(10, java.time.temporal.ChronoUnit.SECONDS))
     }
 
     @Test
     fun `person reference will contain nomsId as NOMS identifier`() {
-      assertThatJson(payload).node("personReference.identifiers").isArray.hasSize(1)
-      assertThatJson(payload).node("personReference.identifiers[0].type").isEqualTo("NOMS")
-      assertThatJson(payload).node("personReference.identifiers[0].value").isEqualTo("\"A1234BC\"")
+      payload.assertJsonPathIsArray("personReference.identifiers").hasSize(1)
+      payload.assertJsonPath("personReference.identifiers[0].type").isEqualTo("NOMS")
+      payload.assertJsonPath("personReference.identifiers[0].value").isEqualTo("A1234BC")
     }
 
     @Test
     fun `additional information will contain the correct fields`() {
-      assertThatJson(payload).node("additionalInformation.prisonId").isEqualTo("\"LEI\"")
-      assertThatJson(payload).node("additionalInformation.user").isEqualTo("\"SOME_USER\"")
-      assertThatJson(payload).node("additionalInformation.action").isEqualTo("\"SUSPEND\"")
+      payload.assertJsonPath("additionalInformation.prisonId").isEqualTo("LEI")
+      payload.assertJsonPath("additionalInformation.user").isEqualTo("SOME_USER")
+      payload.assertJsonPath("additionalInformation.action").isEqualTo("SUSPEND")
     }
 
     @Test
     fun `will describe the event as a prisoner activity update`() {
-      assertThatJson(payload).node("description")
+      payload.assertJsonPath("description")
         .isEqualTo("A prisoner's activities have been changed")
     }
 
@@ -1502,13 +1421,14 @@ internal class HMPPSDomainEventsEmitterTest(@Autowired private val objectMapper:
     fun setUp() {
       emitter.convertAndSendWhenSignificant(
         "PRISONER_APPOINTMENT-UPDATE",
+        //language=JSON
         """
         {
            "offenderIdDisplay": "A1234BC",
            "prisonId": "LEI",
            "user": "SOME_USER",
            "action": "SUSPEND",
-           "eventDatetime": "${LocalDateTime.parse("2022-12-04T10:00:00")}"
+           "eventDatetime": "2022-12-04T10:00:00"
         } 
         """.trimIndent(),
       )
@@ -1528,39 +1448,31 @@ internal class HMPPSDomainEventsEmitterTest(@Autowired private val objectMapper:
 
     @Test
     fun `will use event datetime for occurred at time`() {
-      assertThatJson(payload).node("occurredAt").isEqualTo("2022-12-04T10:00:00Z")
+      payload.assertJsonPath("occurredAt").isEqualTo("2022-12-04T10:00:00Z")
     }
 
     @Test
     fun `will use current time as publishedAt`() {
-      assertThatJson(payload)
-        .node("publishedAt")
-        .asString()
-        .satisfies(
-          Consumer { publishedAt: String ->
-            assertThat(OffsetDateTime.parse(publishedAt))
-              .isCloseTo(OffsetDateTime.now(), Assertions.within(10, SECONDS))
-          },
-        )
+      payload.assertJsonPathDateTimeIsCloseTo("publishedAt", OffsetDateTime.now(), within(10, java.time.temporal.ChronoUnit.SECONDS))
     }
 
     @Test
     fun `person reference will contain nomsId as NOMS identifier`() {
-      assertThatJson(payload).node("personReference.identifiers").isArray.hasSize(1)
-      assertThatJson(payload).node("personReference.identifiers[0].type").isEqualTo("NOMS")
-      assertThatJson(payload).node("personReference.identifiers[0].value").isEqualTo("\"A1234BC\"")
+      payload.assertJsonPathIsArray("personReference.identifiers").hasSize(1)
+      payload.assertJsonPath("personReference.identifiers[0].type").isEqualTo("NOMS")
+      payload.assertJsonPath("personReference.identifiers[0].value").isEqualTo("A1234BC")
     }
 
     @Test
     fun `additional information will contain the correct fields`() {
-      assertThatJson(payload).node("additionalInformation.prisonId").isEqualTo("\"LEI\"")
-      assertThatJson(payload).node("additionalInformation.user").isEqualTo("\"SOME_USER\"")
-      assertThatJson(payload).node("additionalInformation.action").isEqualTo("\"SUSPEND\"")
+      payload.assertJsonPath("additionalInformation.prisonId").isEqualTo("LEI")
+      payload.assertJsonPath("additionalInformation.user").isEqualTo("SOME_USER")
+      payload.assertJsonPath("additionalInformation.action").isEqualTo("SUSPEND")
     }
 
     @Test
     fun `will describe the event as a prisoner activity update`() {
-      assertThatJson(payload).node("description")
+      payload.assertJsonPath("description")
         .isEqualTo("A prisoner's appointment has been changed")
     }
 
@@ -1597,21 +1509,23 @@ internal class HMPPSDomainEventsEmitterTest(@Autowired private val objectMapper:
 
       emitter.convertAndSendWhenSignificant(
         "IMPRISONMENT_STATUS-CHANGED",
+        //language=JSON
         """
         {
            "bookingId": 43124234,
            "imprisonmentStatusSeq": 0,
-           "eventDatetime": "${LocalDateTime.parse("2022-12-04T10:00:00")}"
+           "eventDatetime": "2022-12-04T10:00:00"
         } 
         """.trimIndent(),
       )
       emitter.convertAndSendWhenSignificant(
         "IMPRISONMENT_STATUS-CHANGED",
+        //language=JSON
         """
         {
            "bookingId": 43124234,
            "imprisonmentStatusSeq": 1,
-           "eventDatetime": "${LocalDateTime.parse("2022-12-04T10:00:00")}"
+           "eventDatetime": "2022-12-04T10:00:00"
         } 
         """.trimIndent(),
       )
@@ -1631,37 +1545,29 @@ internal class HMPPSDomainEventsEmitterTest(@Autowired private val objectMapper:
 
     @Test
     fun `will use event datetime for occurred at time`() {
-      assertThatJson(payload).node("occurredAt").isEqualTo("2022-12-04T10:00:00Z")
+      payload.assertJsonPath("occurredAt").isEqualTo("2022-12-04T10:00:00Z")
     }
 
     @Test
     fun `will use current time as publishedAt`() {
-      assertThatJson(payload)
-        .node("publishedAt")
-        .asString()
-        .satisfies(
-          Consumer { publishedAt: String ->
-            assertThat(OffsetDateTime.parse(publishedAt))
-              .isCloseTo(OffsetDateTime.now(), Assertions.within(10, SECONDS))
-          },
-        )
+      payload.assertJsonPathDateTimeIsCloseTo("publishedAt", OffsetDateTime.now(), within(10, java.time.temporal.ChronoUnit.SECONDS))
     }
 
     @Test
     fun `person reference will contain nomsId as NOMS identifier`() {
-      assertThatJson(payload).node("personReference.identifiers").isArray.hasSize(1)
-      assertThatJson(payload).node("personReference.identifiers[0].type").isEqualTo("NOMS")
-      assertThatJson(payload).node("personReference.identifiers[0].value").isEqualTo("\"A1234GH\"")
+      payload.assertJsonPathIsArray("personReference.identifiers").hasSize(1)
+      payload.assertJsonPath("personReference.identifiers[0].type").isEqualTo("NOMS")
+      payload.assertJsonPath("personReference.identifiers[0].value").isEqualTo("A1234GH")
     }
 
     @Test
     fun `additional information will contain the correct fields`() {
-      assertThatJson(payload).node("additionalInformation.bookingId").isEqualTo("\"43124234\"")
+      payload.assertJsonPath("additionalInformation.bookingId").isEqualTo("43124234")
     }
 
     @Test
     fun `will describe the event as a prisoner activity update`() {
-      assertThatJson(payload).node("description")
+      payload.assertJsonPath("description")
         .isEqualTo("A prisoner's imprisonment status has been changed")
     }
 
@@ -1692,12 +1598,13 @@ internal class HMPPSDomainEventsEmitterTest(@Autowired private val objectMapper:
     fun setUp() {
       emitter.convertAndSendWhenSignificant(
         "SENTENCE_DATES-CHANGED",
+        //language=JSON
         """
         {
            "offenderIdDisplay": "A1234BC",
            "bookingId": 43124234,
            "sentenceCalculationId": 0,
-           "eventDatetime": "${LocalDateTime.parse("2022-12-04T10:00:00")}"
+           "eventDatetime": "2022-12-04T10:00:00"
         } 
         """.trimIndent(),
       )
@@ -1717,37 +1624,29 @@ internal class HMPPSDomainEventsEmitterTest(@Autowired private val objectMapper:
 
     @Test
     fun `will use event datetime for occurred at time`() {
-      assertThatJson(payload).node("occurredAt").isEqualTo("2022-12-04T10:00:00Z")
+      payload.assertJsonPath("occurredAt").isEqualTo("2022-12-04T10:00:00Z")
     }
 
     @Test
     fun `will use current time as publishedAt`() {
-      assertThatJson(payload)
-        .node("publishedAt")
-        .asString()
-        .satisfies(
-          Consumer { publishedAt: String ->
-            assertThat(OffsetDateTime.parse(publishedAt))
-              .isCloseTo(OffsetDateTime.now(), Assertions.within(10, SECONDS))
-          },
-        )
+      payload.assertJsonPathDateTimeIsCloseTo("publishedAt", OffsetDateTime.now(), within(10, SECONDS))
     }
 
     @Test
     fun `person reference will contain nomsId as NOMS identifier`() {
-      assertThatJson(payload).node("personReference.identifiers").isArray.hasSize(1)
-      assertThatJson(payload).node("personReference.identifiers[0].type").isEqualTo("NOMS")
-      assertThatJson(payload).node("personReference.identifiers[0].value").isEqualTo("\"A1234BC\"")
+      payload.assertJsonPathIsArray("personReference.identifiers").hasSize(1)
+      payload.assertJsonPath("personReference.identifiers[0].type").isEqualTo("NOMS")
+      payload.assertJsonPath("personReference.identifiers[0].value").isEqualTo("A1234BC")
     }
 
     @Test
     fun `additional information will contain the correct fields`() {
-      assertThatJson(payload).node("additionalInformation.bookingId").isEqualTo("\"43124234\"")
+      payload.assertJsonPath("additionalInformation.bookingId").isEqualTo("43124234")
     }
 
     @Test
     fun `will describe the event as a prisoner activity update`() {
-      assertThatJson(payload).node("description")
+      payload.assertJsonPath("description")
         .isEqualTo("A prisoner's sentence dates have been changed")
     }
 
@@ -1841,7 +1740,7 @@ internal class HMPPSDomainEventsEmitterTest(@Autowired private val objectMapper:
     @MethodSource("contactEventMap")
     fun `will raise a contact event type`(prisonEventType: String, eventType: String, approved: Boolean) {
       processXtagEvent(prisonEventType, approved = approved)
-      assertThatJson(payload).node("eventType")
+      payload.assertJsonPath("eventType")
         .isEqualTo(eventType)
     }
 
@@ -1849,42 +1748,34 @@ internal class HMPPSDomainEventsEmitterTest(@Autowired private val objectMapper:
     @MethodSource("contactEventMap")
     fun `will use event datetime for occurred at time`(prisonEventType: String, eventType: String) {
       processXtagEvent(prisonEventType)
-      assertThatJson(payload).node("occurredAt").isEqualTo("2022-12-04T10:00:00Z")
+      payload.assertJsonPath("occurredAt").isEqualTo("2022-12-04T10:00:00Z")
     }
 
     @ParameterizedTest
     @MethodSource("contactEventMap")
     fun `will use current time as publishedAt`(prisonEventType: String) {
       processXtagEvent(prisonEventType)
-      assertThatJson(payload)
-        .node("publishedAt")
-        .asString()
-        .satisfies(
-          Consumer { publishedAt: String ->
-            assertThat(OffsetDateTime.parse(publishedAt))
-              .isCloseTo(OffsetDateTime.now(), Assertions.within(10, SECONDS))
-          },
-        )
+      payload.assertJsonPathDateTimeIsCloseTo("publishedAt", OffsetDateTime.now(), within(10, SECONDS))
     }
 
     @ParameterizedTest
     @MethodSource("contactEventMap")
     fun `person reference will contain nomsId as NOMS identifier`(prisonEventType: String) {
       processXtagEvent(prisonEventType)
-      assertThatJson(payload).node("personReference.identifiers").isArray.hasSize(1)
-      assertThatJson(payload).node("personReference.identifiers[0].type").isEqualTo("NOMS")
-      assertThatJson(payload).node("personReference.identifiers[0].value").isEqualTo("A1234BC")
+      payload.assertJsonPathIsArray("personReference.identifiers").hasSize(1)
+      payload.assertJsonPath("personReference.identifiers[0].type").isEqualTo("NOMS")
+      payload.assertJsonPath("personReference.identifiers[0].value").isEqualTo("A1234BC")
     }
 
     @ParameterizedTest
     @MethodSource("contactEventMap")
     fun `additional information will contain the NOMIS ids of the contact`(prisonEventType: String) {
       processXtagEvent(prisonEventType)
-      assertThatJson(payload).node("additionalInformation.bookingId").isEqualTo("\"1215922\"")
-      assertThatJson(payload).node("additionalInformation.contactId").isEqualTo("\"7550868\"")
-      assertThatJson(payload).node("additionalInformation.personId").isEqualTo("\"4729911\"")
-      assertThatJson(payload).node("additionalInformation.approvedVisitor").isEqualTo("\"true\"")
-      assertThatJson(payload).node("additionalInformation.username").isEqualTo("J_SMITH")
+      payload.assertJsonPath("additionalInformation.bookingId").isEqualTo("1215922")
+      payload.assertJsonPath("additionalInformation.contactId").isEqualTo("7550868")
+      payload.assertJsonPath("additionalInformation.personId").isEqualTo("4729911")
+      payload.assertJsonPath("additionalInformation.approvedVisitor").isEqualTo("true")
+      payload.assertJsonPath("additionalInformation.username").isEqualTo("J_SMITH")
     }
 
     @ParameterizedTest
