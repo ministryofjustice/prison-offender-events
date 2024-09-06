@@ -22,23 +22,16 @@ abstract class OffenderEvent(
       "BED_ASSIGNMENT_HISTORY-INSERTED" to CellMoveOffenderEvent::class.java,
       "OFFENDER_MOVEMENT-RECEPTION" to PrisonerReceivedOffenderEvent::class.java,
       "OFFENDER_MOVEMENT-DISCHARGE" to PrisonerDischargedOffenderEvent::class.java,
-      "BOOKING_NUMBER-CHANGED" to PrisonerMergedOffenderEvent::class.java,
-      "OFFENDER_BOOKING-REASSIGNED" to PrisonerBookingMovedOffenderEvent::class.java,
       "NON_ASSOCIATION_DETAIL-UPSERTED" to NonAssociationDetailsOffenderEvent::class.java,
       "NON_ASSOCIATION_DETAIL-DELETED" to NonAssociationDetailsOffenderEvent::class.java,
       "RESTRICTION-UPSERTED" to RestrictionOffenderEvent::class.java,
       "RESTRICTION-DELETED" to RestrictionOffenderEvent::class.java,
       "PERSON_RESTRICTION-UPSERTED" to PersonRestrictionOffenderEventUpserted::class.java,
       "PERSON_RESTRICTION-DELETED" to PersonRestrictionOffenderEventDeleted::class.java,
-      "VISITOR_RESTRICTION-UPSERTED" to VisitorRestrictionOffenderEventUpserted::class.java,
-      "VISITOR_RESTRICTION-DELETED" to VisitorRestrictionOffenderEventDeleted::class.java,
       "PRISONER_ACTIVITY-UPDATE" to PrisonerActivityUpdateEvent::class.java,
       "PRISONER_APPOINTMENT-UPDATE" to PrisonerAppointmentUpdateEvent::class.java,
       "IMPRISONMENT_STATUS-CHANGED" to ImprisonmentStatusChangedEvent::class.java,
       "SENTENCE_DATES-CHANGED" to SentenceDatesChangedEvent::class.java,
-      "OFFENDER_CONTACT-INSERTED" to OffenderContactEventInserted::class.java,
-      "OFFENDER_CONTACT-UPDATED" to OffenderContactEventUpdated::class.java,
-      "OFFENDER_CONTACT-DELETED" to OffenderContactEventDeleted::class.java,
     )
   }
 }
@@ -75,14 +68,18 @@ class PrisonerMergedOffenderEvent(
   val previousOffenderIdDisplay: String? = null,
   val type: String,
   val bookingId: Long,
-) : OffenderEvent(eventDatetime = eventDatetime, offenderIdDisplay = offenderIdDisplay)
+) : OffenderEvent(eventDatetime = eventDatetime, offenderIdDisplay = offenderIdDisplay) {
+  companion object
+}
 
 class PrisonerBookingMovedOffenderEvent(
   eventDatetime: LocalDateTime,
   override val offenderIdDisplay: String,
   val previousOffenderIdDisplay: String,
   val bookingId: Long,
-) : OffenderEvent(eventDatetime = eventDatetime, offenderIdDisplay = offenderIdDisplay)
+) : OffenderEvent(eventDatetime = eventDatetime, offenderIdDisplay = offenderIdDisplay) {
+  companion object
+}
 
 class NonAssociationDetailsOffenderEvent(
   eventDatetime: LocalDateTime,
@@ -204,7 +201,9 @@ class VisitorRestrictionOffenderEventUpserted(
   enteredById = enteredById,
   eventDatetime = eventDatetime,
   offenderIdDisplay = offenderIdDisplay,
-)
+) {
+  companion object
+}
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 class VisitorRestrictionOffenderEventDeleted(
@@ -225,7 +224,9 @@ class VisitorRestrictionOffenderEventDeleted(
   enteredById = enteredById,
   eventDatetime = eventDatetime,
   offenderIdDisplay = offenderIdDisplay,
-)
+) {
+  companion object
+}
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 abstract class VisitorRestrictionOffenderEvent(
@@ -319,7 +320,9 @@ class OffenderContactEventInserted(
   approvedVisitor = approvedVisitor,
   username = username,
   bookingId = bookingId,
-)
+) {
+  companion object
+}
 
 class OffenderContactEventUpdated(
   eventDatetime: LocalDateTime,
@@ -337,7 +340,9 @@ class OffenderContactEventUpdated(
   approvedVisitor = approvedVisitor,
   username = username,
   bookingId = bookingId,
-)
+) {
+  companion object
+}
 
 class OffenderContactEventDeleted(
   eventDatetime: LocalDateTime,
@@ -355,4 +360,6 @@ class OffenderContactEventDeleted(
   approvedVisitor = approvedVisitor,
   username = username,
   bookingId = bookingId,
-)
+) {
+  companion object
+}
