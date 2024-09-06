@@ -71,26 +71,23 @@ class HMPPSDomainEventsEmitter(
       "OFFENDER_CONTACT-DELETED" -> OffenderContactEventDeleted.toDomainEvents(message.fromJson())
       "OFFENDER_BOOKING-REASSIGNED" -> PrisonerBookingMovedOffenderEvent.toDomainEvents(message.fromJson())
       "BOOKING_NUMBER-CHANGED" -> PrisonerMergedOffenderEvent.toDomainEvents(message.fromJson())
-
-      else -> {
-        val mapping = OffenderEvent.eventMappings[event] ?: return
-        when (val offenderEvent = objectMapper.readValue(message, mapping)) {
-          is CaseNoteOffenderEvent -> offenderEvent.toDomainEvent().toListOrEmptyWhenNull()
-          is PrisonerReceivedOffenderEvent -> offenderEvent.toDomainEvent().toListOrEmptyWhenNull()
-          is PrisonerDischargedOffenderEvent -> offenderEvent.toDomainEvent().toListOrEmptyWhenNull()
-          is CellMoveOffenderEvent -> offenderEvent.toDomainEvent().toList()
-          is NonAssociationDetailsOffenderEvent -> offenderEvent.toDomainEvent().toList()
-          is PersonRestrictionOffenderEventUpserted -> offenderEvent.toDomainEvent()
-          is PersonRestrictionOffenderEventDeleted -> offenderEvent.toDomainEvent()
-          is RestrictionOffenderEvent -> offenderEvent.toDomainEvent().toList()
-          is PrisonerActivityUpdateEvent -> offenderEvent.toDomainEvent().toList()
-          is PrisonerAppointmentUpdateEvent -> offenderEvent.toDomainEvent().toList()
-          is ImprisonmentStatusChangedEvent -> offenderEvent.toDomainEvent().toListOrEmptyWhenNull()
-          is SentenceDatesChangedEvent -> offenderEvent.toDomainEvent().toList()
-
-          else -> emptyList()
-        }
-      }
+      "OFFENDER_CASE_NOTES-DELETED" -> CaseNoteOffenderEvent.toDomainEvents(message.fromJson())
+      "OFFENDER_CASE_NOTES-INSERTED" -> CaseNoteOffenderEvent.toDomainEvents(message.fromJson())
+      "OFFENDER_CASE_NOTES-UPDATED" -> CaseNoteOffenderEvent.toDomainEvents(message.fromJson())
+      "BED_ASSIGNMENT_HISTORY-INSERTED" -> CellMoveOffenderEvent.toDomainEvents(message.fromJson())
+      "OFFENDER_MOVEMENT-RECEPTION" -> PrisonerReceivedOffenderEvent.toDomainEvents(message.fromJson())
+      "OFFENDER_MOVEMENT-DISCHARGE" -> PrisonerDischargedOffenderEvent.toDomainEvents(message.fromJson())
+      "NON_ASSOCIATION_DETAIL-UPSERTED" -> NonAssociationDetailsOffenderEvent.toDomainEvents(message.fromJson())
+      "NON_ASSOCIATION_DETAIL-DELETED" -> NonAssociationDetailsOffenderEvent.toDomainEvents(message.fromJson())
+      "RESTRICTION-UPSERTED" -> RestrictionOffenderEvent.toDomainEvents(message.fromJson())
+      "RESTRICTION-DELETED" -> RestrictionOffenderEvent.toDomainEvents(message.fromJson())
+      "PERSON_RESTRICTION-UPSERTED" -> PersonRestrictionOffenderEventUpserted.toDomainEvents(message.fromJson())
+      "PERSON_RESTRICTION-DELETED" -> PersonRestrictionOffenderEventDeleted.toDomainEvents(message.fromJson())
+      "PRISONER_ACTIVITY-UPDATE" -> PrisonerActivityUpdateEvent.toDomainEvents(message.fromJson())
+      "PRISONER_APPOINTMENT-UPDATE" -> PrisonerAppointmentUpdateEvent.toDomainEvents(message.fromJson())
+      "IMPRISONMENT_STATUS-CHANGED" -> ImprisonmentStatusChangedEvent.toDomainEvents(message.fromJson())
+      "SENTENCE_DATES-CHANGED" -> SentenceDatesChangedEvent.toDomainEvents(message.fromJson())
+      else -> emptyList()
     }.also {
       sendEvents(it)
     }
@@ -372,6 +369,41 @@ class HMPPSDomainEventsEmitter(
   private companion object {
     private val log = LoggerFactory.getLogger(this::class.java)
   }
+
+  private fun SentenceDatesChangedEvent.Companion.toDomainEvents(event: SentenceDatesChangedEvent): List<HmppsDomainEvent> =
+    event.toDomainEvent().toListOrEmptyWhenNull()
+
+  private fun ImprisonmentStatusChangedEvent.Companion.toDomainEvents(event: ImprisonmentStatusChangedEvent): List<HmppsDomainEvent> =
+    event.toDomainEvent().toListOrEmptyWhenNull()
+
+  private fun PrisonerAppointmentUpdateEvent.Companion.toDomainEvents(event: PrisonerAppointmentUpdateEvent): List<HmppsDomainEvent> =
+    event.toDomainEvent().toListOrEmptyWhenNull()
+
+  private fun PrisonerActivityUpdateEvent.Companion.toDomainEvents(event: PrisonerActivityUpdateEvent): List<HmppsDomainEvent> =
+    event.toDomainEvent().toListOrEmptyWhenNull()
+
+  private fun PersonRestrictionOffenderEventDeleted.Companion.toDomainEvents(event: PersonRestrictionOffenderEventDeleted): List<HmppsDomainEvent> =
+    event.toDomainEvent()
+
+  private fun PersonRestrictionOffenderEventUpserted.Companion.toDomainEvents(event: PersonRestrictionOffenderEventUpserted): List<HmppsDomainEvent> =
+    event.toDomainEvent()
+
+  private fun RestrictionOffenderEvent.Companion.toDomainEvents(event: RestrictionOffenderEvent): List<HmppsDomainEvent> =
+    event.toDomainEvent().toListOrEmptyWhenNull()
+  private fun NonAssociationDetailsOffenderEvent.Companion.toDomainEvents(event: NonAssociationDetailsOffenderEvent): List<HmppsDomainEvent> =
+    event.toDomainEvent().toListOrEmptyWhenNull()
+
+  private fun PrisonerDischargedOffenderEvent.Companion.toDomainEvents(event: PrisonerDischargedOffenderEvent): List<HmppsDomainEvent> =
+    event.toDomainEvent().toListOrEmptyWhenNull()
+
+  private fun PrisonerReceivedOffenderEvent.Companion.toDomainEvents(event: PrisonerReceivedOffenderEvent): List<HmppsDomainEvent> =
+    event.toDomainEvent().toListOrEmptyWhenNull()
+
+  private fun CellMoveOffenderEvent.Companion.toDomainEvents(event: CellMoveOffenderEvent): List<HmppsDomainEvent> =
+    event.toDomainEvent().toListOrEmptyWhenNull()
+
+  private fun CaseNoteOffenderEvent.Companion.toDomainEvents(event: CaseNoteOffenderEvent): List<HmppsDomainEvent> =
+    event.toDomainEvent().toListOrEmptyWhenNull()
 }
 
 private fun HmppsDomainEvent.toList() = listOf(this)
