@@ -49,7 +49,6 @@ dependencies {
   testImplementation("io.github.http-builder-ng:http-builder-ng-apache:1.0.4")
   testImplementation("org.wiremock:wiremock-standalone:3.9.1")
   testImplementation("junit:junit:4.13.2")
-  testImplementation("net.javacrumbs.json-unit:json-unit-assertj:3.4.1")
   testImplementation("org.awaitility:awaitility:4.2.2")
   testImplementation("org.awaitility:awaitility-kotlin:4.2.2")
   testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-reactive:1.8.1")
