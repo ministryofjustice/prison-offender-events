@@ -13,27 +13,6 @@ abstract class OffenderEvent(
 ) {
   internal fun toOccurredAt(): String =
     eventDatetime.atZone(ZoneId.of("Europe/London")).toOffsetDateTime().format(ISO_OFFSET_DATE_TIME)
-
-  companion object {
-    val eventMappings = mapOf(
-      "OFFENDER_CASE_NOTES-DELETED" to CaseNoteOffenderEvent::class.java,
-      "OFFENDER_CASE_NOTES-INSERTED" to CaseNoteOffenderEvent::class.java,
-      "OFFENDER_CASE_NOTES-UPDATED" to CaseNoteOffenderEvent::class.java,
-      "BED_ASSIGNMENT_HISTORY-INSERTED" to CellMoveOffenderEvent::class.java,
-      "OFFENDER_MOVEMENT-RECEPTION" to PrisonerReceivedOffenderEvent::class.java,
-      "OFFENDER_MOVEMENT-DISCHARGE" to PrisonerDischargedOffenderEvent::class.java,
-      "NON_ASSOCIATION_DETAIL-UPSERTED" to NonAssociationDetailsOffenderEvent::class.java,
-      "NON_ASSOCIATION_DETAIL-DELETED" to NonAssociationDetailsOffenderEvent::class.java,
-      "RESTRICTION-UPSERTED" to RestrictionOffenderEvent::class.java,
-      "RESTRICTION-DELETED" to RestrictionOffenderEvent::class.java,
-      "PERSON_RESTRICTION-UPSERTED" to PersonRestrictionOffenderEventUpserted::class.java,
-      "PERSON_RESTRICTION-DELETED" to PersonRestrictionOffenderEventDeleted::class.java,
-      "PRISONER_ACTIVITY-UPDATE" to PrisonerActivityUpdateEvent::class.java,
-      "PRISONER_APPOINTMENT-UPDATE" to PrisonerAppointmentUpdateEvent::class.java,
-      "IMPRISONMENT_STATUS-CHANGED" to ImprisonmentStatusChangedEvent::class.java,
-      "SENTENCE_DATES-CHANGED" to SentenceDatesChangedEvent::class.java,
-    )
-  }
 }
 
 class CaseNoteOffenderEvent(
