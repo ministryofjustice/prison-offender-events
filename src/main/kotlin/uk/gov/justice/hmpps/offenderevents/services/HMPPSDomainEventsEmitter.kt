@@ -1,15 +1,13 @@
 package uk.gov.justice.hmpps.offenderevents.services
 
-import com.fasterxml.jackson.core.JsonProcessingException
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.readValue
 import com.microsoft.applicationinsights.TelemetryClient
 import org.slf4j.LoggerFactory
 import org.springframework.http.HttpStatus
+import org.springframework.retry.policy.NeverRetryPolicy
 import org.springframework.stereotype.Service
 import org.springframework.web.reactive.function.client.WebClientResponseException
-import software.amazon.awssdk.services.sns.SnsAsyncClient
-import software.amazon.awssdk.services.sns.model.PublishRequest
 import uk.gov.justice.hmpps.offenderevents.config.OffenderEventsProperties
 import uk.gov.justice.hmpps.offenderevents.model.CaseNoteOffenderEvent
 import uk.gov.justice.hmpps.offenderevents.model.CellMoveOffenderEvent
@@ -39,6 +37,8 @@ import uk.gov.justice.hmpps.offenderevents.model.VisitorRestrictionOffenderEvent
 import uk.gov.justice.hmpps.offenderevents.services.ReceivePrisonerReasonCalculator.ReceiveReason
 import uk.gov.justice.hmpps.offenderevents.services.ReleasePrisonerReasonCalculator.ReleaseReason
 import uk.gov.justice.hmpps.sqs.HmppsQueueService
+import uk.gov.justice.hmpps.sqs.HmppsTopic
+import uk.gov.justice.hmpps.sqs.publish
 import java.time.OffsetDateTime
 import java.time.format.DateTimeFormatter
 import kotlin.jvm.optionals.getOrNull
@@ -57,14 +57,7 @@ class HMPPSDomainEventsEmitter(
     private val log = LoggerFactory.getLogger(this::class.java)
   }
 
-  private final val hmppsEventsTopicSnsClient: SnsAsyncClient
-  private final val topicArn: String
-
-  init {
-    val hmppsEventTopic = hmppsQueueService.findByTopicId("hmppseventtopic")
-    topicArn = hmppsEventTopic!!.arn
-    hmppsEventsTopicSnsClient = hmppsEventTopic.snsClient
-  }
+  private final val hmppsEventTopic: HmppsTopic = hmppsQueueService.findByTopicId("hmppseventtopic")!!
 
   fun convertAndSendWhenSignificant(event: String, message: String) {
     when (event) {
@@ -122,18 +115,14 @@ class HMPPSDomainEventsEmitter(
       telemetryClient.trackEvent(it.eventType, it.asTelemetryMap(), null)
     }
   }
-  fun sendEvent(payload: HmppsDomainEvent) {
-    try {
-      hmppsEventsTopicSnsClient.publish(
-        PublishRequest.builder()
-          .topicArn(topicArn)
-          .message(objectMapper.writeValueAsString(payload))
-          .messageAttributes(payload.asMetadataMap()).build(),
-      ).get()
-    } catch (e: JsonProcessingException) {
-      log.error("Failed to convert payload {} to json", payload)
-    }
-  }
+
+  fun sendEvent(payload: HmppsDomainEvent) =
+    hmppsEventTopic.publish(
+      eventType = payload.eventType,
+      event = objectMapper.writeValueAsString(payload),
+      attributes = payload.asMetadataMap(),
+      retryPolicy = NeverRetryPolicy(),
+    )
 
   private fun CellMoveOffenderEvent.Companion.toDomainEvents(event: CellMoveOffenderEvent): List<HmppsDomainEvent> =
     event.toDomainEvent().toListOrEmptyWhenNull()
