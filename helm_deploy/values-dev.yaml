@@ -10,8 +10,6 @@ generic-service:
     startup: '18 6 * * 1-5' # Start at 6.18am UTC Monday-Friday
     shutdown: '52 21 * * 1-5' # Stop at 9.52pm UTC Monday-Friday
 
-  allowlist: null
-
   env:
     API_BASE_URL_PRISON: "https://prison-api-dev.prison.service.justice.gov.uk"
     API_BASE_URL_HMPPS_AUTH: "https://sign-in-dev.hmpps.service.justice.gov.uk/auth"
