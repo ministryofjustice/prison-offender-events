@@ -27,27 +27,6 @@ jobs:
           path: build/test-results
       - store_artifacts:
           path: build/reports/tests
-  smoke_test:
-    circleci_ip_ranges: true
-    executor:
-      name: hmpps/java
-      tag: "21.0"
-    steps:
-      - checkout
-      - restore_cache:
-          keys:
-            - gradle-build.gradle.kts
-            - gradle-
-      - run:
-          command: "./gradlew testSmoke -Dtestlogger.showStandardStreams=true"
-      - save_cache:
-          paths:
-            - "~/.gradle"
-          key: gradle-build.gradle.kts
-      - store_test_results:
-          path: build/test-results
-      - store_artifacts:
-          path: build/reports/tests
 workflows:
   version: 2
   build-test-and-deploy:
@@ -79,8 +58,10 @@ workflows:
             - validate
             - helm_lint
             - build_docker
-      - smoke_test:
+      - hmpps/smoke_test:
           context: hmpps-smoketest-common-vars
+          name: smoke_test
+          jdk_tag: "21.0"
           requires:
             - deploy_dev
       - hmpps/deploy_env:
