@@ -6,8 +6,6 @@ import com.fasterxml.jackson.core.JsonProcessingException
 import com.fasterxml.jackson.databind.ObjectMapper
 import io.awspring.cloud.sqs.annotation.SqsListener
 import io.awspring.cloud.sqs.listener.QueueAttributes
-import io.opentelemetry.api.trace.SpanKind
-import io.opentelemetry.instrumentation.annotations.WithSpan
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Service
@@ -27,7 +25,6 @@ class PrisonerEventsListener(
   @Value("\${application.listener.delayDuration}") private val delay: Duration,
 ) {
   @SqsListener(queueNames = ["prisoneventqueue"], factory = "hmppsQueueContainerFactoryProxy")
-  @WithSpan(value = "Digital-Prison-Services-dev-prisoner_offender_events_queue", kind = SpanKind.SERVER)
   @Throws(JsonProcessingException::class)
   fun onPrisonerEvent(message: String?, attributes: QueueAttributes) {
     val sqsMessage: SQSMessage = objectMapper.readValue(message, SQSMessage::class.java)
