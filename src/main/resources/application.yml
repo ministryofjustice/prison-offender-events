@@ -74,18 +74,6 @@ aws:
   provider: aws
   region: eu-west-2
 
-hmpps.sqs:
-  topics:
-    prisoneventtopic:
-      asyncClient: true
-      propagateTracing: true
-    hmppseventtopic:
-      asyncClient: true
-      propagateTracing: true
-  queues:
-    prisoneventqueue:
-      propagateTracing: true
-
 application:
   listener:
     totalDelayDuration: PT10M
