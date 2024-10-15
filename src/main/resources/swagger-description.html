@@ -225,34 +225,6 @@ conservative <b>offender.events</b>.
         </ul>
       </li>
       <li>
-        <b>prison-offender-events.prisoner.person-restriction.changed</b> is raised when a global visitor restriction is created/updated/deleted.
-        <p>NOTE: Deprecated: please use prison-offender-events.prisoner.restriction.upserted or prison-offender-events.prisoner.restriction.deleted</p>
-        <h3>Additional Information</h3>
-        <ul>
-          <li><b>contactPersonId</b> string - NOMIS contact id of the visitor</li>
-          <li><b>offenderPersonRestrictionId</b> string - NOMIS id of the restriction record</li>
-          <li><b>personId</b> string - NOMIS person id of the restriction record</li>
-          <li><b>restrictionType</b> enum (from domain 'VST_RST_TYPE') -
-            <ul>
-              <li><b>ACC</b> access requirements</li>
-              <li><b>BAN</b> banned</li>
-              <li><b>CCTV</b> CCTV</li>
-              <li><b>CHILD</b> child visitors to be vetted</li>
-              <li><b>CLOSED</b> closed</li>
-              <li><b>DIHCON</b> disability health concerns</li>
-              <li><b>NONCON</b> non-contact visit</li>
-              <li><b>PREINF</b> previous info</li>
-              <li><b>RESTRICT</b> restricted</li>
-            </ul>
-          </li>
-          <li><b>effectiveDate</b> string - start date of restriction</li>
-          <li><b>expiryDate</b> string - optional end date</li>
-          <li><b>comment</b> string - optional comment</li>
-          <li><b>authorisedById</b> string - NOMIS staff id of authoriser</li>
-          <li><b>enteredById</b> string - NOMIS staff id of creator</li>
-        </ul>
-      </li>
-      <li>
         <b>prison-offender-events.prisoner.person-restriction.upserted</b> is raised when a global visitor restriction is created or updated.
         <h3>Additional Information</h3>
         <ul>

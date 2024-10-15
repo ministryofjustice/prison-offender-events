@@ -954,10 +954,8 @@ internal class HMPPSDomainEventsEmitterTest(@Autowired private val objectMapper:
 
   @Nested
   internal inner class PersonRestrictionUpserted {
-    private lateinit var payload1: String
-    private lateinit var payload2: String
-    private lateinit var telemetryAttributes1: Map<String, String>
-    private lateinit var telemetryAttributes2: Map<String, String>
+    private lateinit var payload: String
+    private lateinit var telemetryAttributes: Map<String, String>
 
     @BeforeEach
     fun setUp() {
@@ -978,73 +976,53 @@ internal class HMPPSDomainEventsEmitterTest(@Autowired private val objectMapper:
         """.trimIndent(),
       )
       argumentCaptor<PublishRequest>().apply {
-        verify(hmppsEventSnsClient, times(2)).publish(capture())
-        payload1 = firstValue.message()
-        payload2 = secondValue.message()
+        verify(hmppsEventSnsClient).publish(capture())
+        payload = firstValue.message()
       }
       argumentCaptor<Map<String, String>>().apply {
-        verify(telemetryClient, times(2)).trackEvent(any(), capture(), isNull())
-        telemetryAttributes1 = firstValue
-        telemetryAttributes2 = secondValue
+        verify(telemetryClient).trackEvent(any(), capture(), isNull())
+        telemetryAttributes = firstValue
       }
     }
 
     @Test
     fun `will have the correct basic fields`() {
-      payload1.assertJsonPath("eventType")
+      payload.assertJsonPath("eventType")
         .isEqualTo("prison-offender-events.prisoner.person-restriction.upserted")
-      payload2.assertJsonPath("eventType").isEqualTo("prison-offender-events.prisoner.person-restriction.changed")
-      payload1.assertJsonPath("occurredAt").isEqualTo("2022-12-04T10:00:00Z")
-      payload2.assertJsonPath("occurredAt").isEqualTo("2022-12-04T10:00:00Z")
-      payload1.assertJsonPathDateTimeIsCloseTo("publishedAt", OffsetDateTime.now(), within(10, SECONDS))
-      payload2.assertJsonPathDateTimeIsCloseTo("publishedAt", OffsetDateTime.now(), within(10, SECONDS))
+      payload.assertJsonPath("occurredAt").isEqualTo("2022-12-04T10:00:00Z")
+      payload.assertJsonPathDateTimeIsCloseTo("publishedAt", OffsetDateTime.now(), within(10, SECONDS))
     }
 
     @Test
     fun `person reference will contain offenderNumber as NOMS number`() {
-      payload1.assertJsonPathIsArray("personReference.identifiers") // .isArray.hasSize(1)
-      payload1.assertJsonPath("personReference.identifiers[0].type").isEqualTo("NOMS")
-      payload1.assertJsonPath("personReference.identifiers[0].value").isEqualTo("A1234GH")
-      payload2.assertJsonPathIsArray("personReference.identifiers") // .isArray.hasSize(1)
-      payload2.assertJsonPath("personReference.identifiers[0].type").isEqualTo("NOMS")
-      payload2.assertJsonPath("personReference.identifiers[0].value").isEqualTo("A1234GH")
+      payload.assertJsonPathIsArray("personReference.identifiers") // .isArray.hasSize(1)
+      payload.assertJsonPath("personReference.identifiers[0].type").isEqualTo("NOMS")
+      payload.assertJsonPath("personReference.identifiers[0].value").isEqualTo("A1234GH")
     }
 
     @Test
     fun `additional information will contain the correct fields`() {
-      payload1.assertJsonPath("additionalInformation.offenderPersonRestrictionId").isEqualTo("1")
-      payload1.assertJsonPath("additionalInformation.restrictionType").isEqualTo("SEC")
-      payload1.assertJsonPath("additionalInformation.effectiveDate").isEqualTo("2022-12-04")
-      payload1.assertJsonPath("additionalInformation.personId").isEqualTo("4")
-      payload2.assertJsonPath("additionalInformation.offenderPersonRestrictionId").isEqualTo("1")
-      payload2.assertJsonPath("additionalInformation.restrictionType").isEqualTo("SEC")
-      payload2.assertJsonPath("additionalInformation.effectiveDate").isEqualTo("2022-12-04")
-      payload2.assertJsonPath("additionalInformation.personId").isEqualTo("4")
+      payload.assertJsonPath("additionalInformation.offenderPersonRestrictionId").isEqualTo("1")
+      payload.assertJsonPath("additionalInformation.restrictionType").isEqualTo("SEC")
+      payload.assertJsonPath("additionalInformation.effectiveDate").isEqualTo("2022-12-04")
+      payload.assertJsonPath("additionalInformation.personId").isEqualTo("4")
     }
 
     @Test
     fun `will describe the event as a restriction`() {
-      payload1.assertJsonPath("description")
+      payload.assertJsonPath("description")
         .isEqualTo("A prisoner person restriction record has been created or updated")
-      payload2.assertJsonPath("description").isEqualTo("A prisoner person restriction record has changed")
     }
 
     @Test
     fun `will add correct fields to telemetry event`() {
-      assertThat(telemetryAttributes1).containsEntry(
+      assertThat(telemetryAttributes).containsEntry(
         "eventType",
         "prison-offender-events.prisoner.person-restriction.upserted",
       )
-      assertThat(telemetryAttributes1).containsEntry("nomsNumber", "A1234GH")
-      assertThat(telemetryAttributes1).containsEntry("occurredAt", "2022-12-04T10:00:00Z")
-      assertThat(telemetryAttributes1).containsEntry("restrictionType", "SEC")
-      assertThat(telemetryAttributes2).containsEntry(
-        "eventType",
-        "prison-offender-events.prisoner.person-restriction.changed",
-      )
-      assertThat(telemetryAttributes2).containsEntry("nomsNumber", "A1234GH")
-      assertThat(telemetryAttributes2).containsEntry("occurredAt", "2022-12-04T10:00:00Z")
-      assertThat(telemetryAttributes2).containsEntry("restrictionType", "SEC")
+      assertThat(telemetryAttributes).containsEntry("nomsNumber", "A1234GH")
+      assertThat(telemetryAttributes).containsEntry("occurredAt", "2022-12-04T10:00:00Z")
+      assertThat(telemetryAttributes).containsEntry("restrictionType", "SEC")
     }
 
     @Test
@@ -1062,17 +1040,14 @@ internal class HMPPSDomainEventsEmitterTest(@Autowired private val objectMapper:
         "authorisedById",
         "enteredById",
       )
-      assertThat(telemetryAttributes1).containsOnlyKeys(keys)
-      assertThat(telemetryAttributes2).containsOnlyKeys(keys)
+      assertThat(telemetryAttributes).containsOnlyKeys(keys)
     }
   }
 
   @Nested
   internal inner class PersonRestrictionDeleted {
-    private lateinit var payload1: String
-    private lateinit var payload2: String
-    private lateinit var telemetryAttributes1: Map<String, String>
-    private lateinit var telemetryAttributes2: Map<String, String>
+    private lateinit var payload: String
+    private lateinit var telemetryAttributes: Map<String, String>
 
     @BeforeEach
     fun setUp() {
@@ -1093,63 +1068,47 @@ internal class HMPPSDomainEventsEmitterTest(@Autowired private val objectMapper:
         """.trimIndent(),
       )
       argumentCaptor<PublishRequest>().apply {
-        verify(hmppsEventSnsClient, times(2)).publish(capture())
-        payload1 = firstValue.message()
-        payload2 = secondValue.message()
+        verify(hmppsEventSnsClient).publish(capture())
+        payload = firstValue.message()
       }
       argumentCaptor<Map<String, String>>().apply {
-        verify(telemetryClient, times(2)).trackEvent(any(), capture(), isNull())
-        telemetryAttributes1 = firstValue
-        telemetryAttributes2 = secondValue
+        verify(telemetryClient).trackEvent(any(), capture(), isNull())
+        telemetryAttributes = firstValue
       }
     }
 
     @Test
     fun `will have the correct basic fields`() {
-      payload1.assertJsonPath("eventType").isEqualTo("prison-offender-events.prisoner.person-restriction.deleted")
-      payload2.assertJsonPath("eventType").isEqualTo("prison-offender-events.prisoner.person-restriction.changed")
-      payload1.assertJsonPath("occurredAt").isEqualTo("2022-12-04T10:00:00Z")
-      payload2.assertJsonPath("occurredAt").isEqualTo("2022-12-04T10:00:00Z")
-      payload1.assertJsonPathDateTimeIsCloseTo("publishedAt", OffsetDateTime.now(), within(10, SECONDS))
-      payload2.assertJsonPathDateTimeIsCloseTo("publishedAt", OffsetDateTime.now(), within(10, SECONDS))
+      payload.assertJsonPath("eventType").isEqualTo("prison-offender-events.prisoner.person-restriction.deleted")
+      payload.assertJsonPath("occurredAt").isEqualTo("2022-12-04T10:00:00Z")
+      payload.assertJsonPathDateTimeIsCloseTo("publishedAt", OffsetDateTime.now(), within(10, SECONDS))
     }
 
     @Test
     fun `person reference will contain offenderNumber as NOMS number`() {
-      payload1.assertJsonPathIsArray("personReference.identifiers").hasSize(1)
-      payload1.assertJsonPath("personReference.identifiers[0].type").isEqualTo("NOMS")
-      payload1.assertJsonPath("personReference.identifiers[0].value").isEqualTo("A1234GH")
-      payload2.assertJsonPathIsArray("personReference.identifiers").hasSize(1)
-      payload2.assertJsonPath("personReference.identifiers[0].type").isEqualTo("NOMS")
-      payload2.assertJsonPath("personReference.identifiers[0].value").isEqualTo("A1234GH")
+      payload.assertJsonPathIsArray("personReference.identifiers").hasSize(1)
+      payload.assertJsonPath("personReference.identifiers[0].type").isEqualTo("NOMS")
+      payload.assertJsonPath("personReference.identifiers[0].value").isEqualTo("A1234GH")
     }
 
     @Test
     fun `additional information will contain the correct fields`() {
-      payload1.assertJsonPath("additionalInformation.offenderPersonRestrictionId").isEqualTo("1")
-      payload1.assertJsonPath("additionalInformation.restrictionType").isEqualTo("SEC")
-      payload1.assertJsonPath("additionalInformation.effectiveDate").isEqualTo("2022-12-04")
-      payload2.assertJsonPath("additionalInformation.offenderPersonRestrictionId").isEqualTo("1")
-      payload2.assertJsonPath("additionalInformation.restrictionType").isEqualTo("SEC")
-      payload2.assertJsonPath("additionalInformation.effectiveDate").isEqualTo("2022-12-04")
+      payload.assertJsonPath("additionalInformation.offenderPersonRestrictionId").isEqualTo("1")
+      payload.assertJsonPath("additionalInformation.restrictionType").isEqualTo("SEC")
+      payload.assertJsonPath("additionalInformation.effectiveDate").isEqualTo("2022-12-04")
     }
 
     @Test
     fun `will describe the event as a restriction`() {
-      payload1.assertJsonPath("description").isEqualTo("A prisoner person restriction record has been deleted")
-      payload2.assertJsonPath("description").isEqualTo("A prisoner person restriction record has changed")
+      payload.assertJsonPath("description").isEqualTo("A prisoner person restriction record has been deleted")
     }
 
     @Test
     fun `will add correct fields to telemetry event`() {
-      assertThat(telemetryAttributes1).containsEntry("eventType", "prison-offender-events.prisoner.person-restriction.deleted")
-      assertThat(telemetryAttributes1).containsEntry("nomsNumber", "A1234GH")
-      assertThat(telemetryAttributes1).containsEntry("occurredAt", "2022-12-04T10:00:00Z")
-      assertThat(telemetryAttributes1).containsEntry("restrictionType", "SEC")
-      assertThat(telemetryAttributes2).containsEntry("eventType", "prison-offender-events.prisoner.person-restriction.changed")
-      assertThat(telemetryAttributes2).containsEntry("nomsNumber", "A1234GH")
-      assertThat(telemetryAttributes2).containsEntry("occurredAt", "2022-12-04T10:00:00Z")
-      assertThat(telemetryAttributes2).containsEntry("restrictionType", "SEC")
+      assertThat(telemetryAttributes).containsEntry("eventType", "prison-offender-events.prisoner.person-restriction.deleted")
+      assertThat(telemetryAttributes).containsEntry("nomsNumber", "A1234GH")
+      assertThat(telemetryAttributes).containsEntry("occurredAt", "2022-12-04T10:00:00Z")
+      assertThat(telemetryAttributes).containsEntry("restrictionType", "SEC")
     }
 
     @Test
@@ -1166,8 +1125,7 @@ internal class HMPPSDomainEventsEmitterTest(@Autowired private val objectMapper:
         "authorisedById",
         "enteredById",
       )
-      assertThat(telemetryAttributes1).containsOnlyKeys(keys)
-      assertThat(telemetryAttributes2).containsOnlyKeys(keys)
+      assertThat(telemetryAttributes).containsOnlyKeys(keys)
     }
   }
 

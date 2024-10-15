@@ -303,7 +303,6 @@ class HMPPSDomainEventsEmitter(
   private fun PersonRestrictionOffenderEventUpserted.toDomainEvent(): List<HmppsDomainEvent> =
     listOf(
       createPersonRestrictionEvent(this, "prison-offender-events.prisoner.person-restriction.upserted", "A prisoner person restriction record has been created or updated"),
-      createPersonRestrictionEvent(this, "prison-offender-events.prisoner.person-restriction.changed", "A prisoner person restriction record has changed"),
     )
 
   private fun PersonRestrictionOffenderEventDeleted.Companion.toDomainEvents(event: PersonRestrictionOffenderEventDeleted): List<HmppsDomainEvent> =
@@ -312,7 +311,6 @@ class HMPPSDomainEventsEmitter(
   private fun PersonRestrictionOffenderEventDeleted.toDomainEvent(): List<HmppsDomainEvent> =
     listOf(
       createPersonRestrictionEvent(this, "prison-offender-events.prisoner.person-restriction.deleted", "A prisoner person restriction record has been deleted"),
-      createPersonRestrictionEvent(this, "prison-offender-events.prisoner.person-restriction.changed", "A prisoner person restriction record has changed"),
     )
 
   private fun createPersonRestrictionEvent(event: PersonRestrictionOffenderEvent, eventType: String, description: String) =
