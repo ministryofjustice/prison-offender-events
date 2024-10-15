@@ -1174,9 +1174,7 @@ internal class HMPPSDomainEventsEmitterTest(@Autowired private val objectMapper:
   @Nested
   internal inner class VisitorRestrictionUpserted {
     private lateinit var upsertedPayload: String
-    private lateinit var changedPayload: String
     private lateinit var upsertedTelemetry: Map<String, String>
-    private lateinit var changedTelemetry: Map<String, String>
 
     @BeforeEach
     fun setUp() {
@@ -1197,14 +1195,12 @@ internal class HMPPSDomainEventsEmitterTest(@Autowired private val objectMapper:
         """.trimIndent(),
       )
       argumentCaptor<PublishRequest>().apply {
-        verify(hmppsEventSnsClient, times(2)).publish(capture())
+        verify(hmppsEventSnsClient).publish(capture())
         upsertedPayload = firstValue.message()
-        changedPayload = secondValue.message()
       }
       argumentCaptor<Map<String, String>>().apply {
-        verify(telemetryClient, times(2)).trackEvent(any(), capture(), isNull())
+        verify(telemetryClient).trackEvent(any(), capture(), isNull())
         upsertedTelemetry = firstValue
-        changedTelemetry = secondValue
       }
     }
 
@@ -1225,36 +1221,16 @@ internal class HMPPSDomainEventsEmitterTest(@Autowired private val objectMapper:
       }
     }
 
-    @DisplayName("will raise prison-offender-events.visitor.restriction.changed event")
-    @Test
-    fun willRaiseChangeDomainEvent() {
-      with(changedPayload) {
-        assertJsonPath("eventType", "prison-offender-events.visitor.restriction.changed")
-        assertJsonPath("occurredAt", "2022-12-04T10:00:00Z")
-        assertJsonPathDateTimeIsCloseTo("publishedAt", OffsetDateTime.now(), within(10, java.time.temporal.ChronoUnit.SECONDS))
-        assertJsonPath("personReference.identifiers[0].type", "PERSON")
-        assertJsonPath("personReference.identifiers[0].value", "4")
-        assertJsonPath("additionalInformation.visitorRestrictionId", "1")
-        assertJsonPath("additionalInformation.restrictionType", "DIHCON")
-        assertJsonPath("additionalInformation.effectiveDate", "2022-12-04")
-        assertJsonPath("additionalInformation.expiryDate", "2022-12-05")
-        assertJsonPath("additionalInformation.personId", "4")
-      }
-    }
-
     @Test
     fun `will raise telemetry events`() {
       assertThat(upsertedTelemetry).containsEntry("eventType", "prison-offender-events.visitor.restriction.upserted")
-      assertThat(changedTelemetry).containsEntry("eventType", "prison-offender-events.visitor.restriction.changed")
     }
   }
 
   @Nested
   internal inner class VisitorRestrictionDeleted {
     private lateinit var deletedPayload: String
-    private lateinit var changedPayload: String
     private lateinit var deletedTelemetry: Map<String, String>
-    private lateinit var changedTelemetry: Map<String, String>
 
     @BeforeEach
     fun setUp() {
@@ -1275,14 +1251,12 @@ internal class HMPPSDomainEventsEmitterTest(@Autowired private val objectMapper:
         """.trimIndent(),
       )
       argumentCaptor<PublishRequest>().apply {
-        verify(hmppsEventSnsClient, times(2)).publish(capture())
+        verify(hmppsEventSnsClient).publish(capture())
         deletedPayload = firstValue.message()
-        changedPayload = secondValue.message()
       }
       argumentCaptor<Map<String, String>>().apply {
-        verify(telemetryClient, times(2)).trackEvent(any(), capture(), isNull())
+        verify(telemetryClient).trackEvent(any(), capture(), isNull())
         deletedTelemetry = firstValue
-        changedTelemetry = secondValue
       }
     }
 
@@ -1303,27 +1277,9 @@ internal class HMPPSDomainEventsEmitterTest(@Autowired private val objectMapper:
       }
     }
 
-    @DisplayName("will raise prison-offender-events.visitor.restriction.changed event")
-    @Test
-    fun willRaiseChangeDomainEvent() {
-      with(changedPayload) {
-        assertJsonPath("eventType", "prison-offender-events.visitor.restriction.changed")
-        assertJsonPath("occurredAt", "2022-12-04T10:00:00Z")
-        assertJsonPathDateTimeIsCloseTo("publishedAt", OffsetDateTime.now(), within(10, java.time.temporal.ChronoUnit.SECONDS))
-        assertJsonPath("personReference.identifiers[0].type", "PERSON")
-        assertJsonPath("personReference.identifiers[0].value", "4")
-        assertJsonPath("additionalInformation.visitorRestrictionId", "1")
-        assertJsonPath("additionalInformation.restrictionType", "DIHCON")
-        assertJsonPath("additionalInformation.effectiveDate", "2022-12-04")
-        assertJsonPath("additionalInformation.expiryDate", "2022-12-05")
-        assertJsonPath("additionalInformation.personId", "4")
-      }
-    }
-
     @Test
     fun `will raise telemetry events`() {
       assertThat(deletedTelemetry).containsEntry("eventType", "prison-offender-events.visitor.restriction.deleted")
-      assertThat(changedTelemetry).containsEntry("eventType", "prison-offender-events.visitor.restriction.changed")
     }
   }
 
