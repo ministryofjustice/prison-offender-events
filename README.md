@@ -3,6 +3,7 @@
 [![CircleCI](https://circleci.com/gh/ministryofjustice/prison-offender-events/tree/main.svg?style=svg)](https://circleci.com/gh/ministryofjustice/prison-offender-events)
 [![Docker Repository on Quay](https://img.shields.io/badge/quay.io-repository-2496ED.svg?logo=docker)](https://quay.io/repository/hmpps/prison-offender-events)
 [![API docs](https://img.shields.io/badge/API_docs_-view-85EA2D.svg?logo=swagger)](https://offender-events-dev.prison.service.justice.gov.uk/swagger-ui/index.html)
+[![Event docs](https://img.shields.io/badge/Event_docs-view-85EA2D.svg)](https://studio.asyncapi.com/?url=https://raw.githubusercontent.com/ministryofjustice/prison-offender-events/main/async-api.yml&readOnly)
 Publishes Events about prison offender changes to Pub / Sub Topics
 
 
