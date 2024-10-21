@@ -519,7 +519,7 @@ class HMPPSDomainEventsEmitter(
       (this.recordDeleted || this.scheduleEventStatus == "CANC") && videoAppointmentTypes.contains(this.scheduleEventSubType) -> {
         prisonApiService.getPrisonerNumberForBookingId(this.bookingId).getOrNull()?.let {
           HmppsDomainEvent(
-            eventType = "prison-offender-events.video-appointment.cancelled",
+            eventType = "prison-offender-events.prisoner.video-appointment.cancelled",
             description = "A video appointment has been cancelled",
             occurredAt = this.toOccurredAt(),
             publishedAt = OffsetDateTime.now().toString(),

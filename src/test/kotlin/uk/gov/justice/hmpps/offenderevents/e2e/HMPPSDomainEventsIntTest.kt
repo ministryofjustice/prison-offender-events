@@ -522,7 +522,7 @@ class HMPPSDomainEventsIntTest : QueueListenerIntegrationTest() {
       val domainEvent = geMessagesCurrentlyOnHMPPSTestQueue().first()
 
       with(domainEvent) {
-        assertJsonPath("eventType", "prison-offender-events.video-appointment.cancelled")
+        assertJsonPath("eventType", "prison-offender-events.prisoner.video-appointment.cancelled")
         assertJsonPath("personReference.identifiers[0].value").isEqualTo("A9999CA")
         assertJsonPath("personReference.identifiers[0].type").isEqualTo("NOMS")
         assertJsonPath("additionalInformation.scheduleEventId").asString().isEqualTo("100")

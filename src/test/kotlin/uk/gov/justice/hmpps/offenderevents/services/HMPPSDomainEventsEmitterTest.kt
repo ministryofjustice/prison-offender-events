@@ -1784,7 +1784,7 @@ internal class HMPPSDomainEventsEmitterTest(@Autowired private val objectMapper:
     fun `will raise an event with all details for a cancelled video court hearing appointment`() {
       videoAppointmentEvent("VLB", false, "CANC")
       verifyEventEmitted()
-      payload.assertJsonPath("eventType").isEqualTo("prison-offender-events.video-appointment.cancelled")
+      payload.assertJsonPath("eventType").isEqualTo("prison-offender-events.prisoner.video-appointment.cancelled")
       payload.assertJsonPathIsArray("personReference.identifiers").hasSize(1)
       payload.assertJsonPath("personReference.identifiers[0].type").isEqualTo("NOMS")
       payload.assertJsonPath("personReference.identifiers[0].value").isEqualTo("A1234AA")
@@ -1877,7 +1877,7 @@ internal class HMPPSDomainEventsEmitterTest(@Autowired private val objectMapper:
       videoAppointmentEvent("VLB", true, "SCH")
       verifyEventEmitted()
       verifyTelemetry()
-      assertThat(telemetryAttributes).containsEntry("eventType", "prison-offender-events.video-appointment.cancelled")
+      assertThat(telemetryAttributes).containsEntry("eventType", "prison-offender-events.prisoner.video-appointment.cancelled")
       assertThat(telemetryAttributes).containsEntry("occurredAt", "2022-12-04T10:00:00Z")
       assertThat(telemetryAttributes).containsEntry("nomsNumber", "A1234AA")
       assertThat(telemetryAttributes).containsEntry("recordDeleted", "true")
