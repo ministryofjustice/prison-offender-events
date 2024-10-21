@@ -11,6 +11,7 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.Arguments
+import org.junit.jupiter.params.provider.CsvSource
 import org.junit.jupiter.params.provider.MethodSource
 import org.mockito.ArgumentMatchers
 import org.mockito.Mockito
@@ -1716,6 +1717,204 @@ internal class HMPPSDomainEventsEmitterTest(@Autowired private val objectMapper:
       Arguments.of("OFFENDER_CONTACT-DELETED", "prison-offender-events.prisoner.contact-removed", true),
       Arguments.of("OFFENDER_CONTACT-DELETED", "prison-offender-events.prisoner.contact-removed", false),
     )
+  }
+
+  @Nested
+  @TestInstance(TestInstance.Lifecycle.PER_CLASS)
+  internal inner class VideoAppointmentCancelledEvent {
+    private lateinit var payload: String
+    private lateinit var telemetryAttributes: Map<String, String>
+
+    private fun videoAppointmentEvent(subType: String, deleted: Boolean, eventStatus: String) {
+      whenever(hmppsEventSnsClient.publish(any<PublishRequest>())).thenReturn(CompletableFuture.completedFuture(PublishResponse.builder().build()))
+
+      emitter.convertAndSendWhenSignificant(
+        "APPOINTMENT_CHANGED",
+        //language=JSON
+        """
+        {
+          "eventDatetime": "2022-12-04T10:00:00",         
+          "bookingId": 123456789,
+          "nomisEventType": "SCHEDULE_INT_APP-CHANGED",
+          "scheduleEventId": 12999,
+          "scheduledStartTime": "2024-10-16T10:00:00",
+          "scheduledEndTime": "2024-10-16T11:00:00",
+          "scheduleEventClass": "INT_MOV",
+          "scheduleEventType": "APP",
+          "scheduleEventSubType": "$subType",
+          "scheduleEventStatus": "$eventStatus",
+          "recordDeleted": $deleted,
+          "agencyLocationId": "MDI"
+        }
+        """.trimIndent(),
+      )
+    }
+
+    private fun verifyEventEmitted() {
+      argumentCaptor<PublishRequest>().apply {
+        verify(hmppsEventSnsClient).publish(capture())
+        payload = firstValue.message()
+      }
+    }
+
+    private fun verifyTelemetry() {
+      argumentCaptor<Map<String, String>>().apply {
+        verify(telemetryClient, times(1)).trackEvent(
+          any(),
+          capture(),
+          isNull(),
+        )
+        telemetryAttributes = firstValue
+      }
+    }
+
+    private fun verifyNoEventEmitted() {
+      verifyNoInteractions(hmppsEventSnsClient)
+      verifyNoInteractions(telemetryClient)
+      verifyNoInteractions(prisonApiService)
+    }
+
+    @BeforeEach
+    fun setUp() {
+      Mockito.reset(hmppsEventSnsClient, telemetryClient, prisonApiService)
+      whenever(prisonApiService.getPrisonerNumberForBookingId(123456789)).thenReturn(Optional.of("A1234AA"))
+    }
+
+    @Test
+    fun `will raise an event with all details for a cancelled video court hearing appointment`() {
+      videoAppointmentEvent("VLB", false, "CANC")
+      verifyEventEmitted()
+      payload.assertJsonPath("eventType").isEqualTo("prison-offender-events.video-appointment.cancelled")
+      payload.assertJsonPathIsArray("personReference.identifiers").hasSize(1)
+      payload.assertJsonPath("personReference.identifiers[0].type").isEqualTo("NOMS")
+      payload.assertJsonPath("personReference.identifiers[0].value").isEqualTo("A1234AA")
+      payload.assertJsonPath("additionalInformation.bookingId").isEqualTo("123456789")
+      payload.assertJsonPath("additionalInformation.scheduleEventType").isEqualTo("APP")
+      payload.assertJsonPath("additionalInformation.scheduleEventSubType").isEqualTo("VLB")
+      payload.assertJsonPath("additionalInformation.scheduleEventStatus").isEqualTo("CANC")
+      payload.assertJsonPath("additionalInformation.recordDeleted").isEqualTo("false")
+      payload.assertJsonPath("additionalInformation.scheduledStartTime").isEqualTo("2024-10-16T10:00")
+      payload.assertJsonPath("additionalInformation.scheduledEndTime").isEqualTo("2024-10-16T11:00")
+      payload.assertJsonPath("additionalInformation.agencyLocationId").isEqualTo("MDI")
+    }
+
+    @Test
+    fun `will raise an event for video link official other appointment deleted`() {
+      videoAppointmentEvent("VLOO", true, "SCH")
+      verifyEventEmitted()
+      payload.assertJsonPath("additionalInformation.scheduleEventSubType").isEqualTo("VLOO")
+      payload.assertJsonPath("additionalInformation.scheduleEventStatus").isEqualTo("SCH")
+      payload.assertJsonPath("additionalInformation.recordDeleted").isEqualTo("true")
+    }
+
+    @ParameterizedTest
+    @CsvSource(
+      value = [
+        "VLB:true:SCH",
+        "VLB:false:CANC",
+        "VLPM:true:SCH",
+        "VLPM:false:CANC",
+        "VLOO:true:SCH",
+        "VLOO:false:CANC",
+        "VLPA:true:EXP",
+        "VLPA:true:SCH",
+        "VLPA:false:CANC",
+        "VLLA:true:SCH",
+        "VLAP:false:CANC",
+      ],
+      delimiter = ':',
+    )
+    fun `will raise an event for these combinations`(appointmentType: String, deleted: Boolean, eventStatus: String) {
+      videoAppointmentEvent(appointmentType, deleted, eventStatus)
+      verifyEventEmitted()
+      verifyTelemetry()
+    }
+
+    @ParameterizedTest
+    @CsvSource(
+      value = [
+        "VLB:false:SCH",
+        "VLPM:false:EXP",
+        "VLOO:false:SCH",
+        "VLOO:false:EXP",
+        "VLPA:false:SCH",
+        "VLLA:false:EXP",
+        "CHAP:true:CANC",
+        "INDUCT:true:CANC",
+        "ACT:true:CANC",
+      ],
+      delimiter = ':',
+    )
+    fun `will not raise events for these combinations`(appointmentType: String, deleted: Boolean, eventStatus: String) {
+      videoAppointmentEvent(appointmentType, deleted, eventStatus)
+      verifyNoEventEmitted()
+    }
+
+    @Test
+    fun `will use current time as publishedAt`() {
+      videoAppointmentEvent("VLOO", true, "SCH")
+      verifyEventEmitted()
+      payload.assertJsonPathDateTimeIsCloseTo("publishedAt", OffsetDateTime.now(), within(10, SECONDS))
+    }
+
+    @Test
+    fun `person reference will contain nomsId as NOMS identifier`() {
+      videoAppointmentEvent("VLOO", true, "SCH")
+      verifyEventEmitted()
+      payload.assertJsonPathIsArray("personReference.identifiers").hasSize(1)
+      payload.assertJsonPath("personReference.identifiers[0].type").isEqualTo("NOMS")
+      payload.assertJsonPath("personReference.identifiers[0].value").isEqualTo("A1234AA")
+    }
+
+    @Test
+    fun `will describe the event as a video appointment cancellation`() {
+      videoAppointmentEvent("VLOO", true, "SCH")
+      verifyEventEmitted()
+      payload.assertJsonPath("description")
+        .isEqualTo("A video appointment has been cancelled")
+    }
+
+    @Test
+    fun `will add correct fields to telemetry event`() {
+      videoAppointmentEvent("VLB", true, "SCH")
+      verifyEventEmitted()
+      verifyTelemetry()
+      assertThat(telemetryAttributes).containsEntry("eventType", "prison-offender-events.video-appointment.cancelled")
+      assertThat(telemetryAttributes).containsEntry("occurredAt", "2022-12-04T10:00:00Z")
+      assertThat(telemetryAttributes).containsEntry("nomsNumber", "A1234AA")
+      assertThat(telemetryAttributes).containsEntry("bookingId", "123456789")
+      assertThat(telemetryAttributes).containsEntry("recordDeleted", "true")
+      assertThat(telemetryAttributes).containsEntry("scheduleEventId", "12999")
+      assertThat(telemetryAttributes).containsEntry("scheduleEventStatus", "SCH")
+      assertThat(telemetryAttributes).containsEntry("scheduleEventType", "APP")
+      assertThat(telemetryAttributes).containsEntry("scheduleEventSubType", "VLB")
+      assertThat(telemetryAttributes).containsEntry("scheduledStartTime", "2024-10-16T10:00")
+      assertThat(telemetryAttributes).containsEntry("scheduledEndTime", "2024-10-16T11:00")
+      assertThat(telemetryAttributes).containsEntry("agencyLocationId", "MDI")
+    }
+
+    @Test
+    fun `will contain no other telemetry properties`() {
+      videoAppointmentEvent("VLPM", true, "SCH")
+      verifyEventEmitted()
+      verifyTelemetry()
+      assertThat(telemetryAttributes).containsOnlyKeys(
+        "occurredAt",
+        "eventType",
+        "nomsNumber",
+        "bookingId",
+        "eventType",
+        "recordDeleted",
+        "scheduleEventId",
+        "scheduleEventStatus",
+        "scheduleEventType",
+        "scheduleEventSubType",
+        "scheduledStartTime",
+        "scheduledEndTime",
+        "publishedAt",
+        "agencyLocationId",
+      )
+    }
   }
 
   companion object {

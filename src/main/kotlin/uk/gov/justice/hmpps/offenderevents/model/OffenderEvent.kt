@@ -365,3 +365,22 @@ class OffenderContactEventDeleted(
 ) {
   companion object
 }
+
+@JsonInclude(JsonInclude.Include.NON_NULL)
+class VideoAppointmentCancelledEvent(
+  eventDatetime: LocalDateTime,
+  val bookingId: Long?,
+  val scheduleEventId: Long?,
+  val scheduledStartTime: LocalDateTime,
+  val scheduledEndTime: LocalDateTime?,
+  val scheduleEventType: String,
+  val scheduleEventSubType: String,
+  val scheduleEventStatus: String,
+  val recordDeleted: Boolean,
+  val agencyLocationId: String?,
+) : OffenderEvent(
+  eventDatetime = eventDatetime,
+  offenderIdDisplay = null,
+) {
+  companion object
+}
