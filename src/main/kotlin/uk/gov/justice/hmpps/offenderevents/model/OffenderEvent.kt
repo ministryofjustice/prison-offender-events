@@ -367,13 +367,12 @@ class OffenderContactEventDeleted(
 }
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
-class VideoAppointmentCancelledEvent(
+class AppointmentChangedEvent(
   eventDatetime: LocalDateTime,
   val bookingId: Long?,
   val scheduleEventId: Long?,
   val scheduledStartTime: LocalDateTime,
   val scheduledEndTime: LocalDateTime?,
-  val scheduleEventType: String,
   val scheduleEventSubType: String,
   val scheduleEventStatus: String,
   val recordDeleted: Boolean,

@@ -1733,7 +1733,7 @@ internal class HMPPSDomainEventsEmitterTest(@Autowired private val objectMapper:
         //language=JSON
         """
         {
-          "eventDatetime": "2022-12-04T10:00:00",         
+          "eventDatetime": "2022-12-04T10:00:00",
           "bookingId": 123456789,
           "nomisEventType": "SCHEDULE_INT_APP-CHANGED",
           "scheduleEventId": 12999,
@@ -1788,8 +1788,6 @@ internal class HMPPSDomainEventsEmitterTest(@Autowired private val objectMapper:
       payload.assertJsonPathIsArray("personReference.identifiers").hasSize(1)
       payload.assertJsonPath("personReference.identifiers[0].type").isEqualTo("NOMS")
       payload.assertJsonPath("personReference.identifiers[0].value").isEqualTo("A1234AA")
-      payload.assertJsonPath("additionalInformation.bookingId").isEqualTo("123456789")
-      payload.assertJsonPath("additionalInformation.scheduleEventType").isEqualTo("APP")
       payload.assertJsonPath("additionalInformation.scheduleEventSubType").isEqualTo("VLB")
       payload.assertJsonPath("additionalInformation.scheduleEventStatus").isEqualTo("CANC")
       payload.assertJsonPath("additionalInformation.recordDeleted").isEqualTo("false")
@@ -1882,11 +1880,9 @@ internal class HMPPSDomainEventsEmitterTest(@Autowired private val objectMapper:
       assertThat(telemetryAttributes).containsEntry("eventType", "prison-offender-events.video-appointment.cancelled")
       assertThat(telemetryAttributes).containsEntry("occurredAt", "2022-12-04T10:00:00Z")
       assertThat(telemetryAttributes).containsEntry("nomsNumber", "A1234AA")
-      assertThat(telemetryAttributes).containsEntry("bookingId", "123456789")
       assertThat(telemetryAttributes).containsEntry("recordDeleted", "true")
       assertThat(telemetryAttributes).containsEntry("scheduleEventId", "12999")
       assertThat(telemetryAttributes).containsEntry("scheduleEventStatus", "SCH")
-      assertThat(telemetryAttributes).containsEntry("scheduleEventType", "APP")
       assertThat(telemetryAttributes).containsEntry("scheduleEventSubType", "VLB")
       assertThat(telemetryAttributes).containsEntry("scheduledStartTime", "2024-10-16T10:00")
       assertThat(telemetryAttributes).containsEntry("scheduledEndTime", "2024-10-16T11:00")
@@ -1902,12 +1898,9 @@ internal class HMPPSDomainEventsEmitterTest(@Autowired private val objectMapper:
         "occurredAt",
         "eventType",
         "nomsNumber",
-        "bookingId",
-        "eventType",
         "recordDeleted",
         "scheduleEventId",
         "scheduleEventStatus",
-        "scheduleEventType",
         "scheduleEventSubType",
         "scheduledStartTime",
         "scheduledEndTime",
