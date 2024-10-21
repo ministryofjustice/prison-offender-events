@@ -21,43 +21,43 @@ servers:
 components:
   messages:
     prison-offender-events.prisoner.activities-changed:
-      $ref: prisoner.activities-changed.yaml
+      $ref: https://raw.githubusercontent.com/ministryofjustice/hmpps-domain-events/main/spec/schemas/prison-offender-events/prisoner.activities-changed.yaml
     prison-offender-events.prisoner.appointments-changed:
-      $ref: prisoner.appointments-changed.yaml
+      $ref: https://raw.githubusercontent.com/ministryofjustice/hmpps-domain-events/main/spec/schemas/prison-offender-events/prisoner.appointments-changed.yaml
     prison-offender-events.prisoner.booking.moved:
-      $ref: prisoner.booking.moved.yaml
+      $ref: https://raw.githubusercontent.com/ministryofjustice/hmpps-domain-events/main/spec/schemas/prison-offender-events/prisoner.booking.moved.yaml
     prison-offender-events.prisoner.cell.move:
-      $ref: prisoner.cell.move.yaml
+      $ref: https://raw.githubusercontent.com/ministryofjustice/hmpps-domain-events/main/spec/schemas/prison-offender-events/prisoner.cell.move.yaml
     prison-offender-events.prisoner.contact-added:
-      $ref: prisoner.contact-added.yaml
+      $ref: https://raw.githubusercontent.com/ministryofjustice/hmpps-domain-events/main/spec/schemas/prison-offender-events/prisoner.contact-added.yaml
     prison-offender-events.prisoner.contact-approved:
-      $ref: prisoner.contact-approved.yaml
+      $ref: https://raw.githubusercontent.com/ministryofjustice/hmpps-domain-events/main/spec/schemas/prison-offender-events/prisoner.contact-approved.yaml
     prison-offender-events.prisoner.contact-removed:
-      $ref: prisoner.contact-removed.yaml
+      $ref: https://raw.githubusercontent.com/ministryofjustice/hmpps-domain-events/main/spec/schemas/prison-offender-events/prisoner.contact-removed.yaml
     prison-offender-events.prisoner.contact-unapproved:
-      $ref: prisoner.contact-unapproved.yaml
+      $ref: https://raw.githubusercontent.com/ministryofjustice/hmpps-domain-events/main/spec/schemas/prison-offender-events/prisoner.contact-unapproved.yaml
     prison-offender-events.prisoner.imprisonment-status-changed:
-      $ref: prisoner.imprisonment-status-changed.yaml
+      $ref: https://raw.githubusercontent.com/ministryofjustice/hmpps-domain-events/main/spec/schemas/prison-offender-events/prisoner.imprisonment-status-changed.yaml
     prison-offender-events.prisoner.merged:
-      $ref: prisoner.merged.yaml
+      $ref: https://raw.githubusercontent.com/ministryofjustice/hmpps-domain-events/main/spec/schemas/prison-offender-events/prisoner.merged.yaml
     prison-offender-events.prisoner.non-association-detail.changed:
-      $ref: prisoner.non-association-detail.changed.yaml
+      $ref: https://raw.githubusercontent.com/ministryofjustice/hmpps-domain-events/main/spec/schemas/prison-offender-events/prisoner.non-association-detail.changed.yaml
     prison-offender-events.prisoner.person-restriction.deleted:
-      $ref: prisoner.person-restriction.deleted.yaml
+      $ref: https://raw.githubusercontent.com/ministryofjustice/hmpps-domain-events/main/spec/schemas/prison-offender-events/prisoner.person-restriction.deleted.yaml
     prison-offender-events.prisoner.person-restriction.upserted:
-      $ref: prisoner.person-restriction.upserted.yaml
+      $ref: https://raw.githubusercontent.com/ministryofjustice/hmpps-domain-events/main/spec/schemas/prison-offender-events/prisoner.person-restriction.upserted.yaml
     prison-offender-events.prisoner.received:
-      $ref: prisoner.received.yaml
+      $ref: https://raw.githubusercontent.com/ministryofjustice/hmpps-domain-events/main/spec/schemas/prison-offender-events/prisoner.received.yaml
     prison-offender-events.prisoner.released:
-      $ref: prisoner.released.yaml
+      $ref: https://raw.githubusercontent.com/ministryofjustice/hmpps-domain-events/main/spec/schemas/prison-offender-events/prisoner.released.yaml
     prison-offender-events.prisoner.restriction.changed:
-      $ref: prisoner.restriction.changed.yaml
+      $ref: https://raw.githubusercontent.com/ministryofjustice/hmpps-domain-events/main/spec/schemas/prison-offender-events/prisoner.restriction.changed.yaml
     prison-offender-events.prisoner.sentence-dates-changed:
-      $ref: prisoner.sentence-dates-changed.yaml
+      $ref: https://raw.githubusercontent.com/ministryofjustice/hmpps-domain-events/main/spec/schemas/prison-offender-events/prisoner.sentence-dates-changed.yaml
     prison-offender-events.visitor.restriction.deleted:
-      $ref: visitor.restriction.deleted.yaml
+      $ref: https://raw.githubusercontent.com/ministryofjustice/hmpps-domain-events/main/spec/schemas/prison-offender-events/visitor.restriction.deleted.yaml
     prison-offender-events.visitor.restriction.upserted:
-      $ref: visitor.restriction.upserted.yaml
+      $ref: https://raw.githubusercontent.com/ministryofjustice/hmpps-domain-events/main/spec/schemas/prison-offender-events/visitor.restriction.upserted.yaml
 
 channels:
   hmpps-domain-events:
@@ -111,21 +111,21 @@ operations:
     channel:
       $ref: '#/channels/hmpps-domain-events'
     messages:
-      - $ref: '#/components/messages/prison-offender-events.prisoner.appointments-changed'
-      - $ref: '#/components/messages/prison-offender-events.prisoner.booking.moved'
-      - $ref: '#/components/messages/prison-offender-events.prisoner.cell.move'
-      - $ref: '#/components/messages/prison-offender-events.prisoner.contact-added'
-      - $ref: '#/components/messages/prison-offender-events.prisoner.contact-approved'
-      - $ref: '#/components/messages/prison-offender-events.prisoner.contact-removed'
-      - $ref: '#/components/messages/prison-offender-events.prisoner.contact-unapproved'
-      - $ref: '#/components/messages/prison-offender-events.prisoner.imprisonment-status-changed'
-      - $ref: '#/components/messages/prison-offender-events.prisoner.merged'
-      - $ref: '#/components/messages/prison-offender-events.prisoner.non-association-detail.changed'
-      - $ref: '#/components/messages/prison-offender-events.prisoner.person-restriction.deleted'
-      - $ref: '#/components/messages/prison-offender-events.prisoner.person-restriction.upserted'
-      - $ref: '#/components/messages/prison-offender-events.prisoner.received'
-      - $ref: '#/components/messages/prison-offender-events.prisoner.released'
-      - $ref: '#/components/messages/prison-offender-events.prisoner.restriction.changed'
-      - $ref: '#/components/messages/prison-offender-events.prisoner.sentence-dates-changed'
-      - $ref: '#/components/messages/prison-offender-events.visitor.restriction.deleted'
-      - $ref: '#/components/messages/prison-offender-events.visitor.restriction.upserted'
+      - $ref: '#/channels/hmpps-domain-events/messages/prison-offender-events.prisoner.appointments-changed'
+      - $ref: '#/channels/hmpps-domain-events/messages/prison-offender-events.prisoner.booking.moved'
+      - $ref: '#/channels/hmpps-domain-events/messages/prison-offender-events.prisoner.cell.move'
+      - $ref: '#/channels/hmpps-domain-events/messages/prison-offender-events.prisoner.contact-added'
+      - $ref: '#/channels/hmpps-domain-events/messages/prison-offender-events.prisoner.contact-approved'
+      - $ref: '#/channels/hmpps-domain-events/messages/prison-offender-events.prisoner.contact-removed'
+      - $ref: '#/channels/hmpps-domain-events/messages/prison-offender-events.prisoner.contact-unapproved'
+      - $ref: '#/channels/hmpps-domain-events/messages/prison-offender-events.prisoner.imprisonment-status-changed'
+      - $ref: '#/channels/hmpps-domain-events/messages/prison-offender-events.prisoner.merged'
+      - $ref: '#/channels/hmpps-domain-events/messages/prison-offender-events.prisoner.non-association-detail.changed'
+      - $ref: '#/channels/hmpps-domain-events/messages/prison-offender-events.prisoner.person-restriction.deleted'
+      - $ref: '#/channels/hmpps-domain-events/messages/prison-offender-events.prisoner.person-restriction.upserted'
+      - $ref: '#/channels/hmpps-domain-events/messages/prison-offender-events.prisoner.received'
+      - $ref: '#/channels/hmpps-domain-events/messages/prison-offender-events.prisoner.released'
+      - $ref: '#/channels/hmpps-domain-events/messages/prison-offender-events.prisoner.restriction.changed'
+      - $ref: '#/channels/hmpps-domain-events/messages/prison-offender-events.prisoner.sentence-dates-changed'
+      - $ref: '#/channels/hmpps-domain-events/messages/prison-offender-events.visitor.restriction.deleted'
+      - $ref: '#/channels/hmpps-domain-events/messages/prison-offender-events.visitor.restriction.upserted'
