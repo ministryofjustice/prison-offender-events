@@ -484,4 +484,56 @@ class HMPPSDomainEventsIntTest : QueueListenerIntegrationTest() {
       }
     }
   }
+
+  @Nested
+  @DisplayName("APPOINTMENT_CHANGED")
+  internal inner class AppointmentChangedEvent {
+    @BeforeEach
+    fun setUp() {
+      PrisonApiExtension.server.stubBasicPrisonerDetails(offenderNumber = "A9999CA", bookingId = 2936649)
+
+      sendToTopic(
+        "APPOINTMENT_CHANGED",
+        // language=JSON
+        """
+          {
+            "eventType": "APPOINTMENT_CHANGED",
+            "bookingId": "2936649",
+            "eventDatetime": "2024-07-08T14:28:10",
+            "nomisEventType": "SCHEDULE_INT_APP-CHANGED",
+            "scheduleEventId": "100",
+            "scheduleEventClass": "INT_MOV",
+            "scheduleEventType": "APP",
+            "scheduleEventSubType": "VLB",
+            "scheduledStartTime": "2024-07-08T10:15:00",
+            "scheduledEndTime": "2024-07-08T10:45:00",
+            "scheduleEventStatus": "CANC",
+            "recordDeleted": "true",
+            "agencyLocationId": "MDI"
+          }
+          """
+          .trimIndent(),
+      )
+    }
+
+    @Test
+    fun `will publish a domain event`() {
+      await().until { getNumberOfMessagesCurrentlyOnHMPPSEventTestQueue() == 1 }
+      val domainEvent = geMessagesCurrentlyOnHMPPSTestQueue().first()
+
+      with(domainEvent) {
+        assertJsonPath("eventType", "prison-offender-events.video-appointment.cancelled")
+        assertJsonPath("personReference.identifiers[0].value").isEqualTo("A9999CA")
+        assertJsonPath("personReference.identifiers[0].type").isEqualTo("NOMS")
+        assertJsonPath("additionalInformation.bookingId").asString().isEqualTo("2936649")
+        assertJsonPath("additionalInformation.scheduleEventId").asString().isEqualTo("100")
+        assertJsonPath("additionalInformation.scheduleEventType").isEqualTo("APP")
+        assertJsonPath("additionalInformation.scheduleEventSubType").isEqualTo("VLB")
+        assertJsonPath("additionalInformation.scheduleEventStatus").isEqualTo("CANC")
+        assertJsonPath("additionalInformation.scheduledStartTime").isEqualTo("2024-07-08T10:15")
+        assertJsonPath("additionalInformation.scheduledEndTime").isEqualTo("2024-07-08T10:45")
+        assertJsonPath("additionalInformation.agencyLocationId").isEqualTo("MDI")
+      }
+    }
+  }
 }
