@@ -9,6 +9,7 @@ import org.springframework.retry.policy.NeverRetryPolicy
 import org.springframework.stereotype.Service
 import org.springframework.web.reactive.function.client.WebClientResponseException
 import uk.gov.justice.hmpps.offenderevents.config.OffenderEventsProperties
+import uk.gov.justice.hmpps.offenderevents.model.AppointmentChangedEvent
 import uk.gov.justice.hmpps.offenderevents.model.CaseNoteOffenderEvent
 import uk.gov.justice.hmpps.offenderevents.model.CellMoveOffenderEvent
 import uk.gov.justice.hmpps.offenderevents.model.HmppsDomainEvent
@@ -84,6 +85,7 @@ class HMPPSDomainEventsEmitter(
       "PRISONER_APPOINTMENT-UPDATE" -> PrisonerAppointmentUpdateEvent.toDomainEvents(message.fromJson())
       "IMPRISONMENT_STATUS-CHANGED" -> ImprisonmentStatusChangedEvent.toDomainEvents(message.fromJson())
       "SENTENCE_DATES-CHANGED" -> SentenceDatesChangedEvent.toDomainEvents(message.fromJson())
+      "APPOINTMENT_CHANGED" -> AppointmentChangedEvent.toDomainEvents(message.fromJson())
       else -> emptyList()
     }.also {
       sendEvents(it)
@@ -505,7 +507,37 @@ class HMPPSDomainEventsEmitter(
 
       else -> emptyList()
     }
-}
 
+  private fun AppointmentChangedEvent.Companion.toDomainEvents(event: AppointmentChangedEvent): List<HmppsDomainEvent> =
+    event.toDomainEvent().toListOrEmptyWhenNull()
+
+  private val videoAppointmentTypes = listOf("VLB", "VLPM", "VLLA", "VLOO", "VLPA", "VLAP")
+
+  private fun AppointmentChangedEvent.toDomainEvent(): HmppsDomainEvent? =
+    when {
+      // Only raise an event for the 6 video appointment types, and only if they have been cancelled or deleted
+      (this.recordDeleted || this.scheduleEventStatus == "CANC") && videoAppointmentTypes.contains(this.scheduleEventSubType) -> {
+        prisonApiService.getPrisonerNumberForBookingId(this.bookingId).getOrNull()?.let {
+          HmppsDomainEvent(
+            eventType = "prison-offender-events.prisoner.video-appointment.cancelled",
+            description = "A video appointment has been cancelled",
+            occurredAt = this.toOccurredAt(),
+            publishedAt = OffsetDateTime.now().toString(),
+            personReference = PersonReference(it),
+          )
+            .withAdditionalInformation("scheduleEventId", this.scheduleEventId)
+            .withAdditionalInformation("scheduledStartTime", this.scheduledStartTime.toString())
+            .withAdditionalInformation("scheduledEndTime", this.scheduledEndTime.toString())
+            .withAdditionalInformation("scheduleEventSubType", this.scheduleEventSubType)
+            .withAdditionalInformation("scheduleEventStatus", this.scheduleEventStatus)
+            .withAdditionalInformation("recordDeleted", this.recordDeleted)
+            .withAdditionalInformation("agencyLocationId", this.agencyLocationId)
+        }
+      }
+      else -> {
+        null
+      }
+    }
+}
 private fun HmppsDomainEvent.toList() = listOf(this)
 private fun HmppsDomainEvent?.toListOrEmptyWhenNull() = this?.toList() ?: emptyList()
