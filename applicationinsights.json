@@ -17,31 +17,37 @@
     "percentage": 100,
     "overrides": [
       {
-        "telemetryType": "request",
-        "attributes": [
-          {
-            "key": "http.url",
-            "value": "https?://[^/]+/health.*",
-            "matchType": "regexp"
-          }
-        ],
-        "percentage": 10
-      },
-      {
         "telemetryType": "dependency",
         "attributes": [
           {
-            "key": "job.system",
-            "value": "spring_scheduling",
-            "matchType": "strict"
-          },
-          {
-            "key": "code.namespace",
-            "value": "io.awspring.cloud.sqs.listener.acknowledgement.BatchingAcknowledgementProcessor.*",
+            "key": "server.address",
+            "value": ".+",
             "matchType": "regexp"
           }
         ],
-        "percentage": 0
+        "percentage": 5
+      },
+      {
+        "telemetryType": "request",
+        "attributes": [
+          {
+            "key": "url.path",
+            "value": "/health.*",
+            "matchType": "regexp"
+          }
+        ],
+        "percentage": 5
+      },
+      {
+        "telemetryType": "request",
+        "attributes": [
+          {
+            "key": "url.path",
+            "value": "/info",
+            "matchType": "strict"
+          }
+        ],
+        "percentage": 5
       }
     ]
   }
