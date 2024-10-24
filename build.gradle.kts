@@ -1,8 +1,8 @@
 @file:Suppress("UnstableApiUsage")
 
 plugins {
-  id("uk.gov.justice.hmpps.gradle-spring-boot") version "6.0.7"
-  kotlin("plugin.spring") version "2.0.20"
+  id("uk.gov.justice.hmpps.gradle-spring-boot") version "6.0.8"
+  kotlin("plugin.spring") version "2.0.21"
 }
 
 configurations {
@@ -25,10 +25,10 @@ dependencies {
   annotationProcessor("org.projectlombok:lombok:1.18.34")
   compileOnly("org.projectlombok:lombok:1.18.34")
 
-  implementation("uk.gov.justice.service.hmpps:hmpps-kotlin-spring-boot-starter:1.0.7")
+  implementation("uk.gov.justice.service.hmpps:hmpps-kotlin-spring-boot-starter:1.0.8")
   implementation("org.springframework.boot:spring-boot-starter-webflux")
 
-  implementation("uk.gov.justice.service.hmpps:hmpps-sqs-spring-boot-starter:5.0.1")
+  implementation("uk.gov.justice.service.hmpps:hmpps-sqs-spring-boot-starter:5.0.2")
   implementation("io.opentelemetry.instrumentation:opentelemetry-instrumentation-annotations:2.9.0")
 
   implementation("org.apache.commons:commons-text:1.12.0")
@@ -39,7 +39,7 @@ dependencies {
 
   implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:2.6.0")
 
-  testImplementation("uk.gov.justice.service.hmpps:hmpps-kotlin-spring-boot-starter-test:1.0.7")
+  testImplementation("uk.gov.justice.service.hmpps:hmpps-kotlin-spring-boot-starter-test:1.0.8")
   testAnnotationProcessor("org.springframework.boot:spring-boot-configuration-processor")
   testAnnotationProcessor("org.projectlombok:lombok:1.18.34")
   testCompileOnly("org.projectlombok:lombok:1.18.34")
@@ -47,13 +47,13 @@ dependencies {
   testImplementation("org.springframework.security:spring-security-test")
   testImplementation("com.tngtech.java:junit-dataprovider:1.13.1")
   testImplementation("io.github.http-builder-ng:http-builder-ng-apache:1.0.4")
-  testImplementation("org.wiremock:wiremock-standalone:3.9.1")
+  testImplementation("org.wiremock:wiremock-standalone:3.9.2")
   testImplementation("junit:junit:4.13.2")
   testImplementation("org.awaitility:awaitility:4.2.2")
   testImplementation("org.awaitility:awaitility-kotlin:4.2.2")
   testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-reactive:1.9.0")
   testImplementation("org.mockito:mockito-inline:5.2.0")
-  testImplementation("io.swagger.parser.v3:swagger-parser:2.1.22") {
+  testImplementation("io.swagger.parser.v3:swagger-parser:2.1.23") {
     exclude(group = "io.swagger.core.v3")
   }
   testImplementation("io.swagger.core.v3:swagger-core-jakarta:2.2.25")
