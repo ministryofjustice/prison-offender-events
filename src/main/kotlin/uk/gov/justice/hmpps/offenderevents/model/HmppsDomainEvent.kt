@@ -3,6 +3,7 @@ package uk.gov.justice.hmpps.offenderevents.model
 import com.fasterxml.jackson.annotation.JsonInclude
 import software.amazon.awssdk.services.sns.model.MessageAttributeValue
 import java.time.LocalDate
+import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
@@ -33,6 +34,11 @@ data class HmppsDomainEvent(
 
   fun withAdditionalInformation(key: String, value: LocalDate?): HmppsDomainEvent {
     if (value != null) additionalInformation[key] = value.format(DateTimeFormatter.ISO_DATE)
+    return this
+  }
+
+  fun withAdditionalInformation(key: String, value: LocalDateTime?): HmppsDomainEvent {
+    if (value != null) additionalInformation[key] = value.format(DateTimeFormatter.ISO_DATE_TIME)
     return this
   }
 

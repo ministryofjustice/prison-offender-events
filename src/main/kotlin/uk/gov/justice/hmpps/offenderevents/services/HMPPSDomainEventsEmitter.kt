@@ -526,8 +526,8 @@ class HMPPSDomainEventsEmitter(
             personReference = PersonReference(it),
           )
             .withAdditionalInformation("scheduleEventId", this.scheduleEventId)
-            .withAdditionalInformation("scheduledStartTime", this.scheduledStartTime.toString())
-            .withAdditionalInformation("scheduledEndTime", this.scheduledEndTime.toString())
+            .withAdditionalInformation("scheduledStartTime", this.scheduledStartTime)
+            .withAdditionalInformation("scheduledEndTime", this.scheduledEndTime)
             .withAdditionalInformation("scheduleEventSubType", this.scheduleEventSubType)
             .withAdditionalInformation("scheduleEventStatus", this.scheduleEventStatus)
             .withAdditionalInformation("recordDeleted", this.recordDeleted)

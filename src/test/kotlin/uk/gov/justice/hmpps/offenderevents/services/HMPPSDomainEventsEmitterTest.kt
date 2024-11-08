@@ -1791,8 +1791,8 @@ internal class HMPPSDomainEventsEmitterTest(@Autowired private val objectMapper:
       payload.assertJsonPath("additionalInformation.scheduleEventSubType").isEqualTo("VLB")
       payload.assertJsonPath("additionalInformation.scheduleEventStatus").isEqualTo("CANC")
       payload.assertJsonPath("additionalInformation.recordDeleted").isEqualTo("false")
-      payload.assertJsonPath("additionalInformation.scheduledStartTime").isEqualTo("2024-10-16T10:00")
-      payload.assertJsonPath("additionalInformation.scheduledEndTime").isEqualTo("2024-10-16T11:00")
+      payload.assertJsonPath("additionalInformation.scheduledStartTime").isEqualTo("2024-10-16T10:00:00")
+      payload.assertJsonPath("additionalInformation.scheduledEndTime").isEqualTo("2024-10-16T11:00:00")
       payload.assertJsonPath("additionalInformation.agencyLocationId").isEqualTo("MDI")
     }
 
@@ -1884,8 +1884,8 @@ internal class HMPPSDomainEventsEmitterTest(@Autowired private val objectMapper:
       assertThat(telemetryAttributes).containsEntry("scheduleEventId", "12999")
       assertThat(telemetryAttributes).containsEntry("scheduleEventStatus", "SCH")
       assertThat(telemetryAttributes).containsEntry("scheduleEventSubType", "VLB")
-      assertThat(telemetryAttributes).containsEntry("scheduledStartTime", "2024-10-16T10:00")
-      assertThat(telemetryAttributes).containsEntry("scheduledEndTime", "2024-10-16T11:00")
+      assertThat(telemetryAttributes).containsEntry("scheduledStartTime", "2024-10-16T10:00:00")
+      assertThat(telemetryAttributes).containsEntry("scheduledEndTime", "2024-10-16T11:00:00")
       assertThat(telemetryAttributes).containsEntry("agencyLocationId", "MDI")
     }
 
@@ -1907,6 +1907,49 @@ internal class HMPPSDomainEventsEmitterTest(@Autowired private val objectMapper:
         "publishedAt",
         "agencyLocationId",
       )
+    }
+
+    @Test
+    fun `does not contain null end time in telemetry properties`() {
+      whenever(hmppsEventSnsClient.publish(any<PublishRequest>())).thenReturn(CompletableFuture.completedFuture(PublishResponse.builder().build()))
+
+      emitter.convertAndSendWhenSignificant(
+        "APPOINTMENT_CHANGED",
+        //language=JSON
+        """
+        {
+          "eventDatetime": "2022-12-04T10:00:00",
+          "bookingId": 123456789,
+          "nomisEventType": "SCHEDULE_INT_APP-CHANGED",
+          "scheduleEventId": 12999,
+          "scheduledStartTime": "2024-10-16T10:00:00",
+          "scheduledEndTime": null,
+          "scheduleEventClass": "INT_MOV",
+          "scheduleEventType": "APP",
+          "scheduleEventSubType": "VLB",
+          "scheduleEventStatus": "CANC",
+          "recordDeleted": true,
+          "agencyLocationId": "MDI"
+        }
+        """.trimIndent(),
+      )
+
+      verifyEventEmitted()
+      verifyTelemetry()
+      assertThat(telemetryAttributes).containsOnlyKeys(
+        "occurredAt",
+        "eventType",
+        "nomsNumber",
+        "recordDeleted",
+        "scheduleEventId",
+        "scheduleEventStatus",
+        "scheduleEventSubType",
+        "scheduledStartTime",
+        "publishedAt",
+        "agencyLocationId",
+      )
+
+      assertThat(telemetryAttributes).doesNotContainKey("scheduledEndTime")
     }
   }
 

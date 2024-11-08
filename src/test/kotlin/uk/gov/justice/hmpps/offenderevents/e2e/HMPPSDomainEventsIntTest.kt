@@ -528,8 +528,8 @@ class HMPPSDomainEventsIntTest : QueueListenerIntegrationTest() {
         assertJsonPath("additionalInformation.scheduleEventId").asString().isEqualTo("100")
         assertJsonPath("additionalInformation.scheduleEventSubType").isEqualTo("VLB")
         assertJsonPath("additionalInformation.scheduleEventStatus").isEqualTo("CANC")
-        assertJsonPath("additionalInformation.scheduledStartTime").isEqualTo("2024-07-08T10:15")
-        assertJsonPath("additionalInformation.scheduledEndTime").isEqualTo("2024-07-08T10:45")
+        assertJsonPath("additionalInformation.scheduledStartTime").isEqualTo("2024-07-08T10:15:00")
+        assertJsonPath("additionalInformation.scheduledEndTime").isEqualTo("2024-07-08T10:45:00")
         assertJsonPath("additionalInformation.recordDeleted").isEqualTo("true")
         assertJsonPath("additionalInformation.agencyLocationId").isEqualTo("MDI")
       }
