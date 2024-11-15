@@ -430,7 +430,9 @@ class HMPPSDomainEventsIntTest : QueueListenerIntegrationTest() {
             "nomisEventType":"OFF_BKB_UPD",
             "offenderId":"2620073",
             "previousOffenderIdDisplay":"A9999CA",
-            "previousOffenderId":"5260560"
+            "previousOffenderId":"5260560",
+            "bookingStartDateTime":"2024-07-08T14:28:10",
+            "lastAdmissionDate":"2024-07-08"
           }
                 """
             .trimIndent(),
@@ -461,7 +463,9 @@ class HMPPSDomainEventsIntTest : QueueListenerIntegrationTest() {
             "nomisEventType":"OFF_BKB_UPD",
             "offenderId":"2620073",
             "previousOffenderIdDisplay":"A1111CL",
-            "previousOffenderId":"5260560"
+            "previousOffenderId":"5260560",
+            "bookingStartDateTime":"2024-07-08T14:28:10",
+            "lastAdmissionDate":"2024-07-08"
           }
                 """
             .trimIndent(),
@@ -480,6 +484,7 @@ class HMPPSDomainEventsIntTest : QueueListenerIntegrationTest() {
           assertJsonPath("personReference.identifiers[0].value").isEqualTo("A9999CA")
           assertJsonPath("personReference.identifiers[0].type").isEqualTo("NOMS")
           assertJsonPath("additionalInformation.bookingId").asString().isEqualTo("2936648")
+          assertJsonPath("additionalInformation.bookingStartDateTime").isEqualTo("2024-07-08T14:28:10")
         }
       }
     }

@@ -445,6 +445,9 @@ class HMPPSDomainEventsEmitter(
 
   private fun PrisonerBookingMovedOffenderEvent.toDomainEvent(): HmppsDomainEvent? =
     this.takeIf { offenderIdDisplay != previousOffenderIdDisplay }?.let {
+      if (!lastAdmissionDate.isEqual(bookingStartDateTime.toLocalDate())) {
+        log.error("Received OFFENDER_BOOKING-REASSIGNED event but lastAdmissionDate and bookingStartDateTime do not match")
+      }
       HmppsDomainEvent(
         eventType = "prison-offender-events.prisoner.booking.moved",
         description = "a NOMIS booking has moved between prisoners",
@@ -455,6 +458,7 @@ class HMPPSDomainEventsEmitter(
         .withAdditionalInformation("bookingId", bookingId)
         .withAdditionalInformation("movedToNomsNumber", offenderIdDisplay)
         .withAdditionalInformation("movedFromNomsNumber", previousOffenderIdDisplay)
+        .withAdditionalInformation("bookingStartDateTime", bookingStartDateTime)
     }
 
   private fun VisitorRestrictionOffenderEventUpserted.Companion.toDomainEvents(message: VisitorRestrictionOffenderEventUpserted): List<HmppsDomainEvent> =
