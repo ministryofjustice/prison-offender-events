@@ -10,8 +10,6 @@ generic-service:
 
   ingress:
     enabled: true
-    v1_2_enabled: true
-    v0_47_enabled: false
     annotations:
       nginx.ingress.kubernetes.io/server-snippet: |
         server_tokens off;
@@ -27,8 +25,6 @@ generic-service:
     JAVA_OPTS: "-Xmx512m"
     AWS_REGION: "eu-west-2"
     SPRING_PROFILES_ACTIVE: "sns"
-    APPLICATIONINSIGHTS_CONNECTION_STRING: "InstrumentationKey=$(APPINSIGHTS_INSTRUMENTATIONKEY);IngestionEndpoint=https://northeurope-0.in.applicationinsights.azure.com/;LiveEndpoint=https://northeurope.livediagnostics.monitor.azure.com/"
-    HMPPS_SQS_USE_WEB_TOKEN: true
 
   # Pre-existing kubernetes secrets to load as environment variables in the deployment.
   # namespace_secrets:
@@ -36,8 +32,9 @@ generic-service:
   #     [name of environment variable as seen by app]: [key of kubernetes secret to load]
 
   namespace_secrets:
+    application-insights:
+      APPLICATIONINSIGHTS_CONNECTION_STRING: "APPLICATIONINSIGHTS_CONNECTION_STRING"
     prison-offender-events:
-      APPINSIGHTS_INSTRUMENTATIONKEY: "APPINSIGHTS_INSTRUMENTATIONKEY"
       OFFENDER_EVENTS_CLIENT_SECRET: "OFFENDER_EVENTS_CLIENT_SECRET"
       OFFENDER_EVENTS_CLIENT_ID: "OFFENDER_EVENTS_CLIENT_ID"
     offender-events-topic:
