@@ -1,7 +1,7 @@
 @file:Suppress("UnstableApiUsage")
 
 plugins {
-  id("uk.gov.justice.hmpps.gradle-spring-boot") version "6.0.9"
+  id("uk.gov.justice.hmpps.gradle-spring-boot") version "6.1.0"
   kotlin("plugin.spring") version "2.0.21"
 }
 
@@ -25,10 +25,10 @@ dependencies {
   annotationProcessor("org.projectlombok:lombok:1.18.36")
   compileOnly("org.projectlombok:lombok:1.18.36")
 
-  implementation("uk.gov.justice.service.hmpps:hmpps-kotlin-spring-boot-starter:1.0.8")
+  implementation("uk.gov.justice.service.hmpps:hmpps-kotlin-spring-boot-starter:1.1.0")
   implementation("org.springframework.boot:spring-boot-starter-webflux")
 
-  implementation("uk.gov.justice.service.hmpps:hmpps-sqs-spring-boot-starter:5.1.0")
+  implementation("uk.gov.justice.service.hmpps:hmpps-sqs-spring-boot-starter:5.2.0")
   implementation("io.opentelemetry.instrumentation:opentelemetry-instrumentation-annotations:2.9.0")
 
   implementation("org.apache.commons:commons-text:1.12.0")
@@ -36,9 +36,9 @@ dependencies {
   implementation("com.google.code.gson:gson:2.11.0")
   implementation("com.google.guava:guava:33.3.1-jre")
 
-  implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:2.6.0")
+  implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:2.7.0")
 
-  testImplementation("uk.gov.justice.service.hmpps:hmpps-kotlin-spring-boot-starter-test:1.0.8")
+  testImplementation("uk.gov.justice.service.hmpps:hmpps-kotlin-spring-boot-starter-test:1.1.0")
   testAnnotationProcessor("org.springframework.boot:spring-boot-configuration-processor")
   testAnnotationProcessor("org.projectlombok:lombok:1.18.36")
   testCompileOnly("org.projectlombok:lombok:1.18.36")
