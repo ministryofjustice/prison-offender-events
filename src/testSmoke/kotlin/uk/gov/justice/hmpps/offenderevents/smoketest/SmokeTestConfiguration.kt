@@ -14,6 +14,7 @@ import org.springframework.security.oauth2.client.registration.ClientRegistratio
 import org.springframework.web.reactive.function.client.WebClient
 import org.springframework.web.reactive.function.client.WebClient.Builder
 import uk.gov.justice.hmpps.kotlin.auth.authorisedWebClient
+import java.time.Duration
 
 @ConditionalOnProperty(name = ["smoketest.enabled"], havingValue = "true")
 @EnableWebSecurity
@@ -27,6 +28,7 @@ class SmokeTestConfiguration(@Value("\${smoketest.endpoint.url}") private val sm
       authorizedClientManager = authorizedClientManager,
       registrationId = "smoketest-service",
       url = smokeTestUrl,
+      timeout = Duration.ofMinutes(5),
     )
 
   @Bean
