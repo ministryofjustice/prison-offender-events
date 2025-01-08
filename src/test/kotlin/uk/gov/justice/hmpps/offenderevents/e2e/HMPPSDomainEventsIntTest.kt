@@ -16,7 +16,7 @@ import org.mockito.kotlin.times
 import org.mockito.kotlin.verify
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
-import org.springframework.boot.test.mock.mockito.SpyBean
+import org.springframework.test.context.bean.override.mockito.MockitoSpyBean
 import software.amazon.awssdk.services.sns.model.MessageAttributeValue
 import software.amazon.awssdk.services.sns.model.PublishRequest
 import software.amazon.awssdk.services.sqs.model.Message
@@ -36,7 +36,7 @@ class HMPPSDomainEventsIntTest : QueueListenerIntegrationTest() {
   @Autowired
   private lateinit var objectMapper: ObjectMapper
 
-  @SpyBean
+  @MockitoSpyBean
   private lateinit var emitter: HMPPSDomainEventsEmitter
 
   @BeforeEach
