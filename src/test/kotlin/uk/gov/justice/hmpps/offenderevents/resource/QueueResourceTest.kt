@@ -17,11 +17,10 @@ class QueueResourceTest : QueueListenerIntegrationTest() {
   @Nested
   @TestInstance(TestInstance.Lifecycle.PER_CLASS)
   inner class SecureEndpoints {
-    private fun secureEndpoints() =
-      listOf(
-        "/queue-admin/purge-queue/any",
-        "/queue-admin/retry-dlq/any",
-      )
+    private fun secureEndpoints() = listOf(
+      "/queue-admin/purge-queue/any",
+      "/queue-admin/retry-dlq/any",
+    )
 
     @ParameterizedTest
     @MethodSource("secureEndpoints")

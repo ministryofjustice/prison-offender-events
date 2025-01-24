@@ -106,15 +106,13 @@ internal class ReleasePrisonerReasonCalculatorTest {
     assertThat(calculator.calculateReasonForRelease("A1234GH").hasPrisonerActuallyBeenRelease()).isFalse()
   }
 
-  private fun prisonerDetails(lastMovementTypCode: String, lastMovementReasonCode: String = "N"): PrisonerDetails {
-    return PrisonerDetails(
-      LegalStatus.SENTENCED,
-      false,
-      lastMovementTypCode,
-      lastMovementReasonCode,
-      "ACTIVE OUT",
-      "$lastMovementTypCode-$lastMovementReasonCode",
-      "MDI",
-    )
-  }
+  private fun prisonerDetails(lastMovementTypCode: String, lastMovementReasonCode: String = "N"): PrisonerDetails = PrisonerDetails(
+    LegalStatus.SENTENCED,
+    false,
+    lastMovementTypCode,
+    lastMovementReasonCode,
+    "ACTIVE OUT",
+    "$lastMovementTypCode-$lastMovementReasonCode",
+    "MDI",
+  )
 }

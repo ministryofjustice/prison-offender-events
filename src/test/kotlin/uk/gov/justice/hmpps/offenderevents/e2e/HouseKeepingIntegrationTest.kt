@@ -34,6 +34,4 @@ class HouseKeepingIntegrationTest : QueueListenerIntegrationTest() {
   }
 }
 
-private fun String.readResourceAsText(): String {
-  return HouseKeepingIntegrationTest::class.java.getResource(this).readText()
-}
+private fun String.readResourceAsText(): String = HouseKeepingIntegrationTest::class.java.getResource(this).readText()

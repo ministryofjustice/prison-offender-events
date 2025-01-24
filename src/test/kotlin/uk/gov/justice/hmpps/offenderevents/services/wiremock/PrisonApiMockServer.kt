@@ -140,9 +140,8 @@ class PrisonApiMockServer internal constructor() : WireMockServer(8086) {
     lastMovementReasonCode: String,
     status: String,
     latestLocationId: String,
-  ): String {
-    return String.format(
-      """
+  ): String = String.format(
+    """
             {
                 "offenderNo": "%s",
                 "bookingId": 1201233,
@@ -211,34 +210,30 @@ class PrisonApiMockServer internal constructor() : WireMockServer(8086) {
                 "latestLocationId": "%s"
             }
                         
-      """.trimIndent(),
-      offenderNumber,
-      status,
-      lastMovementTypeCode,
-      lastMovementReasonCode,
-      legalStatus,
-      recall,
-      latestLocationId,
-    )
-  }
+    """.trimIndent(),
+    offenderNumber,
+    status,
+    lastMovementTypeCode,
+    lastMovementReasonCode,
+    legalStatus,
+    recall,
+    latestLocationId,
+  )
 
-  private fun basicPrisonerDetails(offenderNumber: String, bookingId: Long?): String {
-    return String.format(
-      """
+  private fun basicPrisonerDetails(offenderNumber: String, bookingId: Long?): String = String.format(
+    """
             {
                 "offenderNo": "%s",
                 "bookingId": %d
             }
             
-      """.trimIndent(),
-      offenderNumber,
-      bookingId,
-    )
-  }
+    """.trimIndent(),
+    offenderNumber,
+    bookingId,
+  )
 
-  private fun mergeIdentifier(mergedNumber: String): String {
-    return String.format(
-      """
+  private fun mergeIdentifier(mergedNumber: String): String = String.format(
+    """
             [
                 {
                     "type": "MERGE",
@@ -246,10 +241,9 @@ class PrisonApiMockServer internal constructor() : WireMockServer(8086) {
                 }
             ]
             
-      """.trimIndent(),
-      mergedNumber,
-    )
-  }
+    """.trimIndent(),
+    mergedNumber,
+  )
 
   fun stubHealthPing(status: Int) {
     val up = """

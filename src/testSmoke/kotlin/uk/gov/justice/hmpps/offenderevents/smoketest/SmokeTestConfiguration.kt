@@ -23,23 +23,21 @@ class SmokeTestConfiguration(@Value("\${smoketest.endpoint.url}") private val sm
   private val webClientBuilder: Builder = WebClient.builder()
 
   @Bean
-  fun smokeTestWebClient(authorizedClientManager: OAuth2AuthorizedClientManager): WebClient =
-    webClientBuilder.authorisedWebClient(
-      authorizedClientManager = authorizedClientManager,
-      registrationId = "smoketest-service",
-      url = smokeTestUrl,
-      timeout = Duration.ofMinutes(5),
-    )
+  fun smokeTestWebClient(authorizedClientManager: OAuth2AuthorizedClientManager): WebClient = webClientBuilder.authorisedWebClient(
+    authorizedClientManager = authorizedClientManager,
+    registrationId = "smoketest-service",
+    url = smokeTestUrl,
+    timeout = Duration.ofMinutes(5),
+  )
 
   @Bean
   fun authorizedClientManager(
     clientRegistrationRepository: ClientRegistrationRepository,
     oAuth2AuthorizedClientService: OAuth2AuthorizedClientService,
-  ): OAuth2AuthorizedClientManager =
-    AuthorizedClientServiceOAuth2AuthorizedClientManager(
-      clientRegistrationRepository,
-      oAuth2AuthorizedClientService,
-    ).apply {
-      setAuthorizedClientProvider(OAuth2AuthorizedClientProviderBuilder.builder().clientCredentials().build())
-    }
+  ): OAuth2AuthorizedClientManager = AuthorizedClientServiceOAuth2AuthorizedClientManager(
+    clientRegistrationRepository,
+    oAuth2AuthorizedClientService,
+  ).apply {
+    setAuthorizedClientProvider(OAuth2AuthorizedClientProviderBuilder.builder().clientCredentials().build())
+  }
 }
