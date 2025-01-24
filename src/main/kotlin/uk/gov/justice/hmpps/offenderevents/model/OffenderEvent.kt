@@ -11,8 +11,7 @@ abstract class OffenderEvent(
   val eventDatetime: LocalDateTime,
   open val offenderIdDisplay: String?,
 ) {
-  internal fun toOccurredAt(): String =
-    eventDatetime.atZone(ZoneId.of("Europe/London")).toOffsetDateTime().format(ISO_OFFSET_DATE_TIME)
+  internal fun toOccurredAt(): String = eventDatetime.atZone(ZoneId.of("Europe/London")).toOffsetDateTime().format(ISO_OFFSET_DATE_TIME)
 }
 
 class CaseNoteOffenderEvent(
