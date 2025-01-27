@@ -5,7 +5,10 @@ import org.junit.jupiter.api.extension.BeforeAllCallback
 import org.junit.jupiter.api.extension.BeforeEachCallback
 import org.junit.jupiter.api.extension.ExtensionContext
 
-class HMPPSAuthExtension : BeforeAllCallback, AfterAllCallback, BeforeEachCallback {
+class HMPPSAuthExtension :
+  BeforeAllCallback,
+  AfterAllCallback,
+  BeforeEachCallback {
   override fun afterAll(context: ExtensionContext): Unit = server.stop()
 
   override fun beforeAll(context: ExtensionContext) {

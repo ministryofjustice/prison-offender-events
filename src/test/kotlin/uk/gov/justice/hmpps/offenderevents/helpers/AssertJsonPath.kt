@@ -13,8 +13,7 @@ fun String?.assertJsonPath(path: String, expectedValue: Any) {
   JsonPathExpectationsHelper(path).assertValue(this!!, expectedValue)
 }
 
-fun String?.assertJsonPath(path: String): ObjectAssert<Any> =
-  assertThat(JsonPathExpectationsHelper(path).evaluateJsonPath(this!!))
+fun String?.assertJsonPath(path: String): ObjectAssert<Any> = assertThat(JsonPathExpectationsHelper(path).evaluateJsonPath(this!!))
 
 fun String?.assertJsonPathIsArray(path: String): ObjectArrayAssert<Any> {
   JsonPathExpectationsHelper(path).assertValueIsArray(this!!)
