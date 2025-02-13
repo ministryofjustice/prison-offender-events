@@ -1,7 +1,7 @@
 @file:Suppress("UnstableApiUsage")
 
 plugins {
-  id("uk.gov.justice.hmpps.gradle-spring-boot") version "7.1.1"
+  id("uk.gov.justice.hmpps.gradle-spring-boot") version "7.1.2"
   kotlin("plugin.spring") version "2.1.10"
 }
 
@@ -46,7 +46,7 @@ dependencies {
   testImplementation("org.springframework.security:spring-security-test")
   testImplementation("com.tngtech.java:junit-dataprovider:1.13.1")
   testImplementation("io.github.http-builder-ng:http-builder-ng-apache:1.0.4")
-  testImplementation("org.wiremock:wiremock-standalone:3.11.0")
+  testImplementation("org.wiremock:wiremock-standalone:3.12.0")
   testImplementation("junit:junit:4.13.2")
   testImplementation("org.awaitility:awaitility:4.2.2")
   testImplementation("org.awaitility:awaitility-kotlin:4.2.2")
