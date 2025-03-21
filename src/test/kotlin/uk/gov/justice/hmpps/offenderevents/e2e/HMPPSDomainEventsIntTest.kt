@@ -2,7 +2,6 @@ package uk.gov.justice.hmpps.offenderevents.e2e
 
 import com.fasterxml.jackson.core.JsonProcessingException
 import com.fasterxml.jackson.databind.ObjectMapper
-import junit.framework.AssertionFailedError
 import org.assertj.core.api.Assertions.within
 import org.awaitility.Awaitility.await
 import org.junit.jupiter.api.BeforeEach
@@ -60,7 +59,7 @@ class HMPPSDomainEventsIntTest : QueueListenerIntegrationTest() {
   private fun toSQSMessage(message: String): SQSMessage = try {
     objectMapper.readValue(message, SQSMessage::class.java)
   } catch (e: JsonProcessingException) {
-    throw AssertionFailedError(String.format("Message %s is not parseable", message))
+    throw RuntimeException(String.format("Message %s is not parseable", message))
   }
 
   @JvmRecord
