@@ -36,7 +36,7 @@ dependencies {
   implementation("com.google.code.gson:gson:2.12.1")
   implementation("com.google.guava:guava:33.4.5-jre")
 
-  implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.5")
+  implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.6")
 
   testImplementation("uk.gov.justice.service.hmpps:hmpps-kotlin-spring-boot-starter-test:1.4.2")
   testAnnotationProcessor("org.springframework.boot:spring-boot-configuration-processor")
